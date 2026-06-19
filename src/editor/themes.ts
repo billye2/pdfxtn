@@ -1,0 +1,188 @@
+// Four switchable "Looks". Each is a set of CSS custom properties applied to the
+// app root as inline style vars. Keys mirror the design handoff tokens.
+import type { CSSProperties } from 'react';
+
+export type LookId = 'blocks' | 'bubble' | 'sticker' | 'sunny';
+
+export interface Look {
+  id: LookId;
+  name: string;
+  /** CSS custom properties (without the leading `--`). */
+  vars: Record<string, string>;
+}
+
+export const LOOKS: Record<LookId, Look> = {
+  blocks: {
+    id: 'blocks',
+    name: 'Blocks',
+    vars: {
+      bg: '#fdf3e2',
+      bgImage: 'radial-gradient(rgba(54,50,79,0.06) 1.6px, transparent 1.6px)',
+      bgSize: '22px 22px',
+      ink: '#36324f',
+      sub: '#9a8d86',
+      barBg: '#fdf3e2',
+      card: '#ffffff',
+      cardOutline: '2.5px solid #f0e1c5',
+      cardOutlineCol: '#f0e1c5',
+      cardShadow: '0 4px 0 rgba(54,50,79,0.10)',
+      radCard: '18px',
+      thumbBg: '#fbf2df',
+      page: '#ffffff',
+      accentSoft: '#eaf5ff',
+      'c-add': '#3b9bf0',
+      'c-go': '#48c95f',
+      'c-rotate': '#ffc83d',
+      'c-crop': '#9b6bff',
+      'c-split': '#ff8a3d',
+      'c-del': '#ef5a52',
+      'c-sel': '#3b9bf0',
+      onColor: '#ffffff',
+      rotateText: '#5a4600',
+      btnRad: '13px',
+      btnShadow: '0 4px 0 rgba(54,50,79,0.18)',
+      btnShadowActive: '0 1px 0 rgba(54,50,79,0.18)',
+      btnBorder: 'none',
+      press: '3px',
+      brand: '#ef5a52',
+      coin: '#ffc83d',
+      star: '#ff8a3d',
+      'grid-min': '180px',
+      'grid-gap': '22px',
+    },
+  },
+  bubble: {
+    id: 'bubble',
+    name: 'Bubble',
+    vars: {
+      bg: '#fef3f8',
+      bgImage: 'radial-gradient(rgba(160,120,200,0.07) 2px, transparent 2px)',
+      bgSize: '30px 30px',
+      ink: '#5a4a66',
+      sub: '#b3a3bf',
+      barBg: '#fdeef6',
+      card: '#ffffff',
+      cardOutline: '2px solid #f3e2ee',
+      cardOutlineCol: '#f3e2ee',
+      cardShadow: '0 8px 18px rgba(150,110,180,0.16)',
+      radCard: '24px',
+      thumbBg: '#fbf1f8',
+      page: '#ffffff',
+      accentSoft: '#eef6ff',
+      'c-add': '#6cc0f2',
+      'c-go': '#73d18a',
+      'c-rotate': '#ffd98a',
+      'c-crop': '#bfa1ff',
+      'c-split': '#ffae84',
+      'c-del': '#ff97a3',
+      'c-sel': '#54a8e8',
+      onColor: '#43354f',
+      rotateText: '#5a4a30',
+      btnRad: '999px',
+      btnShadow: '0 6px 14px rgba(150,110,180,0.20)',
+      btnShadowActive: '0 2px 6px rgba(150,110,180,0.20)',
+      btnBorder: 'none',
+      press: '2px',
+      brand: '#ff97a3',
+      coin: '#ffd98a',
+      star: '#bfa1ff',
+      'grid-min': '180px',
+      'grid-gap': '24px',
+    },
+  },
+  sticker: {
+    id: 'sticker',
+    name: 'Sticker',
+    vars: {
+      bg: '#fffdf5',
+      bgImage: 'none',
+      bgSize: 'auto',
+      ink: '#241f2e',
+      sub: '#8a8594',
+      barBg: '#fffaf0',
+      card: '#ffffff',
+      cardOutline: '3px solid #241f2e',
+      cardOutlineCol: '#241f2e',
+      cardShadow: '3px 4px 0 #241f2e',
+      radCard: '16px',
+      thumbBg: '#f6f3ec',
+      page: '#ffffff',
+      accentSoft: '#e9f3ff',
+      'c-add': '#3aa0ff',
+      'c-go': '#43cf6b',
+      'c-rotate': '#ffcb3a',
+      'c-crop': '#a878ff',
+      'c-split': '#ff7a3a',
+      'c-del': '#ff5b54',
+      'c-sel': '#3aa0ff',
+      onColor: '#ffffff',
+      rotateText: '#241f2e',
+      btnRad: '12px',
+      btnShadow: '0 3px 0 #241f2e',
+      btnShadowActive: '0 1px 0 #241f2e',
+      btnBorder: '2.5px solid #241f2e',
+      press: '2px',
+      brand: '#ff5b54',
+      coin: '#ffcb3a',
+      star: '#ff7a3a',
+      'grid-min': '180px',
+      'grid-gap': '22px',
+    },
+  },
+  sunny: {
+    id: 'sunny',
+    name: 'Sunny',
+    vars: {
+      bg: '#fff8ea',
+      bgImage: 'none',
+      bgSize: 'auto',
+      ink: '#4a4034',
+      sub: '#b09c83',
+      barBg: '#fffbf1',
+      card: '#ffffff',
+      cardOutline: '1.5px solid #efe0c8',
+      cardOutlineCol: '#efe0c8',
+      cardShadow: '0 6px 16px rgba(180,140,80,0.12)',
+      radCard: '18px',
+      thumbBg: '#fbf3e4',
+      page: '#ffffff',
+      accentSoft: '#fff0e8',
+      'c-add': '#ff7a59',
+      'c-go': '#2fb36a',
+      'c-rotate': '#ffc861',
+      'c-crop': '#caa6f0',
+      'c-split': '#ffa06b',
+      'c-del': '#ef6b5e',
+      'c-sel': '#ff7a59',
+      onColor: '#ffffff',
+      rotateText: '#5a4a28',
+      btnRad: '14px',
+      btnShadow: '0 4px 12px rgba(180,120,70,0.18)',
+      btnShadowActive: '0 2px 6px rgba(180,120,70,0.18)',
+      btnBorder: 'none',
+      press: '2px',
+      brand: '#ff7a59',
+      coin: '#ffc861',
+      star: '#ffa06b',
+      'grid-min': '186px',
+      'grid-gap': '22px',
+    },
+  },
+};
+
+export const LOOK_ORDER: LookId[] = ['blocks', 'bubble', 'sticker', 'sunny'];
+
+/** Convert a Look's tokens into a React inline-style object of CSS vars. */
+export function lookStyle(look: LookId): CSSProperties {
+  const style: Record<string, string> = {};
+  for (const [k, v] of Object.entries(LOOKS[look].vars)) {
+    style[`--${k}`] = v;
+  }
+  return style as CSSProperties;
+}
+
+/** The four palette swatches shown in the Look picker, in token order. */
+export function paletteDots(look: LookId): string[] {
+  const v = LOOKS[look].vars;
+  return [v['c-del'], v['c-rotate'], v['c-add'], v['c-go']];
+}
