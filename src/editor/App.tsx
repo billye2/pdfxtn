@@ -4,6 +4,7 @@ import Toolbar from './components/Toolbar';
 import ThumbnailGrid from './components/ThumbnailGrid';
 import CropDialog from './components/CropDialog';
 import RangeDialog from './components/RangeDialog';
+import Lightbox from './components/Lightbox';
 import EmptyState from './components/EmptyState';
 import LoadingState from './components/LoadingState';
 import SelectionDock from './components/SelectionDock';
@@ -30,6 +31,7 @@ export default function App() {
   const [toast, setToast] = useState<ToastState | null>(null);
   const [cropOpen, setCropOpen] = useState(false);
   const [rangeOpen, setRangeOpen] = useState(false);
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const [dragActive, setDragActive] = useState(false);
 
   const { pages, selected, splitMarks } = history.present;
@@ -91,6 +93,24 @@ export default function App() {
       const mod = e.metaKey || e.ctrlKey;
       const tag = (e.target as HTMLElement)?.tagName;
       const typing = tag === 'INPUT' || tag === 'TEXTAREA';
+
+      // While the preview is open, arrows page and Esc closes; nothing else runs.
+      if (previewIndex !== null) {
+        if (e.key === 'Escape') setPreviewIndex(null);
+        else if (e.key === 'ArrowRight') setPreviewIndex((i) => (i === null ? i : Math.min(i + 1, pages.length - 1)));
+        else if (e.key === 'ArrowLeft') setPreviewIndex((i) => (i === null ? i : Math.max(i - 1, 0)));
+        return;
+      }
+
+      // Space opens the preview for a single selected page.
+      if (e.key === ' ' && !typing && selected.size === 1) {
+        e.preventDefault();
+        const id = [...selected][0];
+        const idx = pages.findIndex((p) => p.id === id);
+        if (idx >= 0) setPreviewIndex(idx);
+        return;
+      }
+
       if (mod && e.key.toLowerCase() === 'z') {
         e.preventDefault();
         dispatch({ type: e.shiftKey ? 'redo' : 'undo' });
@@ -109,7 +129,14 @@ export default function App() {
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selected.size]);
+  }, [selected, previewIndex, pages]);
+
+  // Keep the preview index valid as pages are deleted/extracted.
+  useEffect(() => {
+    if (previewIndex === null) return;
+    if (pages.length === 0) setPreviewIndex(null);
+    else if (previewIndex >= pages.length) setPreviewIndex(pages.length - 1);
+  }, [pages.length, previewIndex]);
 
   const handleSelect = useCallback((id: string, e: React.MouseEvent) => {
     if (e.shiftKey) dispatch({ type: 'selectRangeTo', id });
@@ -241,6 +268,10 @@ export default function App() {
               dispatch({ type: 'deleteSelected' });
             }}
             onToggleSplit={(id) => dispatch({ type: 'toggleSplitMark', id })}
+            onOpenPreview={(id) => {
+              const idx = pages.findIndex((p) => p.id === id);
+              if (idx >= 0) setPreviewIndex(idx);
+            }}
             onClearSelection={() => dispatch({ type: 'clearSelection' })}
           />
         )}
@@ -279,6 +310,32 @@ export default function App() {
           total={pages.length}
           onExport={handleExportRange}
           onCancel={() => setRangeOpen(false)}
+        />
+      )}
+
+      {previewIndex !== null && pages[previewIndex] && (
+        <Lightbox
+          page={pages[previewIndex]}
+          index={previewIndex}
+          total={pages.length}
+          doc={docs.get(pages[previewIndex].docId)}
+          onPrev={() => setPreviewIndex((i) => (i === null ? i : Math.max(i - 1, 0)))}
+          onNext={() =>
+            setPreviewIndex((i) => (i === null ? i : Math.min(i + 1, pages.length - 1)))
+          }
+          onRotate={(delta) =>
+            dispatch({ type: 'rotateOne', id: pages[previewIndex].id, delta })
+          }
+          onDelete={() => {
+            dispatch({ type: 'toggleSelect', id: pages[previewIndex].id, additive: false });
+            dispatch({ type: 'deleteSelected' });
+          }}
+          onCrop={() => {
+            dispatch({ type: 'toggleSelect', id: pages[previewIndex].id, additive: false });
+            setPreviewIndex(null);
+            setCropOpen(true);
+          }}
+          onClose={() => setPreviewIndex(null)}
         />
       )}
 

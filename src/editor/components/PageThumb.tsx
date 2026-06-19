@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { RotateCcw, RotateCw, Scissors, X, GripVertical, Check } from './icons';
+import { RotateCcw, RotateCw, Scissors, X, GripVertical, Check, Maximize2 } from './icons';
 import type { PageDescriptor } from '../lib/pageModel';
 import { renderThumbnail, type LoadedDoc } from '../lib/pdfRender';
 
@@ -17,6 +17,7 @@ interface Props {
   onRotate: (id: string, delta: 90 | -90) => void;
   onDelete: (id: string) => void;
   onToggleSplit: (id: string) => void;
+  onOpenPreview: (id: string) => void;
 }
 
 const DEFAULT_ASPECT = 0.7727; // US Letter / A4 portrait, used before render
@@ -33,6 +34,7 @@ export default function PageThumb({
   onRotate,
   onDelete,
   onToggleSplit,
+  onOpenPreview,
 }: Props) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } =
     useSortable({ id: page.id });
@@ -129,7 +131,19 @@ export default function PageThumb({
         isOver ? ' over' : ''
       }`}
       onClick={(e) => onSelect(page.id, e)}
+      onDoubleClick={() => onOpenPreview(page.id)}
     >
+      <button
+        className="card-expand"
+        title="Preview page"
+        onClick={(e) => {
+          e.stopPropagation();
+          onOpenPreview(page.id);
+        }}
+      >
+        <Maximize2 size={15} />
+      </button>
+
       {splitMark && <span className="card-split-line" />}
       {splitMark && (
         <span className="card-split-badge">

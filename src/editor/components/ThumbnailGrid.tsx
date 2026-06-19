@@ -21,6 +21,7 @@ interface Props {
   onRotate: (id: string, delta: 90 | -90) => void;
   onDelete: (id: string) => void;
   onToggleSplit: (id: string) => void;
+  onOpenPreview: (id: string) => void;
   onClearSelection: () => void;
 }
 
@@ -34,6 +35,7 @@ export default function ThumbnailGrid({
   onRotate,
   onDelete,
   onToggleSplit,
+  onOpenPreview,
   onClearSelection,
 }: Props) {
   const sensors = useSensors(
@@ -75,6 +77,7 @@ export default function ThumbnailGrid({
               onRotate={onRotate}
               onDelete={onDelete}
               onToggleSplit={onToggleSplit}
+              onOpenPreview={onOpenPreview}
             />
           ))}
         </div>
