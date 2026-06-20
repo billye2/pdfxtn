@@ -80,9 +80,12 @@ Everything you need to paste into the Developer Dashboard for PDF Mana 1.0.0.
 
 - **Privacy policy URL:** https://github.com/billye2/pdfxtn/blob/main/PRIVACY.md
 - **Data collection:** None. Declare "does not collect or use" for every data category.
-- **Disclosures to check:** "I do not sell or transfer user data to third parties," "…not
-  use or transfer for purposes unrelated to the item's single purpose," "…not use or
-  transfer to determine creditworthiness / for lending."
+- **Remote code:** Select **"No, I am not using remote code."** All code/assets (pdf.js
+  worker, fonts) are bundled; the extension executes no remotely-hosted or dynamically
+  fetched code — it only fetches PDF *data* the user opens (data, not code).
+- **Disclosures to check (certify):** "I do not sell or transfer user data to third
+  parties," "…not use or transfer for purposes unrelated to the item's single purpose,"
+  "…not use or transfer to determine creditworthiness / for lending."
 
 ## Permission justifications (paste per-permission)
 
