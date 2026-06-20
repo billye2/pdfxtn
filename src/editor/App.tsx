@@ -197,6 +197,18 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, [selected, previewIndex, pages]);
 
+  // Warn before leaving/reloading while there's work in progress. (Can't help
+  // a browser crash, but this catches accidental reloads, Cmd-W, and navigation.)
+  useEffect(() => {
+    if (pages.length === 0) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [pages.length]);
+
   // Keep the preview index valid as pages are deleted/extracted.
   useEffect(() => {
     if (previewIndex === null) return;
