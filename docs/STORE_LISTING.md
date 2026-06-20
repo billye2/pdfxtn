@@ -74,7 +74,8 @@ Everything you need to paste into the Developer Dashboard for PDF Mana 1.0.0.
 - **Store icon:** 128×128 — `dist/src/icons/icon128.png` (or export from `src/icons/icon.svg`).
 - **Screenshots (1280×800):** `release/screenshots/01-editor.png` … `04-theme.png`
   (regenerate with `node scripts/screenshots.mjs`). At least one is required; up to five.
-- **Promo tiles (optional):** small 440×280, marquee 1400×560 — not generated; optional.
+- **Promo tiles (optional):** `release/promo/small-440x280.png` and
+  `release/promo/marquee-1400x560.png` (regenerate with `node scripts/promo.mjs`).
 
 ## Pre-submit checklist
 
