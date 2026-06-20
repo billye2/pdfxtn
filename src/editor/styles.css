@@ -143,22 +143,6 @@ button:disabled {
   align-items: center;
   gap: 11px;
 }
-.brand-mark {
-  width: 36px;
-  height: 36px;
-  border-radius: 11px;
-  background: var(--brand);
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.14);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.brand-page {
-  width: 15px;
-  height: 19px;
-  border-radius: 3px;
-  background: #fff;
-}
 .brand-text {
   display: flex;
   flex-direction: column;

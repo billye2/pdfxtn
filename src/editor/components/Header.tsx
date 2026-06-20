@@ -34,9 +34,6 @@ export default function Header(props: Props) {
   return (
     <header className="header">
       <div className="brand">
-        <span className="brand-mark">
-          <span className="brand-page" />
-        </span>
         <span className="brand-text">
           <span className="brand-title">PDF Mana</span>
           <span className="brand-sub">Merge · Arrange · Nip · Adjust</span>
