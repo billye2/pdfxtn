@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { PDFDocument, degrees } from 'pdf-lib';
 import { buildDocument } from './pdfExport';
 import type { LoadedDoc } from './pdfRender';
@@ -123,6 +124,28 @@ describe('buildDocument', () => {
     );
     expect(out.getPageCount()).toBe(2);
     expect(out.getPages().map((p) => Math.round(p.getWidth()))).toEqual([222, 100]);
+  });
+
+  it('does not duplicate shared resources across pages (size stays flat)', async () => {
+    // A source PDF that draws ONE embedded image on many pages. Copying pages
+    // one at a time would re-embed the image per page and bloat the output.
+    const src = await PDFDocument.create();
+    const img = await src.embedPng(readFileSync('src/icons/icon128.png'));
+    for (let i = 0; i < 12; i += 1) {
+      const p = src.addPage([200, 200]);
+      p.drawImage(img, { x: 0, y: 0, width: 128, height: 128 });
+    }
+    const docs = new Map([['d1', fakeDoc('d1', await src.save())]]);
+
+    const out1 = await buildDocument([desc('d1', 0)], docs);
+    const out12 = await buildDocument(
+      Array.from({ length: 12 }, (_, i) => desc('d1', i)),
+      docs,
+    );
+
+    // With de-duplication, 12 pages should be far less than 12× a single page
+    // (the shared image is embedded once). The old per-page copy would be ~12×.
+    expect(out12.length).toBeLessThan(out1.length * 3);
   });
 
   it('throws for an unknown source document', async () => {

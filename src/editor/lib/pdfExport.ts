@@ -1,4 +1,4 @@
-import { PDFDocument, degrees } from 'pdf-lib';
+import { PDFDocument, PDFPage, degrees } from 'pdf-lib';
 import type { LoadedDoc } from './pdfRender';
 import type { PageDescriptor } from './pageModel';
 
@@ -24,9 +24,32 @@ export async function buildDocument(
     return src;
   }
 
-  for (const desc of pages) {
-    const src = await getSource(desc.docId);
-    const [copied] = await out.copyPages(src, [desc.pageIndex]);
+  // Batch the copy per source document: ONE copyPages call per doc copies the
+  // requested pages while de-duplicating shared resources (fonts, images).
+  // Copying one page at a time re-embeds those resources per page, which can
+  // bloat the output ~Nx. Repeated indices still yield distinct page objects.
+  const indicesByDoc = new Map<string, number[]>();
+  pages.forEach((desc, globalIdx) => {
+    const arr = indicesByDoc.get(desc.docId);
+    if (arr) arr.push(globalIdx);
+    else indicesByDoc.set(desc.docId, [globalIdx]);
+  });
+
+  const copiedByGlobal = new Array<PDFPage>(pages.length);
+  for (const [docId, globalIdxs] of indicesByDoc) {
+    const src = await getSource(docId);
+    const copied = await out.copyPages(
+      src,
+      globalIdxs.map((gi) => pages[gi].pageIndex),
+    );
+    globalIdxs.forEach((gi, k) => {
+      copiedByGlobal[gi] = copied[k];
+    });
+  }
+
+  // Add pages in the final order, applying rotation/crop.
+  pages.forEach((desc, i) => {
+    const copied = copiedByGlobal[i];
 
     if (desc.rotation) {
       // Compose with any intrinsic rotation already on the page.
@@ -46,7 +69,7 @@ export async function buildDocument(
     }
 
     out.addPage(copied);
-  }
+  });
 
   return out.save();
 }
