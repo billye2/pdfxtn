@@ -41,7 +41,7 @@ export default function Toolbar(props: Props) {
     <div className="toolbar">
       <div className="tgroup">
         <button className="btn-add" onClick={() => fileRef.current?.click()}>
-          <Plus size={16} /> Add pages
+          <Plus size={16} /> Add PDF
         </button>
         <input
           ref={fileRef}
