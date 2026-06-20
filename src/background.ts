@@ -39,7 +39,7 @@ chrome.runtime.onInstalled.addListener(() => {
   });
   chrome.contextMenus.create({
     id: 'open-pdf-page',
-    title: 'Open this PDF in PDF Mana',
+    title: 'Open in PDF Mana',
     contexts: ['page'],
     documentUrlPatterns: PDF_PATTERNS,
   });
