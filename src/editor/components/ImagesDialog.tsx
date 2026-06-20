@@ -79,13 +79,18 @@ export default function ImagesDialog({ total, selectedIndices, onExport, onCance
         </div>
 
         {scope === 'custom' && (
-          <input
-            className="range-input"
-            autoFocus
-            placeholder="e.g. 1-3, 5, 8-10"
-            value={range}
-            onChange={(e) => setRange(e.target.value)}
-          />
+          <>
+            <input
+              className="range-input"
+              autoFocus
+              placeholder="e.g. 1-3, 5, 8-10"
+              value={range}
+              onChange={(e) => setRange(e.target.value)}
+            />
+            <p className="modal-help field-note">
+              Counts by position in the current order (1–{total}), not the "Page N" labels.
+            </p>
+          </>
         )}
 
         <div className="field-row">

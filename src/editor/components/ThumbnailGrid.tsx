@@ -63,11 +63,10 @@ export default function ThumbnailGrid({
             if (e.target === e.currentTarget) onClearSelection();
           }}
         >
-          {pages.map((page, i) => (
+          {pages.map((page) => (
             <PageThumb
               key={page.id}
               page={page}
-              index={i}
               partNumber={parts.get(page.id) ?? 1}
               showParts={showParts}
               doc={docs.get(page.docId)}

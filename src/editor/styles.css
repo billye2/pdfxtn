@@ -906,6 +906,11 @@ button:disabled {
   margin-top: 14px;
 }
 
+.field-note {
+  margin: 8px 0 0;
+  font-size: 12px;
+}
+
 /* Images dialog — labeled rows + segmented toggles */
 .field-row {
   display: flex;
@@ -1025,9 +1030,16 @@ button:disabled {
   box-shadow: 0 14px 36px rgba(0, 0, 0, 0.3);
 }
 .lightbox-counter {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   font-family: 'Fredoka', sans-serif;
   font-weight: 600;
   font-size: 14px;
+  color: var(--ink);
+}
+.lightbox-pos {
+  font-size: 12px;
   color: var(--sub);
 }
 .lightbox-actions {

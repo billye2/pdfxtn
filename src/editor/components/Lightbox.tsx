@@ -90,7 +90,10 @@ export default function Lightbox({
 
         <div className="lightbox-bar">
           <span className="lightbox-counter">
-            Page {index + 1} of {total}
+            Page {page.pageIndex + 1}
+            <span className="lightbox-pos">
+              {index + 1} of {total}
+            </span>
           </span>
           <span className="lightbox-actions">
             <button className="btn-rotate" onClick={() => onRotate(90)}>

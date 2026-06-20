@@ -7,7 +7,6 @@ import { renderThumbnail, type LoadedDoc } from '../lib/pdfRender';
 
 interface Props {
   page: PageDescriptor;
-  index: number;
   partNumber: number;
   showParts: boolean;
   doc: LoadedDoc | undefined;
@@ -24,7 +23,6 @@ const DEFAULT_ASPECT = 0.7727; // US Letter / A4 portrait, used before render
 
 export default function PageThumb({
   page,
-  index,
   partNumber,
   showParts,
   doc,
@@ -180,7 +178,7 @@ export default function PageThumb({
       </div>
 
       <div className="card-footer">
-        <span className="card-label">Page {index + 1}</span>
+        <span className="card-label">Page {page.pageIndex + 1}</span>
         {showParts && <span className="card-part">Part {partNumber}</span>}
         <span className="card-ops" onPointerDown={(e) => e.stopPropagation()}>
           <button title="Rotate" onClick={(e) => { e.stopPropagation(); onRotate(page.id, 90); }}>

@@ -27,9 +27,10 @@ export default function RangeDialog({ total, onExport, onCancel }: Props) {
   return (
     <div className="modal-backdrop" onClick={onCancel}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h2>Export page range</h2>
+        <h2>Export by position</h2>
         <p className="modal-help">
-          Type the pages to save (1–{total}). Example: <code>1-3, 5, 8-10</code>
+          Type page positions in the current order — 1 is the first page, {total} is the
+          last — not the "Page N" labels. Example: <code>1-3, 5, 8-10</code>
         </p>
 
         <input
