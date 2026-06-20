@@ -20,4 +20,5 @@ export {
   HelpCircle,
   CopyCheck,
   CircleCheck,
+  Loader2,
 } from 'lucide-react';

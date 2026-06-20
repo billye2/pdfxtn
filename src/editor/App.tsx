@@ -66,6 +66,9 @@ export default function App() {
   const [imagesOpen, setImagesOpen] = useState(false);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [saving, setSaving] = useState(false);
+  // For multi-file (split) exports we can show real progress; single is indeterminate.
+  const [saveProgress, setSaveProgress] = useState<{ done: number; total: number } | null>(null);
   const tipIndex = useRef(0);
   const toastTimer = useRef<number | null>(null);
 
@@ -237,17 +240,27 @@ export default function App() {
   }
 
   async function handleSave() {
+    if (saving) return; // guard against double-clicks
+    setSaving(true);
     try {
       if (splitMarks.size > 0) {
         const groups = splitAt(pages, boundariesFromMarks(pages, splitMarks));
-        await exportGroups(groups, docs, sourceName());
+        setSaveProgress({ done: 0, total: groups.length });
+        await exportGroups(groups, docs, sourceName(), (done, total) =>
+          setSaveProgress({ done, total }),
+        );
         showToast(`Saved ${groups.length} files`);
       } else {
+        // Yield a frame so the saving UI paints before the (blocking) build.
+        await new Promise((r) => requestAnimationFrame(() => r(null)));
         await exportSingle(pages, docs, sourceName());
         showToast(`Saved ${sourceName().replace(/\.pdf$/i, '')}-edited.pdf`);
       }
     } catch (e) {
       showToast(`Save failed: ${(e as Error).message}`, 'error');
+    } finally {
+      setSaving(false);
+      setSaveProgress(null);
     }
   }
 
@@ -310,6 +323,19 @@ export default function App() {
         if (e.dataTransfer.files?.length) addFiles(e.dataTransfer.files);
       }}
     >
+      {saving && (
+        <div className="save-bar">
+          <div
+            className={`save-bar-fill${saveProgress ? '' : ' indeterminate'}`}
+            style={
+              saveProgress
+                ? { width: `${(saveProgress.done / saveProgress.total) * 100}%` }
+                : undefined
+            }
+          />
+        </div>
+      )}
+
       <Header
         appState={appState}
         pageCount={pages.length}
@@ -317,6 +343,7 @@ export default function App() {
         look={look}
         lookMenuOpen={lookMenuOpen}
         canSave={pages.length > 0}
+        saving={saving}
         onToggleLookMenu={() => setLookMenuOpen((v) => !v)}
         onPickLook={(l) => {
           setLook(l);

@@ -106,10 +106,12 @@ export async function exportGroups(
   groups: PageDescriptor[][],
   docsById: Map<string, LoadedDoc>,
   name: string,
+  onProgress?: (done: number, total: number) => void,
 ): Promise<void> {
   const base = baseName(name);
   for (let i = 0; i < groups.length; i += 1) {
     const bytes = await buildDocument(groups[i], docsById);
     triggerDownload(bytes, `${base}-part${i + 1}.pdf`);
+    onProgress?.(i + 1, groups.length);
   }
 }

@@ -1,4 +1,4 @@
-import { Download, HelpCircle } from './icons';
+import { Download, HelpCircle, Loader2 } from './icons';
 import LookPicker from './LookPicker';
 import type { LookId } from '../themes';
 import type { AppState } from '../store';
@@ -10,6 +10,7 @@ interface Props {
   look: LookId;
   lookMenuOpen: boolean;
   canSave: boolean;
+  saving: boolean;
   onToggleLookMenu: () => void;
   onPickLook: (look: LookId) => void;
   onCloseLookMenu: () => void;
@@ -56,9 +57,13 @@ export default function Header(props: Props) {
           onPick={props.onPickLook}
           onClose={props.onCloseLookMenu}
         />
-        <button className="btn-go save-btn" disabled={!props.canSave} onClick={props.onSave}>
-          <Download size={17} />
-          Save PDF
+        <button
+          className="btn-go save-btn"
+          disabled={!props.canSave || props.saving}
+          onClick={props.onSave}
+        >
+          {props.saving ? <Loader2 size={17} className="spin" /> : <Download size={17} />}
+          {props.saving ? 'Saving…' : 'Save PDF'}
         </button>
       </div>
     </header>
