@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useState } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import Header from './components/Header';
 import Toolbar from './components/Toolbar';
 import ThumbnailGrid from './components/ThumbnailGrid';
@@ -33,6 +33,25 @@ interface ToastState {
   tone: 'success' | 'error';
 }
 
+// Rotating single-line tips shown by the header "?" button — one per click.
+const HELP_TIPS = [
+  'Tip: drag any page to reorder — grab anywhere on the card, not just the edge.',
+  'Tip: Shift-click to pick a range; Cmd/Ctrl-click to add or remove one page.',
+  'Tip: double-click a page (or select one and press Space) to preview it large.',
+  'Tip: use Mix to interleave two PDFs — perfect for double-sided scans.',
+  'Tip: Split every N pages, then Save to get one file per chunk.',
+  'Tip: drop JPG or PNG files right in — they become PDF pages instantly.',
+  'Tip: Export images saves pages as PNG or JPG, at up to 3× resolution.',
+  'Tip: crop one region and apply it to all pages or just the selected ones.',
+  'Tip: pick some pages, then "Keep these" to extract only those.',
+  'Tip: Cmd/Ctrl+Z undoes, Cmd/Ctrl+A selects all, Esc clears your selection.',
+  'Tip: add another PDF anytime to merge — its pages just append.',
+  'Tip: right-click a PDF link on the web → "Open in PDF Page Manager".',
+  'Tip: open a PDF in a tab, then click the toolbar icon to load it automatically.',
+  'Tip: page labels keep their original number even after you reorder pages.',
+  'Tip: switch the Look in the top-right to recolor the whole app.',
+];
+
 export default function App() {
   const [history, dispatch] = useReducer(reducer, initialHistory);
   const [docs, setDocs] = useState<Map<string, LoadedDoc>>(new Map());
@@ -47,6 +66,7 @@ export default function App() {
   const [imagesOpen, setImagesOpen] = useState(false);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const tipIndex = useRef(0);
 
   const { pages, selected, splitMarks } = history.present;
   const hasCrop = pages.some((p) => p.crop);
@@ -285,7 +305,10 @@ export default function App() {
           setLookMenuOpen(false);
         }}
         onCloseLookMenu={() => setLookMenuOpen(false)}
-        onHelp={() => showToast('Tip: click pages to pick them, then rotate, crop, or split!')}
+        onHelp={() => {
+          showToast(HELP_TIPS[tipIndex.current]);
+          tipIndex.current = (tipIndex.current + 1) % HELP_TIPS.length;
+        }}
         onSave={handleSave}
       />
 
