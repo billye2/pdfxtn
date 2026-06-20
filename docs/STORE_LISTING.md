@@ -20,26 +20,57 @@ Everything you need to paste into the Developer Dashboard for PDF Mana 1.0.0.
 **Language:** English
 
 **Detailed description:**
-> PDF Mana is a friendly, all-on-your-device PDF page manager. Open a PDF (or several),
-> then reorder, rotate, delete, extract, merge, split, and crop pages — and export a fresh
-> file. Everything happens in your browser; your documents are never uploaded.
+> **PDF Mana — Merge · Arrange · Nip · Adjust**
 >
-> Features:
-> • Reorder pages by dragging
-> • Delete pages, or "Keep these" to extract just the ones you want
-> • Rotate pages individually or in bulk
-> • Merge multiple PDFs into one
-> • Mix / interleave two PDFs — perfect for double-sided scans done on a single-sided feeder
-> • Split by hand or every N pages — export one file per part
-> • Crop a region and apply it to all or selected pages
-> • Images → PDF: drop JPG/PNG files in and they become pages
-> • PDF → Images: export pages as PNG or JPG
-> • Export any page range
-> • Large page preview with arrow-key paging
-> • Four playful themes
-> • Undo/redo, and a warning before you lose unsaved work
+> A friendly, all-on-your-device PDF page manager. Open a PDF (or several), rearrange and
+> fix up the pages, and export a fresh file — without ever uploading your documents to a
+> server. Everything happens right in your browser.
 >
-> 100% local — no servers, no accounts, no tracking. Open source (MIT).
+> **What you can do**
+>
+> 📄 **Arrange** — drag pages to reorder, delete the ones you don't need, or "Keep these"
+> to pull out just the pages you want.
+>
+> 🔄 **Rotate** — turn a single page or a whole selection the right way up.
+>
+> ➕ **Merge** — combine several PDFs into one document.
+>
+> 🔀 **Mix / interleave** — weave two PDFs together page-by-page. Perfect for double-sided
+> documents scanned on a single-sided feeder: scan the fronts, scan the backs, and Mix puts
+> them in the right order with one click.
+>
+> ✂️ **Split** — mark your own section breaks, or split every N pages, and export one file
+> per part.
+>
+> 🔳 **Crop** — draw a region and apply it to every page or just the ones you pick.
+>
+> 🖼️ **Images → PDF** — drop JPG or PNG files straight in and they become pages.
+>
+> 📸 **PDF → Images** — export pages as PNG or JPG at up to 3× resolution (all pages, your
+> selection, or a custom range).
+>
+> 🔢 **Export any range** — save just the pages you want (e.g. 1-3, 5, 8-10).
+>
+> 🔍 **Preview** — double-click any page for a big, readable view with arrow-key paging and
+> inline rotate, crop, and delete.
+>
+> 🎨 **Make it yours** — four playful themes, undo/redo, handy keyboard shortcuts, and a
+> heads-up before you accidentally lose unsaved work.
+>
+> **Private by design**
+>
+> Your files never leave your computer. PDF Mana has no servers, no accounts, no analytics,
+> and no tracking — all PDF reading and writing happens locally in your browser. It doesn't
+> even ask for access to any website until the moment you choose to open a PDF that's
+> already in your tab.
+>
+> **Free and open source**
+>
+> PDF Mana is completely free and open source under the MIT license.
+>
+> ---
+> Tip: open a PDF in a tab and click the toolbar icon, right-click a PDF link to send it
+> straight to PDF Mana, or just drag a file into the window.
 
 **Single purpose (required):**
 > Manage the pages of PDF files locally — reorder, rotate, delete, merge, split, crop, and
