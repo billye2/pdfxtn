@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { RotateCcw, RotateCw, Crop, X, ChevronLeft, ChevronRight } from './icons';
+import { RotateCw, Crop, X, ChevronLeft, ChevronRight } from './icons';
 import type { PageDescriptor } from '../lib/pageModel';
 import { renderThumbnail, type LoadedDoc } from '../lib/pdfRender';
 
@@ -93,11 +93,8 @@ export default function Lightbox({
             Page {index + 1} of {total}
           </span>
           <span className="lightbox-actions">
-            <button className="btn-rotate" onClick={() => onRotate(-90)}>
-              <RotateCcw size={16} /> Turn
-            </button>
             <button className="btn-rotate" onClick={() => onRotate(90)}>
-              <RotateCw size={16} /> Turn
+              <RotateCw size={16} /> Rotate
             </button>
             <button className="btn-crop" onClick={onCrop}>
               <Crop size={16} /> Crop

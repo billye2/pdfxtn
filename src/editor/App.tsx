@@ -213,10 +213,18 @@ export default function App() {
     }
   }
 
-  async function handleExportImages(opts: { format: ImageFormat; scale: number }) {
+  async function handleExportImages(opts: {
+    format: ImageFormat;
+    scale: number;
+    indices: number[];
+  }) {
     setImagesOpen(false);
     try {
-      const n = await exportPagesAsImages(pages, docs, sourceName(), opts);
+      const subset = opts.indices.map((i) => pages[i]).filter(Boolean);
+      const n = await exportPagesAsImages(subset, docs, sourceName(), {
+        format: opts.format,
+        scale: opts.scale,
+      });
       showToast(`Saved ${n} image${n === 1 ? '' : 's'}`);
     } catch (e) {
       showToast(`Image export failed: ${(e as Error).message}`, 'error');
@@ -382,6 +390,9 @@ export default function App() {
       {imagesOpen && (
         <ImagesDialog
           total={pages.length}
+          selectedIndices={pages
+            .map((p, i) => (selected.has(p.id) ? i : -1))
+            .filter((i) => i >= 0)}
           onExport={handleExportImages}
           onCancel={() => setImagesOpen(false)}
         />

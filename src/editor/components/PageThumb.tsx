@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { RotateCcw, RotateCw, Scissors, X, GripVertical, Check, Maximize2 } from './icons';
+import { RotateCw, Scissors, X, Check, Maximize2 } from './icons';
 import type { PageDescriptor } from '../lib/pageModel';
 import { renderThumbnail, type LoadedDoc } from '../lib/pdfRender';
 
@@ -132,10 +132,13 @@ export default function PageThumb({
       }`}
       onClick={(e) => onSelect(page.id, e)}
       onDoubleClick={() => onOpenPreview(page.id)}
+      {...attributes}
+      {...listeners}
     >
       <button
         className="card-expand"
         title="Preview page"
+        onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation();
           onOpenPreview(page.id);
@@ -177,16 +180,10 @@ export default function PageThumb({
       </div>
 
       <div className="card-footer">
-        <span className="card-handle" {...attributes} {...listeners} title="Drag to reorder">
-          <GripVertical size={16} />
-        </span>
         <span className="card-label">Page {index + 1}</span>
         {showParts && <span className="card-part">Part {partNumber}</span>}
-        <span className="card-ops">
-          <button title="Rotate left" onClick={(e) => { e.stopPropagation(); onRotate(page.id, -90); }}>
-            <RotateCcw size={15} />
-          </button>
-          <button title="Rotate right" onClick={(e) => { e.stopPropagation(); onRotate(page.id, 90); }}>
+        <span className="card-ops" onPointerDown={(e) => e.stopPropagation()}>
+          <button title="Rotate" onClick={(e) => { e.stopPropagation(); onRotate(page.id, 90); }}>
             <RotateCw size={15} />
           </button>
           <button

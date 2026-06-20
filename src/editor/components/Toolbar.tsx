@@ -1,7 +1,6 @@
 import { useRef } from 'react';
 import {
   Plus,
-  RotateCcw,
   RotateCw,
   Crop,
   Scissors,
@@ -80,11 +79,8 @@ export default function Toolbar(props: Props) {
       <span className="tdivider" />
 
       <div className="tgroup">
-        <button className="btn-rotate" onClick={() => props.onRotateSelected(-90)} disabled={!hasSel}>
-          <RotateCcw size={16} /> Turn
-        </button>
         <button className="btn-rotate" onClick={() => props.onRotateSelected(90)} disabled={!hasSel}>
-          <RotateCw size={16} /> Turn
+          <RotateCw size={16} /> Rotate
         </button>
         <button className="btn-crop" onClick={props.onOpenCrop}>
           <Crop size={16} /> Crop

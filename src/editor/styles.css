@@ -461,7 +461,11 @@ button:disabled {
   border: var(--cardOutline);
   background: var(--card);
   box-shadow: var(--cardShadow);
+  cursor: grab;
   transition: transform 0.12s, box-shadow 0.12s, background 0.12s;
+}
+.card:active {
+  cursor: grabbing;
 }
 .card:hover {
   transform: translateY(-4px);
@@ -602,15 +606,6 @@ button:disabled {
   gap: 6px;
   padding: 9px 11px;
   min-height: 46px;
-}
-.card-handle {
-  display: flex;
-  align-items: center;
-  color: var(--sub);
-  cursor: grab;
-}
-.card-handle:active {
-  cursor: grabbing;
 }
 .card-label {
   font-family: 'Fredoka', sans-serif;

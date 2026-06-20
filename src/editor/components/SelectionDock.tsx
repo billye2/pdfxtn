@@ -1,4 +1,4 @@
-import { RotateCcw, RotateCw, Crop, CopyCheck, X } from './icons';
+import { RotateCw, Crop, CopyCheck, X } from './icons';
 
 interface Props {
   count: number;
@@ -23,11 +23,9 @@ export default function SelectionDock({
       <span className="dock-label">picked</span>
       <span className="dock-divider" />
 
-      <button className="btn-rotate dock-btn" title="Rotate left" onClick={() => onRotate(-90)}>
-        <RotateCcw size={17} />
-      </button>
-      <button className="btn-rotate dock-btn" title="Rotate right" onClick={() => onRotate(90)}>
-        <RotateCw size={17} />
+      <button className="btn-rotate dock-btn" onClick={() => onRotate(90)}>
+        <RotateCw size={16} />
+        Rotate
       </button>
       <button className="btn-crop dock-btn" onClick={onCrop}>
         <Crop size={16} />
