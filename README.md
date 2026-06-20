@@ -114,3 +114,7 @@ e2e/                   Playwright tests
 No content/text editing, OCR, form filling, annotations, or persistence across reload
 (beyond an unsaved-work warning). The original file is never overwritten — output is
 always a fresh download. Encrypted PDFs may fail to load.
+
+## License
+
+[MIT](LICENSE) © billye2
