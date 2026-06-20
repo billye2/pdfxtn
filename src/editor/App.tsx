@@ -67,6 +67,7 @@ export default function App() {
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const tipIndex = useRef(0);
+  const toastTimer = useRef<number | null>(null);
 
   const { pages, selected, splitMarks } = history.present;
   const hasCrop = pages.some((p) => p.crop);
@@ -93,7 +94,12 @@ export default function App() {
 
   const showToast = useCallback((message: string, tone: 'success' | 'error' = 'success') => {
     setToast({ message, tone });
-    setTimeout(() => setToast(null), 3500);
+    // Reset the dismiss timer so rapid toasts each get the full duration.
+    if (toastTimer.current !== null) clearTimeout(toastTimer.current);
+    toastTimer.current = window.setTimeout(() => {
+      setToast(null);
+      toastTimer.current = null;
+    }, 3500);
   }, []);
 
   const addFiles = useCallback(
