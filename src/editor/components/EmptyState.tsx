@@ -11,7 +11,7 @@ export default function EmptyState({ onPick }: Props) {
       <div className="decor dot1" />
       <div className="decor dot2" />
 
-      <div className="mascot">
+      <div className="mascot" onClick={onPick} title="Pick a PDF" role="button">
         <span className="mascot-eye left" />
         <span className="mascot-eye right" />
         <span className="mascot-cheek left" />

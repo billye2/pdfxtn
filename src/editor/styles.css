@@ -346,6 +346,10 @@ button:disabled {
   border-radius: 16px;
   box-shadow: 0 7px 0 rgba(0, 0, 0, 0.13);
   animation: bob 3s ease-in-out infinite;
+  cursor: pointer;
+}
+.mascot:hover {
+  filter: brightness(0.98);
 }
 .mascot::after {
   content: '';
