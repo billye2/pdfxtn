@@ -1,25 +1,17 @@
-import { test, expect, chromium, type BrowserContext } from '@playwright/test';
-import { PDFDocument } from 'pdf-lib';
+import { test, expect, chromium, type BrowserContext, type Page, type Download } from '@playwright/test';
+import { PDFDocument, degrees } from 'pdf-lib';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const distPath = join(here, '..', 'dist');
-const tmpDir = join(here, '.tmp');
-const samplePath = join(tmpDir, 'sample.pdf');
+const iconPng = readFileSync('src/icons/icon128.png');
 
 let context: BrowserContext;
 let extensionId: string;
 
-// Generate a 3-page PDF (distinct page sizes so order is identifiable) and
-// launch Chromium (full build, new headless) with the unpacked extension.
 test.beforeAll(async () => {
-  const doc = await PDFDocument.create();
-  for (const [w, h] of [[300, 400], [400, 300], [350, 500]] as const) doc.addPage([w, h]);
-  mkdirSync(tmpDir, { recursive: true });
-  writeFileSync(samplePath, await doc.save());
-
   context = await chromium.launchPersistentContext('', {
     headless: false,
     args: [
@@ -29,9 +21,6 @@ test.beforeAll(async () => {
       `--load-extension=${distPath}`,
     ],
   });
-
-  // Nudge the MV3 service worker to start, then poll for it (more reliable than
-  // a single waitForEvent under new headless).
   await context.newPage();
   let sw = context.serviceWorkers()[0];
   for (let i = 0; i < 40 && !sw; i += 1) {
@@ -46,92 +35,236 @@ test.afterAll(async () => {
   await context?.close();
 });
 
-test('loads, renders a real PDF, edits, and exports', async () => {
-  const page = await context.newPage();
-  await page.goto(`chrome-extension://${extensionId}/src/editor/index.html`);
+// ---- helpers ----------------------------------------------------------------
 
-  // Empty state renders.
-  await expect(page.getByText("Let's fix up your PDF!")).toBeVisible();
-
-  // Add the sample PDF by simulating a file drop (robust in headless; the
-  // empty-state picker uses a detached input the chooser API can't intercept).
-  const bytes = [...readFileSync(samplePath)];
-  const dataTransfer = await page.evaluateHandle((data) => {
-    const dt = new DataTransfer();
-    dt.items.add(new File([new Uint8Array(data)], 'sample.pdf', { type: 'application/pdf' }));
-    return dt;
-  }, bytes);
-  await page.dispatchEvent('.app', 'dragover', { dataTransfer });
-  await page.dispatchEvent('.app', 'drop', { dataTransfer });
-
-  // Three page cards appear, labeled by original page number.
-  await expect(page.locator('.card')).toHaveCount(3);
-  await expect(page.locator('.card-label').nth(0)).toHaveText('Page 1');
-  await expect(page.locator('.card-label').nth(2)).toHaveText('Page 3');
-
-  // pdf.js worker actually rendered a thumbnail (the MV3-CSP-sensitive path).
-  await expect(page.locator('.card .page-canvas').first()).toBeVisible({ timeout: 15_000 });
-
-  // Delete page 2; the survivors keep their ORIGINAL labels (1 and 3).
-  await page.locator('.card').nth(1).click();
-  await page.keyboard.press('Delete');
-  await expect(page.locator('.card')).toHaveCount(2);
-  await expect(page.locator('.card-label').nth(0)).toHaveText('Page 1');
-  await expect(page.locator('.card-label').nth(1)).toHaveText('Page 3');
-
-  // Export and verify the produced PDF (the pdf-lib pipeline) has 2 pages.
-  const downloadPromise = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Save PDF' }).click();
-  const download = await downloadPromise;
-  const out = await PDFDocument.load(readFileSync(await download.path()));
-  expect(out.getPageCount()).toBe(2);
-});
-
-// Build a PDF that draws one shared image across `n` pages — the case that
-// used to bloat the merge ~Nx by re-embedding the image per page.
-async function imageHeavyPdf(n: number): Promise<Uint8Array> {
+async function makePdf(sizes: Array<[number, number]>, rotate = 0): Promise<number[]> {
   const doc = await PDFDocument.create();
-  const img = await doc.embedPng(readFileSync('src/icons/icon128.png'));
+  for (const [w, h] of sizes) {
+    const p = doc.addPage([w, h]);
+    if (rotate) p.setRotation(degrees(rotate));
+  }
+  return [...(await doc.save())];
+}
+
+async function imagePdf(n: number): Promise<number[]> {
+  const doc = await PDFDocument.create();
+  const img = await doc.embedPng(iconPng);
   for (let i = 0; i < n; i += 1) {
     const p = doc.addPage([300, 300]);
     p.drawImage(img, { x: 20, y: 20, width: 200, height: 200 });
   }
-  return doc.save();
+  return [...(await doc.save())];
 }
 
-test('merging two image-heavy PDFs keeps the exported size sane', async () => {
+async function openEditor(): Promise<Page> {
   const page = await context.newPage();
   await page.goto(`chrome-extension://${extensionId}/src/editor/index.html`);
   await expect(page.getByText("Let's fix up your PDF!")).toBeVisible();
+  return page;
+}
 
-  const a = [...(await imageHeavyPdf(6))];
-  const b = [...(await imageHeavyPdf(6))];
+async function drop(page: Page, files: Array<{ name: string; bytes: number[]; type: string }>) {
+  const dt = await page.evaluateHandle((fs) => {
+    const d = new DataTransfer();
+    for (const f of fs) d.items.add(new File([new Uint8Array(f.bytes)], f.name, { type: f.type }));
+    return d;
+  }, files);
+  await page.dispatchEvent('.app', 'dragover', { dataTransfer: dt });
+  await page.dispatchEvent('.app', 'drop', { dataTransfer: dt });
+}
 
-  // Drop both PDFs at once → two source docs, 12 pages (the merge).
-  const dataTransfer = await page.evaluateHandle(({ x, y }) => {
-    const dt = new DataTransfer();
-    dt.items.add(new File([new Uint8Array(x)], 'a.pdf', { type: 'application/pdf' }));
-    dt.items.add(new File([new Uint8Array(y)], 'b.pdf', { type: 'application/pdf' }));
-    return dt;
-  }, { x: a, y: b });
-  await page.dispatchEvent('.app', 'dragover', { dataTransfer });
-  await page.dispatchEvent('.app', 'drop', { dataTransfer });
+const pdf = (name: string, bytes: number[]) => ({ name, bytes, type: 'application/pdf' });
 
+async function widths(d: Download): Promise<number[]> {
+  const out = await PDFDocument.load(readFileSync(await d.path()));
+  return out.getPages().map((p) => Math.round(p.getWidth()));
+}
+
+// ---- tests ------------------------------------------------------------------
+
+test('load, render thumbnails, original labels, delete, export', async () => {
+  const page = await openEditor();
+  await drop(page, [pdf('s.pdf', await makePdf([[300, 400], [400, 300], [350, 500]]))]);
+
+  await expect(page.locator('.card')).toHaveCount(3);
+  await expect(page.locator('.card-label').nth(0)).toHaveText('Page 1');
+  await expect(page.locator('.card .page-canvas').first()).toBeVisible({ timeout: 15_000 });
+
+  await page.locator('.card').nth(1).click();
+  await page.keyboard.press('Delete');
+  await expect(page.locator('.card')).toHaveCount(2);
+  await expect(page.locator('.card-label').nth(1)).toHaveText('Page 3');
+
+  const dl = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save PDF' }).click();
+  expect((await widths(await dl))).toEqual([300, 350]);
+});
+
+test('merging two image-heavy PDFs keeps the exported size sane', async () => {
+  const page = await openEditor();
+  const a = await imagePdf(6);
+  const b = await imagePdf(6);
+  await drop(page, [pdf('a.pdf', a), pdf('b.pdf', b)]);
   await expect(page.locator('.card')).toHaveCount(12);
 
-  const downloadPromise = page.waitForEvent('download');
+  const dl = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Save PDF' }).click();
-  const outBytes = readFileSync(await (await downloadPromise).path());
-  const out = await PDFDocument.load(outBytes);
+  const out = readFileSync(await (await dl).path());
+  expect((await PDFDocument.load(out)).getPageCount()).toBe(12);
+  expect(out.length).toBeLessThan((a.length + b.length) * 2); // not Nx
+});
 
-  const inputs = a.length + b.length;
-  // eslint-disable-next-line no-console
-  console.log(
-    `merge: inputs ${(inputs / 1024).toFixed(1)}KB → merged ${(outBytes.length / 1024).toFixed(1)}KB ` +
-      `(${(outBytes.length / inputs).toFixed(2)}x)`,
-  );
+test('rotate a page (clockwise) reflects in the export', async () => {
+  const page = await openEditor();
+  await drop(page, [pdf('r.pdf', await makePdf([[300, 500]]))]);
+  await expect(page.locator('.card')).toHaveCount(1);
 
-  expect(out.getPageCount()).toBe(12);
-  // With the fix the merge ≈ sum of inputs; the old per-page copy was many×.
-  expect(outBytes.length).toBeLessThan(inputs * 2);
+  await page.locator('.card').first().getByRole('button', { name: 'Rotate' }).click();
+  const dl = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save PDF' }).click();
+  const out = await PDFDocument.load(readFileSync(await (await dl).path()));
+  expect(out.getPage(0).getRotation().angle).toBe(90);
+});
+
+// Skipped: dnd-kit's PointerSensor doesn't engage with synthetic Playwright
+// pointer events (the page hangs mid-drag). Reorder is covered by unit tests
+// (pageModel `reorder`) and verified manually in the browser.
+test.skip('drag to reorder changes page order', async () => {
+  const page = await openEditor();
+  await drop(page, [pdf('o.pdf', await makePdf([[100, 100], [200, 200], [300, 300]]))]);
+  await expect(page.locator('.card')).toHaveCount(3);
+
+  // Drag card 0 onto card 2's position. dnd-kit's PointerSensor needs the move
+  // to exceed the activation distance and then settle over the target — do it in
+  // small timed steps so the sensor engages reliably under automation.
+  const src = (await page.locator('.card').nth(0).boundingBox())!;
+  const dst = (await page.locator('.card').nth(2).boundingBox())!;
+  const sx = src.x + src.width / 2;
+  const sy = src.y + src.height / 2;
+  const dx = dst.x + dst.width / 2;
+  const dy = dst.y + dst.height / 2;
+
+  await page.mouse.move(sx, sy);
+  await page.mouse.down();
+  await page.waitForTimeout(60);
+  await page.mouse.move(sx + 10, sy + 10); // exceed 6px activation
+  await page.waitForTimeout(60);
+  for (let i = 1; i <= 20; i += 1) {
+    await page.mouse.move(sx + ((dx - sx) * i) / 20, sy + ((dy - sy) * i) / 20);
+    await page.waitForTimeout(15);
+  }
+  await page.waitForTimeout(120); // let the sortable settle on the target
+  await page.mouse.up();
+  await expect(page.locator('.card-label').nth(2)).toHaveText('Page 1');
+
+  const dl = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save PDF' }).click();
+  expect((await widths(await dl))).toEqual([200, 300, 100]);
+});
+
+test('extract ("Keep these") keeps only selected pages', async () => {
+  const page = await openEditor();
+  await drop(page, [pdf('e.pdf', await makePdf([[100, 100], [200, 200], [300, 300], [400, 400]]))]);
+  await expect(page.locator('.card')).toHaveCount(4);
+
+  await page.locator('.card').nth(0).click();
+  await page.locator('.card').nth(2).click({ modifiers: ['ControlOrMeta'] });
+  await page.getByRole('button', { name: 'Keep these' }).click();
+  await expect(page.locator('.card')).toHaveCount(2);
+
+  const dl = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save PDF' }).click();
+  expect((await widths(await dl))).toEqual([100, 300]);
+});
+
+test('Mix interleaves two documents', async () => {
+  const page = await openEditor();
+  await drop(page, [
+    pdf('A.pdf', await makePdf([[100, 100], [101, 101]])),
+    pdf('B.pdf', await makePdf([[200, 200], [201, 201]])),
+  ]);
+  await expect(page.locator('.card')).toHaveCount(4);
+
+  await page.locator('.toolbar').getByRole('button', { name: 'Mix' }).click();
+  // Straight interleave: uncheck the default "reverse 2nd doc".
+  await page.locator('.mix-row').nth(1).getByRole('checkbox').uncheck();
+  await page.getByRole('button', { name: 'Mix pages' }).click();
+
+  const dl = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save PDF' }).click();
+  expect((await widths(await dl))).toEqual([100, 200, 101, 201]);
+});
+
+test('Split every N produces one file per chunk', async () => {
+  const page = await openEditor();
+  await drop(page, [pdf('sp.pdf', await makePdf([[100, 100], [200, 200], [300, 300], [400, 400]]))]);
+  await expect(page.locator('.card')).toHaveCount(4);
+
+  await page.getByRole('button', { name: 'Split every…' }).click();
+  await page.locator('.split-n').fill('2');
+  await page.getByRole('button', { name: 'Apply split marks' }).click();
+
+  const downloads: Download[] = [];
+  page.on('download', (d) => downloads.push(d));
+  await page.getByRole('button', { name: 'Save PDF' }).click();
+  await expect.poll(() => downloads.length, { timeout: 10_000 }).toBe(2);
+  expect((await PDFDocument.load(readFileSync(await downloads[0].path()))).getPageCount()).toBe(2);
+});
+
+test('Export by position (range) exports the chosen pages', async () => {
+  const page = await openEditor();
+  await drop(page, [pdf('rg.pdf', await makePdf([[110, 1], [120, 1], [130, 1], [140, 1], [150, 1]]))]);
+  await expect(page.locator('.card')).toHaveCount(5);
+
+  await page.getByRole('button', { name: 'Export range…' }).click();
+  await page.locator('.range-input').fill('1, 3, 5');
+  const dl = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export these pages' }).click();
+  expect((await widths(await dl))).toEqual([110, 130, 150]);
+});
+
+test('Images → PDF: dropping a PNG adds a page', async () => {
+  const page = await openEditor();
+  await drop(page, [{ name: 'pic.png', bytes: [...iconPng], type: 'image/png' }]);
+  await expect(page.locator('.card')).toHaveCount(1);
+
+  const dl = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save PDF' }).click();
+  expect((await PDFDocument.load(readFileSync(await (await dl).path()))).getPageCount()).toBe(1);
+});
+
+test('PDF → Images exports one image per page', async () => {
+  const page = await openEditor();
+  await drop(page, [pdf('im.pdf', await makePdf([[200, 200], [200, 200]]))]);
+  await expect(page.locator('.card')).toHaveCount(2);
+
+  await page.getByRole('button', { name: 'Export images…' }).click();
+  await page.getByRole('button', { name: 'PNG' }).click();
+  await page.getByRole('button', { name: '1×' }).click();
+  const downloads: Download[] = [];
+  page.on('download', (d) => downloads.push(d));
+  await page.getByRole('button', { name: /Export \d+ image/ }).click();
+  await expect.poll(() => downloads.length, { timeout: 10_000 }).toBe(2);
+  expect(downloads[0].suggestedFilename()).toMatch(/\.png$/);
+});
+
+test('Lightbox preview opens, pages, and closes', async () => {
+  const page = await openEditor();
+  await drop(page, [pdf('lb.pdf', await makePdf([[200, 300], [300, 200]]))]);
+  await expect(page.locator('.card')).toHaveCount(2);
+
+  await page.locator('.card').nth(0).dblclick();
+  await expect(page.locator('.lightbox-canvas')).toBeVisible({ timeout: 15_000 });
+  await page.keyboard.press('ArrowRight');
+  await expect(page.locator('.lightbox-pos')).toHaveText(/2 of 2/);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.lightbox-backdrop')).toHaveCount(0);
+});
+
+test('switching the Look re-themes the app', async () => {
+  const page = await openEditor();
+  await drop(page, [pdf('t.pdf', await makePdf([[200, 200]]))]);
+  await page.locator('.look-trigger').click();
+  await page.locator('.look-option', { hasText: 'Sticker' }).click();
+  await expect(page.locator('.app')).toHaveAttribute('data-look', 'sticker');
 });

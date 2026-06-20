@@ -7,14 +7,25 @@ Nothing is uploaded; all parsing and writing happens locally.
 
 ## Features
 
-- **Reorder** pages by drag & drop
-- **Delete / extract** pages (delete the rest, export what's left)
-- **Rotate** pages (per page or batch on a selection)
+- **Reorder** pages — drag a whole card anywhere to move it
+- **Delete / extract** — remove pages, or "Keep these" to extract only the selected ones
+- **Rotate** pages (per page or across a selection)
 - **Merge** — add multiple PDFs and they append into one document
-- **Split** — mark section boundaries (✂) and export one file per section
+- **Mix / interleave** — combine documents alternately; one-click preset for
+  double-sided scans done on a single-sided feeder
+- **Split** — mark boundaries by hand, or **Split every N pages**; export one file per part
 - **Crop** — draw one region and apply it to all or just the selected pages
-- **Undo / redo** (Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z)
-- Load from a **local file** (picker or drag-drop) or the **PDF open in the current tab**
+- **Images → PDF** — drop JPG/PNG files in and they become pages
+- **PDF → Images** — export pages as PNG/JPG at 1×–3× (all / selected / custom range)
+- **Export by position** — save an arbitrary page range (`1-3, 5, 8-10`)
+- **Page preview** — double-click a page (or expand / Space) for a large view with
+  arrow-key paging and inline rotate / crop / delete
+- **Page labels stay original** — a page keeps its source page number after reordering
+- **Four themes** — switchable "Looks" (Blocks, Bubble, Sticker, Sunny)
+- **Undo / redo** (Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z), select-all, Esc to clear
+- **Save progress** indicator, and a warning before you reload away unsaved work
+- Load from a **local file** (picker or drag-drop), the **PDF open in the current tab**, or
+  a **right-click** on any PDF link → "Open link in PDF Mana"
 
 ## Develop
 
@@ -22,6 +33,9 @@ Nothing is uploaded; all parsing and writing happens locally.
 npm install
 npm run dev      # Vite dev server with HMR
 npm run build    # production build → dist/
+npm test         # unit tests (Vitest)
+npm run e2e      # end-to-end tests (Playwright; loads the built extension)
+npm run icons    # regenerate icons from src/icons/icon.svg
 ```
 
 > If `npm install` warns about skipped install scripts, run
@@ -37,13 +51,14 @@ npm run build    # production build → dist/
 
 ## Usage
 
-- Click the toolbar icon to open the editor in a new tab.
-  - If a PDF is open in the active tab, it loads automatically.
-- Or use **+ Add PDF** / drag a file into the window.
-- Select pages (click; Cmd/Ctrl-click to multi-select; Shift-click for a range),
-  then rotate / delete / crop.
-- Click **Export PDF** to download `‹name›-edited.pdf`. With split marks set,
-  **Export split…** downloads one file per section (`‹name›-part1.pdf`, …).
+- Click the toolbar icon to open the editor in a new tab (a PDF open in the active tab
+  loads automatically), use **+ Add PDF**, or drag files into the window.
+- Select pages (click; Cmd/Ctrl-click to multi-select; Shift-click for a range), then use
+  the toolbar / selection dock to rotate, crop, split, extract, or delete.
+- Click **Save PDF** to download `‹name›-edited.pdf`. With split marks set it downloads one
+  file per part (`‹name›-part1.pdf`, …). **Export range…** and **Export images…** offer
+  more targeted output.
+- The header **?** cycles through usage tips; the **Look** picker switches themes.
 
 ## How it works
 
@@ -51,30 +66,51 @@ The editor's state is an ordered list of **page descriptors**
 (`{ docId, pageIndex, rotation, crop }`) — not raw PDF bytes. Every operation is a
 pure transform over that list, which keeps edits non-destructive and undoable.
 
-- **[pdf.js](https://github.com/mozilla/pdf.js)** (`pdfjs-dist`) renders page thumbnails.
-- **[pdf-lib](https://github.com/Hopding/pdf-lib)** rebuilds the output document on export
-  (copy pages, apply rotation, set crop box).
+- **[pdf.js](https://github.com/mozilla/pdf.js)** (`pdfjs-dist`) renders page thumbnails
+  and image export (worker bundled for MV3 CSP).
+- **[pdf-lib](https://github.com/Hopding/pdf-lib)** rebuilds the output document on export.
+  Pages are copied **batched per source document** so shared resources (fonts/images)
+  aren't duplicated per page.
 - **[@dnd-kit](https://dndkit.com/)** powers the sortable thumbnail grid.
-- **[@crxjs/vite-plugin](https://crxjs.dev/)** builds the MV3 bundle.
+- **[@crxjs/vite-plugin](https://crxjs.dev/)** builds the MV3 bundle; fonts are bundled
+  locally via **@fontsource**.
+
+## Testing
+
+- **Unit** (`npm test`) — pure logic: `pageModel` transforms, `pageRange` parsing, and the
+  `pdfExport` pipeline (page count/order, rotation, crop box, merge, and a resource
+  de-duplication regression test).
+- **E2E** (`npm run e2e`) — loads the built extension in headless Chromium and exercises
+  load/render, delete, rotate, extract, Mix, split-every-N, range export, images↔PDF,
+  the lightbox, and theme switching. (Drag-reorder is covered by unit tests and manual
+  checks — dnd-kit's pointer sensor doesn't engage with synthetic events.)
 
 ## Project layout
 
 ```
 src/
-  manifest.ts        MV3 manifest
-  background.ts       service worker — opens the editor, hands off the tab's PDF
+  manifest.ts         MV3 manifest
+  background.ts        service worker — opens the editor, context menus, tab handoff
+  icons/icon.svg       icon source (npm run icons → PNGs)
   editor/
-    App.tsx           top-level state wiring
-    store.ts          reducer + undo/redo history
-    components/       Toolbar, ThumbnailGrid, PageThumb, CropDialog
+    App.tsx            top-level state wiring
+    store.ts           reducer + undo/redo history
+    themes.ts          the four Looks (CSS-var token sets)
+    components/        Header, Toolbar, ThumbnailGrid, PageThumb, Lightbox,
+                       CropDialog, RangeDialog, ImagesDialog, MixDialog, SplitEveryDialog,
+                       SelectionDock, EmptyState, LoadingState, Toast, DragOverlay
     lib/
-      pageModel.ts    PageDescriptor type + pure operations
-      ingest.ts       load PDFs from file / URL
-      pdfRender.ts    pdf.js thumbnail rendering
-      pdfExport.ts    pdf-lib export (single + split)
+      pageModel.ts     PageDescriptor type + pure operations
+      ingest.ts        load PDFs / images from file, URL, or tab
+      pdfRender.ts     pdf.js thumbnails + full-res bitmap (for image export)
+      pdfExport.ts     pdf-lib export (single + split)
+      pdfImages.ts     PDF → image rasterization & download
+      pageRange.ts     "1-3, 5" range parsing
+e2e/                   Playwright tests
 ```
 
-## Limitations (v1)
+## Limitations
 
-No content/text editing, OCR, form filling, or annotations. The original file is never
-overwritten in place — output is always a fresh download. Encrypted PDFs may fail to load.
+No content/text editing, OCR, form filling, annotations, or persistence across reload
+(beyond an unsaved-work warning). The original file is never overwritten — output is
+always a fresh download. Encrypted PDFs may fail to load.
