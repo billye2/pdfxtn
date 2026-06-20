@@ -117,4 +117,4 @@ always a fresh download. Encrypted PDFs may fail to load.
 
 ## License
 
-[MIT](LICENSE) © billye2
+[MIT](LICENSE) © Billy Ye
