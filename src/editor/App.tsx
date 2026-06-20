@@ -93,7 +93,7 @@ export default function App() {
 
   const showToast = useCallback((message: string, tone: 'success' | 'error' = 'success') => {
     setToast({ message, tone });
-    setTimeout(() => setToast(null), 2700);
+    setTimeout(() => setToast(null), 3500);
   }, []);
 
   const addFiles = useCallback(
