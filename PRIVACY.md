@@ -24,8 +24,8 @@ device and are discarded when you close the editor tab.
 
 ## Permissions
 
-- **activeTab / tabs** — to read the URL of the PDF open in your current tab (when you
-  click the icon) and to open the editor in a new tab.
+- **activeTab** — to read the URL of the PDF open in your current tab when you click the
+  icon, so it can be offered for editing.
 - **storage** — a one-time, in-memory handoff of that URL from the background worker to
   the editor tab. Cleared when the browser closes.
 - **contextMenus** — to add the right-click "Open in PDF Mana" items on PDF links/pages.

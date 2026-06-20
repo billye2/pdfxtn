@@ -89,9 +89,8 @@ Everything you need to paste into the Developer Dashboard for PDF Mana 1.0.0.
 
 ## Permission justifications (paste per-permission)
 
-- **activeTab:** Read the URL of the PDF open in the user's active tab when they click the
-  toolbar icon, so it can be loaded for editing.
-- **tabs:** Open the editor in a new tab and read the active tab's URL on icon click.
+- **activeTab:** When the user clicks the toolbar icon, read the URL of the PDF open in the
+  active tab so it can be offered for editing. (Opening the editor tab needs no permission.)
 - **storage:** One-time in-memory (`session`) handoff of the chosen PDF's URL from the
   background service worker to the editor tab.
 - **contextMenus:** Add the right-click "Open in PDF Mana" items for PDF links and pages.

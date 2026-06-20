@@ -24,7 +24,7 @@ export default defineManifest({
     service_worker: 'src/background.ts',
     type: 'module',
   },
-  permissions: ['activeTab', 'tabs', 'storage', 'contextMenus'],
+  permissions: ['activeTab', 'storage', 'contextMenus'],
   // No standing host access. We request the specific PDF's origin at runtime,
   // only when the user chooses to load a tab/linked PDF. Local-file editing
   // needs none of this.
