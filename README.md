@@ -1,4 +1,6 @@
-# PDF Page Manager
+# Mana
+
+**M**erge · **A**rrange · **N**ip · **A**djust
 
 A Chrome extension (Manifest V3) for managing PDF pages — entirely in your browser.
 Nothing is uploaded; all parsing and writing happens locally.

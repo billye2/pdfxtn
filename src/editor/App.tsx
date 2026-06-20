@@ -46,7 +46,7 @@ const HELP_TIPS = [
   'Tip: pick some pages, then "Keep these" to extract only those.',
   'Tip: Cmd/Ctrl+Z undoes, Cmd/Ctrl+A selects all, Esc clears your selection.',
   'Tip: add another PDF anytime to merge — its pages just append.',
-  'Tip: right-click a PDF link on the web → "Open in PDF Page Manager".',
+  'Tip: right-click a PDF link on the web → "Open link in Mana".',
   'Tip: open a PDF in a tab, then click the toolbar icon to load it automatically.',
   'Tip: page labels keep their original number even after you reorder pages.',
   'Tip: switch the Look in the top-right to recolor the whole app.',

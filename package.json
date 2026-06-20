@@ -1,7 +1,7 @@
 {
   "name": "pdfxtn",
   "version": "0.1.0",
-  "description": "PDF Page Manager — a Chrome extension to reorder, delete, rotate, merge/split, and crop PDF pages locally.",
+  "description": "Mana — a Chrome extension to Merge, Arrange, Nip & Adjust PDF pages locally.",
   "private": true,
   "type": "module",
   "scripts": {
