@@ -28,22 +28,28 @@ chrome.action.onClicked.addListener((tab) => {
   void openEditor(looksLikePdf(tab?.url) ? tab!.url! : null);
 });
 
-// (Re)create context menus on install/update. The service worker may restart,
-// but menus persist; creating in onInstalled avoids duplicate-id errors.
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({
-    id: 'open-pdf-link',
-    title: 'Open link in PDF Mana',
-    contexts: ['link'],
-    targetUrlPatterns: PDF_PATTERNS,
+// (Re)create context menus on install/update. removeAll() first so a reload
+// always re-registers cleanly (avoids duplicate-id errors on stale menus).
+function registerMenus(): void {
+  chrome.contextMenus.removeAll(() => {
+    chrome.contextMenus.create({
+      id: 'open-pdf-link',
+      title: 'Open link in PDF Mana',
+      contexts: ['link'],
+      targetUrlPatterns: PDF_PATTERNS,
+    });
+    chrome.contextMenus.create({
+      id: 'open-pdf-page',
+      title: 'Open in PDF Mana',
+      contexts: ['page'],
+      documentUrlPatterns: PDF_PATTERNS,
+    });
   });
-  chrome.contextMenus.create({
-    id: 'open-pdf-page',
-    title: 'Open in PDF Mana',
-    contexts: ['page'],
-    documentUrlPatterns: PDF_PATTERNS,
-  });
-});
+}
+
+chrome.runtime.onInstalled.addListener(registerMenus);
+// Also (re)register when the service worker wakes on browser startup.
+chrome.runtime.onStartup.addListener(registerMenus);
 
 chrome.contextMenus.onClicked.addListener((info) => {
   const url =
