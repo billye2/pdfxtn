@@ -8,11 +8,14 @@ import {
   X,
   Undo2,
   Redo2,
+  Shuffle,
+  SplitSquareHorizontal,
 } from './icons';
 
 interface Props {
   selectedCount: number;
   hasCrop: boolean;
+  canMix: boolean;
   canUndo: boolean;
   canRedo: boolean;
   onAddFiles: (files: FileList) => void;
@@ -22,8 +25,11 @@ interface Props {
   onDeleteSelected: () => void;
   onOpenCrop: () => void;
   onSplit: () => void;
+  onOpenSplitEvery: () => void;
+  onOpenMix: () => void;
   onClearCrop: () => void;
   onOpenRange: () => void;
+  onOpenImages: () => void;
   onUndo: () => void;
   onRedo: () => void;
 }
@@ -41,7 +47,7 @@ export default function Toolbar(props: Props) {
         <input
           ref={fileRef}
           type="file"
-          accept="application/pdf"
+          accept="application/pdf,image/png,image/jpeg"
           multiple
           hidden
           onChange={(e) => {
@@ -49,6 +55,15 @@ export default function Toolbar(props: Props) {
             e.target.value = '';
           }}
         />
+      </div>
+
+      <div className="tgroup">
+        <button className="btn-secondary" onClick={props.onOpenMix} disabled={!props.canMix} title="Interleave two documents (e.g. double-sided scans)">
+          <Shuffle size={16} /> Mix
+        </button>
+        <button className="btn-secondary" onClick={props.onOpenSplitEvery}>
+          <SplitSquareHorizontal size={16} /> Split every…
+        </button>
       </div>
 
       <span className="tdivider" />
@@ -86,6 +101,9 @@ export default function Toolbar(props: Props) {
 
       <button className="btn-secondary" onClick={props.onOpenRange}>
         Export range…
+      </button>
+      <button className="btn-secondary" onClick={props.onOpenImages}>
+        Export images…
       </button>
       {props.hasCrop && (
         <button className="btn-secondary" onClick={props.onClearCrop}>

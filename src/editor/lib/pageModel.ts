@@ -107,6 +107,26 @@ export function splitAt(
 }
 
 /**
+ * Round-robin interleave several page groups: one page from each group in turn
+ * until all are exhausted. Unequal lengths are handled gracefully (a depleted
+ * group is simply skipped). This is the core of "Mix".
+ *
+ * For a double-sided scan done on a single-sided feeder: group A = fronts
+ * (straight), group B = backs scanned last-to-first (reverse B before calling),
+ * and interleaving yields the correct front,back,front,back… order.
+ */
+export function interleave(groups: PageDescriptor[][]): PageDescriptor[] {
+  const result: PageDescriptor[] = [];
+  const max = groups.reduce((m, g) => Math.max(m, g.length), 0);
+  for (let i = 0; i < max; i += 1) {
+    for (const g of groups) {
+      if (i < g.length) result.push(g[i]);
+    }
+  }
+  return result;
+}
+
+/**
  * Given split marks meaning "a split occurs *after* this page id", produce the
  * set of begin-indices that `splitAt` expects.
  */
@@ -119,6 +139,22 @@ export function boundariesFromMarks(
     if (marks.has(p.id) && i + 1 < pages.length) boundaries.add(i + 1);
   });
   return boundaries;
+}
+
+/**
+ * Split marks for "split every N pages": a mark after every Nth page, except a
+ * trailing mark on the very last page (which would make an empty final part).
+ */
+export function everyNMarks(
+  pages: PageDescriptor[],
+  n: number,
+): Set<string> {
+  const marks = new Set<string>();
+  if (n < 1) return marks;
+  pages.forEach((p, i) => {
+    if ((i + 1) % n === 0 && i < pages.length - 1) marks.add(p.id);
+  });
+  return marks;
 }
 
 /**

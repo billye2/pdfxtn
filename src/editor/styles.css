@@ -843,6 +843,123 @@ button:disabled {
   border-radius: 6px;
 }
 
+/* Mix dialog */
+.mix-modal {
+  width: min(520px, 94vw);
+}
+.mix-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mix-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 2px solid var(--cardOutlineCol);
+  border-radius: 12px;
+  background: var(--bg);
+}
+.mix-seq {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: 7px;
+  background: var(--c-add);
+  color: var(--onColor);
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.mix-name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mix-count {
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--sub);
+}
+.mix-reverse {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--sub);
+  cursor: pointer;
+}
+.mix-move {
+  display: inline-flex;
+  gap: 4px;
+}
+.mix-preset {
+  margin-top: 14px;
+}
+
+/* Images dialog — labeled rows + segmented toggles */
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
+}
+.field-label {
+  width: 92px;
+  flex-shrink: 0;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--sub);
+}
+.seg {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.seg-btn {
+  height: 38px;
+  background: var(--bg);
+  color: var(--ink);
+  border: 2px solid var(--cardOutlineCol);
+  box-shadow: none;
+}
+.seg-btn.active {
+  background: var(--c-sel);
+  color: var(--onColor);
+  border-color: var(--c-sel);
+  filter: none;
+}
+
+/* Split-every dialog */
+.split-every-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--ink);
+}
+.split-n {
+  width: 88px;
+  text-align: center;
+}
+
 /* ---------- Lightbox ---------- */
 .lightbox-backdrop {
   position: fixed;

@@ -1,6 +1,7 @@
 import {
   applyCrop,
   deleteSelected,
+  everyNMarks,
   reorder,
   rotateSelected,
   type CropRect,
@@ -49,6 +50,8 @@ export type Action =
   | { type: 'rotateOne'; id: string; delta: 90 | -90 | 180 }
   | { type: 'applyCrop'; crop: CropRect | undefined; scope: 'all' | 'selected' }
   | { type: 'toggleSplitMark'; id: string }
+  | { type: 'splitEveryN'; n: number }
+  | { type: 'setPages'; pages: PageDescriptor[] }
   | { type: 'undo' }
   | { type: 'redo' };
 
@@ -140,6 +143,13 @@ function applyEdit(state: EditState, action: Action): EditState {
       else next.add(action.id);
       return { ...state, splitMarks: next };
     }
+
+    case 'splitEveryN':
+      return { ...state, splitMarks: everyNMarks(state.pages, action.n) };
+
+    case 'setPages':
+      // Replace the whole page list (e.g. after Mix); reset derived state.
+      return { pages: action.pages, selected: new Set(), splitMarks: new Set() };
 
     default:
       return state;

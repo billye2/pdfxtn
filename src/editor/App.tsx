@@ -4,6 +4,9 @@ import Toolbar from './components/Toolbar';
 import ThumbnailGrid from './components/ThumbnailGrid';
 import CropDialog from './components/CropDialog';
 import RangeDialog from './components/RangeDialog';
+import MixDialog, { type MixGroup } from './components/MixDialog';
+import SplitEveryDialog from './components/SplitEveryDialog';
+import ImagesDialog from './components/ImagesDialog';
 import Lightbox from './components/Lightbox';
 import EmptyState from './components/EmptyState';
 import LoadingState from './components/LoadingState';
@@ -11,9 +14,17 @@ import SelectionDock from './components/SelectionDock';
 import DragOverlay from './components/DragOverlay';
 import Toast from './components/Toast';
 import { initialHistory, reducer, type AppState } from './store';
-import { consumePendingSource, ingestFile, ingestUrl } from './lib/ingest';
+import {
+  consumePendingSource,
+  ingestFile,
+  ingestImages,
+  ingestUrl,
+  isImageFile,
+  type IngestResult,
+} from './lib/ingest';
 import { boundariesFromMarks, splitAt } from './lib/pageModel';
 import { exportGroups, exportSingle } from './lib/pdfExport';
+import { exportPagesAsImages, type ImageFormat } from './lib/pdfImages';
 import type { LoadedDoc } from './lib/pdfRender';
 import { lookStyle, type LookId } from './themes';
 
@@ -31,11 +42,34 @@ export default function App() {
   const [toast, setToast] = useState<ToastState | null>(null);
   const [cropOpen, setCropOpen] = useState(false);
   const [rangeOpen, setRangeOpen] = useState(false);
+  const [mixOpen, setMixOpen] = useState(false);
+  const [splitEveryOpen, setSplitEveryOpen] = useState(false);
+  const [imagesOpen, setImagesOpen] = useState(false);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const [dragActive, setDragActive] = useState(false);
 
   const { pages, selected, splitMarks } = history.present;
   const hasCrop = pages.some((p) => p.crop);
+
+  // Group the current pages by their source document, preserving first-seen
+  // order — the unit Mix interleaves over.
+  function pageGroups(): MixGroup[] {
+    const order: string[] = [];
+    const byDoc = new Map<string, typeof pages>();
+    for (const p of pages) {
+      if (!byDoc.has(p.docId)) {
+        byDoc.set(p.docId, []);
+        order.push(p.docId);
+      }
+      byDoc.get(p.docId)!.push(p);
+    }
+    return order.map((docId) => ({
+      docId,
+      name: docs.get(docId)?.name ?? 'PDF',
+      pages: byDoc.get(docId)!,
+    }));
+  }
+  const canMix = new Set(pages.map((p) => p.docId)).size >= 2;
 
   const showToast = useCallback((message: string, tone: 'success' | 'error' = 'success') => {
     setToast({ message, tone });
@@ -44,20 +78,26 @@ export default function App() {
 
   const addFiles = useCallback(
     async (files: FileList | File[]) => {
-      const list = Array.from(files).filter((f) => !f.type || f.type === 'application/pdf');
-      if (list.length === 0) return;
+      const all = Array.from(files);
+      const images = all.filter(isImageFile);
+      const pdfs = all.filter(
+        (f) => !isImageFile(f) && (!f.type || f.type === 'application/pdf'),
+      );
+      if (images.length === 0 && pdfs.length === 0) return;
+
       setAppState('loading');
       try {
         let added = 0;
-        for (const file of list) {
-          const { doc, pages: newPages } = await ingestFile(file);
-          setDocs((prev) => new Map(prev).set(doc.id, doc));
-          dispatch({ type: 'addPages', pages: newPages });
-          added += newPages.length;
-        }
+        const ingest = (result: IngestResult) => {
+          setDocs((prev) => new Map(prev).set(result.doc.id, result.doc));
+          dispatch({ type: 'addPages', pages: result.pages });
+          added += result.pages.length;
+        };
+        for (const file of pdfs) ingest(await ingestFile(file));
+        if (images.length) ingest(await ingestImages(images));
         showToast(`Added ${added} page${added === 1 ? '' : 's'}`);
       } catch (e) {
-        showToast(`Could not open PDF: ${(e as Error).message}`, 'error');
+        showToast(`Could not add files: ${(e as Error).message}`, 'error');
       } finally {
         setAppState('editor');
       }
@@ -146,7 +186,7 @@ export default function App() {
   function pickFiles() {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'application/pdf';
+    input.accept = 'application/pdf,image/png,image/jpeg';
     input.multiple = true;
     input.onchange = () => {
       if (input.files?.length) addFiles(input.files);
@@ -170,6 +210,16 @@ export default function App() {
       }
     } catch (e) {
       showToast(`Save failed: ${(e as Error).message}`, 'error');
+    }
+  }
+
+  async function handleExportImages(opts: { format: ImageFormat; scale: number }) {
+    setImagesOpen(false);
+    try {
+      const n = await exportPagesAsImages(pages, docs, sourceName(), opts);
+      showToast(`Saved ${n} image${n === 1 ? '' : 's'}`);
+    } catch (e) {
+      showToast(`Image export failed: ${(e as Error).message}`, 'error');
     }
   }
 
@@ -235,6 +285,7 @@ export default function App() {
         <Toolbar
           selectedCount={selected.size}
           hasCrop={hasCrop}
+          canMix={canMix}
           canUndo={history.past.length > 0}
           canRedo={history.future.length > 0}
           onAddFiles={addFiles}
@@ -244,8 +295,11 @@ export default function App() {
           onDeleteSelected={() => dispatch({ type: 'deleteSelected' })}
           onOpenCrop={() => setCropOpen(true)}
           onSplit={applySplitToSelection}
+          onOpenSplitEvery={() => setSplitEveryOpen(true)}
+          onOpenMix={() => setMixOpen(true)}
           onClearCrop={() => dispatch({ type: 'applyCrop', crop: undefined, scope: 'all' })}
           onOpenRange={() => setRangeOpen(true)}
+          onOpenImages={() => setImagesOpen(true)}
           onUndo={() => dispatch({ type: 'undo' })}
           onRedo={() => dispatch({ type: 'redo' })}
         />
@@ -310,6 +364,38 @@ export default function App() {
           total={pages.length}
           onExport={handleExportRange}
           onCancel={() => setRangeOpen(false)}
+        />
+      )}
+
+      {mixOpen && (
+        <MixDialog
+          groups={pageGroups()}
+          onMix={(mixed) => {
+            dispatch({ type: 'setPages', pages: mixed });
+            setMixOpen(false);
+            showToast('Mixed the pages');
+          }}
+          onCancel={() => setMixOpen(false)}
+        />
+      )}
+
+      {imagesOpen && (
+        <ImagesDialog
+          total={pages.length}
+          onExport={handleExportImages}
+          onCancel={() => setImagesOpen(false)}
+        />
+      )}
+
+      {splitEveryOpen && (
+        <SplitEveryDialog
+          total={pages.length}
+          onApply={(n) => {
+            dispatch({ type: 'splitEveryN', n });
+            setSplitEveryOpen(false);
+            showToast(`Split every ${n} page${n === 1 ? '' : 's'} — click Save PDF to export`);
+          }}
+          onCancel={() => setSplitEveryOpen(false)}
         />
       )}
 

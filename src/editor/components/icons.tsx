@@ -15,6 +15,8 @@ export {
   ChevronLeft,
   ChevronRight,
   Maximize2,
+  Shuffle,
+  SplitSquareHorizontal,
   HelpCircle,
   CopyCheck,
   CircleCheck,

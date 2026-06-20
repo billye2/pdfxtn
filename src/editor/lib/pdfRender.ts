@@ -1,5 +1,5 @@
 import { pdfjsLib, type PdfDocument } from './pdfjs';
-import type { Rotation } from './pageModel';
+import type { CropRect, Rotation } from './pageModel';
 
 /**
  * Holds a parsed pdf.js document plus its raw bytes. We keep the bytes around so
@@ -54,6 +54,58 @@ export async function renderThumbnail(
   if (!ctx) throw new Error('Could not get 2D canvas context');
 
   await page.render({ canvasContext: ctx, viewport }).promise;
+  return canvas;
+}
+
+/**
+ * Render a page to a full-resolution canvas for image export, applying crop
+ * (normalized over the unrotated page) and then rotation — matching the PDF
+ * export semantics. `scale` multiplies the page's native pixel size.
+ */
+export async function renderPageBitmap(
+  doc: LoadedDoc,
+  pageIndex: number,
+  opts: { scale?: number; rotation?: Rotation; crop?: CropRect } = {},
+): Promise<HTMLCanvasElement> {
+  const { scale = 2, rotation = 0, crop } = opts;
+  const page = await doc.pdf.getPage(pageIndex + 1);
+  const viewport = page.getViewport({ scale, rotation: 0 });
+
+  const base = document.createElement('canvas');
+  base.width = Math.ceil(viewport.width);
+  base.height = Math.ceil(viewport.height);
+  const bctx = base.getContext('2d');
+  if (!bctx) throw new Error('Could not get 2D canvas context');
+  await page.render({ canvasContext: bctx, viewport }).promise;
+
+  // Crop in unrotated page space.
+  let canvas = base;
+  if (crop) {
+    const cx = Math.round(crop.x * base.width);
+    const cy = Math.round(crop.y * base.height);
+    const cw = Math.max(1, Math.round(crop.w * base.width));
+    const ch = Math.max(1, Math.round(crop.h * base.height));
+    const c = document.createElement('canvas');
+    c.width = cw;
+    c.height = ch;
+    c.getContext('2d')!.drawImage(base, cx, cy, cw, ch, 0, 0, cw, ch);
+    canvas = c;
+  }
+
+  // Rotate.
+  const r = (((rotation % 360) + 360) % 360) as Rotation;
+  if (r !== 0) {
+    const swap = r === 90 || r === 270;
+    const rc = document.createElement('canvas');
+    rc.width = swap ? canvas.height : canvas.width;
+    rc.height = swap ? canvas.width : canvas.height;
+    const rctx = rc.getContext('2d')!;
+    rctx.translate(rc.width / 2, rc.height / 2);
+    rctx.rotate((r * Math.PI) / 180);
+    rctx.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
+    canvas = rc;
+  }
+
   return canvas;
 }
 

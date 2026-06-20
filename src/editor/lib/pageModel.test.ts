@@ -3,6 +3,8 @@ import {
   applyCrop,
   boundariesFromMarks,
   deleteSelected,
+  everyNMarks,
+  interleave,
   partNumbers,
   reorder,
   rotateOne,
@@ -127,6 +129,62 @@ describe('boundariesFromMarks', () => {
     const marks = new Set(['p1', 'p3']);
     const groups = splitAt(pages, boundariesFromMarks(pages, marks));
     expect(groups.map(ids)).toEqual([['p0', 'p1'], ['p2', 'p3'], ['p4']]);
+  });
+});
+
+describe('interleave', () => {
+  it('alternates pages from two equal groups', () => {
+    const a = makePages(3, 'A');
+    const b = makePages(3, 'B');
+    const out = interleave([a, b]);
+    expect(out.map((p) => `${p.docId}${p.pageIndex}`)).toEqual([
+      'A0', 'B0', 'A1', 'B1', 'A2', 'B2',
+    ]);
+  });
+
+  it('fixes a double-sided scan (fronts straight, backs reversed)', () => {
+    // fronts = pages 1,2,3 ; backs scanned last-to-first = 6,5,4
+    const fronts = makePages(3, 'F'); // F0,F1,F2  → pages 1,2,3
+    const backsScanned = makePages(3, 'B'); // B0,B1,B2 = scanned order of 6,5,4
+    const backs = backsScanned.slice().reverse(); // reverse → B2,B1,B0 = 4,5,6
+    const out = interleave([fronts, backs]);
+    // expected document order: 1,4,2,5,3,6
+    expect(out.map((p) => `${p.docId}${p.pageIndex}`)).toEqual([
+      'F0', 'B2', 'F1', 'B1', 'F2', 'B0',
+    ]);
+  });
+
+  it('handles unequal lengths by skipping the depleted group', () => {
+    const a = makePages(3, 'A');
+    const b = makePages(1, 'B');
+    const out = interleave([a, b]);
+    expect(out.map((p) => `${p.docId}${p.pageIndex}`)).toEqual(['A0', 'B0', 'A1', 'A2']);
+  });
+
+  it('returns [] for no groups', () => {
+    expect(interleave([])).toEqual([]);
+  });
+});
+
+describe('everyNMarks', () => {
+  it('marks after every Nth page, except the last page', () => {
+    const pages = makePages(7);
+    // split every 2 → marks after pages at index 1,3,5 (pages 2,4,6)
+    const marks = everyNMarks(pages, 2);
+    expect(pages.filter((p) => marks.has(p.id)).map((p) => p.id)).toEqual(['p1', 'p3', 'p5']);
+  });
+  it('produces ceil(total/n) parts when round-tripped through splitAt', () => {
+    const pages = makePages(7);
+    const groups = splitAt(pages, boundariesFromMarks(pages, everyNMarks(pages, 3)));
+    expect(groups.map((g) => g.length)).toEqual([3, 3, 1]); // ceil(7/3) = 3 parts
+  });
+  it('never marks the final page (no empty trailing part)', () => {
+    const pages = makePages(4);
+    const marks = everyNMarks(pages, 4); // would mark index 3 (last) — must not
+    expect(marks.size).toBe(0);
+  });
+  it('returns empty for n < 1', () => {
+    expect(everyNMarks(makePages(3), 0).size).toBe(0);
   });
 });
 
