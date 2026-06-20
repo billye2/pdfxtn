@@ -60,6 +60,29 @@ export async function ingestImages(files: File[]): Promise<IngestResult> {
   return ingestBytes(name, out);
 }
 
+/**
+ * Ensure we have host access to fetch `url`. Requests only that PDF's origin
+ * (not all sites) at runtime; must be called from a user gesture. Non-http(s)
+ * URLs (file://, etc.) aren't origin-gated — they rely on the browser's
+ * "Allow access to file URLs" toggle — so we just proceed for those.
+ */
+export async function ensureHostPermission(url: string): Promise<boolean> {
+  let origin: string;
+  try {
+    const u = new URL(url);
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return true;
+    origin = `${u.origin}/*`;
+  } catch {
+    return true;
+  }
+  try {
+    if (await chrome.permissions.contains({ origins: [origin] })) return true;
+    return await chrome.permissions.request({ origins: [origin] });
+  } catch {
+    return false;
+  }
+}
+
 /** Load a PDF from a URL (the PDF open in the active tab). */
 export async function ingestUrl(url: string): Promise<IngestResult> {
   const res = await fetch(url);

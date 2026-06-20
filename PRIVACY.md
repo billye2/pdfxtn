@@ -29,9 +29,10 @@ device and are discarded when you close the editor tab.
 - **storage** — a one-time, in-memory handoff of that URL from the background worker to
   the editor tab. Cleared when the browser closes.
 - **contextMenus** — to add the right-click "Open in PDF Mana" items on PDF links/pages.
-- **host access (`<all_urls>`)** — to fetch the bytes of a PDF you chose to open (the one
-  in your tab or a link you right-clicked) so it can be loaded into the editor. These
-  bytes are processed locally and never sent anywhere.
+- **optional host access** — requested only at the moment you click "Load PDF" to open a
+  PDF from your tab or a right-clicked link, and scoped to that PDF's site (not all sites).
+  It lets the extension fetch the PDF's bytes, which are processed locally and never sent
+  anywhere. Editing local files needs no host access at all.
 
 ## Changes
 

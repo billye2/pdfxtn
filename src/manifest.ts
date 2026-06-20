@@ -25,5 +25,8 @@ export default defineManifest({
     type: 'module',
   },
   permissions: ['activeTab', 'tabs', 'storage', 'contextMenus'],
-  host_permissions: ['<all_urls>'],
+  // No standing host access. We request the specific PDF's origin at runtime,
+  // only when the user chooses to load a tab/linked PDF. Local-file editing
+  // needs none of this.
+  optional_host_permissions: ['<all_urls>'],
 });

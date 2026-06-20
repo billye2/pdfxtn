@@ -61,15 +61,13 @@ Everything you need to paste into the Developer Dashboard for PDF Mana 1.0.0.
 - **storage:** One-time in-memory (`session`) handoff of the chosen PDF's URL from the
   background service worker to the editor tab.
 - **contextMenus:** Add the right-click "Open in PDF Mana" items for PDF links and pages.
-- **host permissions (`<all_urls>`):** Fetch the bytes of the PDF the user chose to open
-  (the one in their tab, or a link they right-clicked). The bytes are processed locally and
-  never transmitted.
+- **optional host access (`optional_host_permissions: <all_urls>`):** Not granted by
+  default. Requested at runtime — scoped to a single site — only when the user clicks
+  "Load PDF" to open the PDF from their tab or a right-clicked link. The fetched bytes are
+  processed locally and never transmitted. Local-file editing requires no host access.
 
-> ⚠️ The broad `<all_urls>` host permission is the most likely thing to draw reviewer
-> questions / extend review time. It's needed so the editor page can fetch an arbitrary
-> PDF URL. If you want a faster, lower-friction review later, this can be moved to an
-> **optional host permission** requested at runtime only when the user loads a tab/link PDF
-> (local-file editing needs no host access at all). Ask and I'll refactor it.
+> ✅ Host access is **optional** and user-initiated, so the extension installs with **no
+> standing access to any site** — the lowest-friction posture for review.
 
 ## Assets
 

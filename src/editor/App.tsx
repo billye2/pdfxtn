@@ -16,6 +16,7 @@ import Toast from './components/Toast';
 import { initialHistory, reducer, type AppState } from './store';
 import {
   consumePendingSource,
+  ensureHostPermission,
   ingestFile,
   ingestImages,
   ingestUrl,
@@ -65,6 +66,7 @@ export default function App() {
   const [splitEveryOpen, setSplitEveryOpen] = useState(false);
   const [imagesOpen, setImagesOpen] = useState(false);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+  const [pendingSource, setPendingSource] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [saving, setSaving] = useState(false);
   // For multi-file (split) exports we can show real progress; single is indeterminate.
@@ -134,27 +136,51 @@ export default function App() {
     [showToast],
   );
 
-  // On first load, pull in the active tab's PDF if the worker handed one off.
+  // On first load, note the active tab's PDF (if handed off) and offer to load
+  // it. We don't fetch automatically: fetching needs host access, which we only
+  // request on an explicit user click (see loadPending).
   useEffect(() => {
     let done = false;
     (async () => {
       const url = await consumePendingSource();
-      if (!url || done) return;
-      setAppState('loading');
-      try {
-        const { doc, pages: newPages } = await ingestUrl(url);
-        setDocs((prev) => new Map(prev).set(doc.id, doc));
-        dispatch({ type: 'addPages', pages: newPages });
-        setAppState('editor');
-      } catch (e) {
-        showToast(`Could not load the tab's PDF: ${(e as Error).message}`, 'error');
-        setAppState('empty');
-      }
+      if (url && !done) setPendingSource(url);
     })();
     return () => {
       done = true;
     };
-  }, [showToast]);
+  }, []);
+
+  // User clicked "Load PDF" in the banner — request that origin's host
+  // permission (within this gesture), then fetch and ingest.
+  async function loadPending() {
+    const url = pendingSource;
+    if (!url) return;
+    const granted = await ensureHostPermission(url);
+    setPendingSource(null);
+    if (!granted) {
+      showToast('Permission needed to load that PDF', 'error');
+      return;
+    }
+    setAppState('loading');
+    try {
+      const { doc, pages: newPages } = await ingestUrl(url);
+      setDocs((prev) => new Map(prev).set(doc.id, doc));
+      dispatch({ type: 'addPages', pages: newPages });
+      setAppState('editor');
+      showToast(`Loaded ${newPages.length} page${newPages.length === 1 ? '' : 's'}`);
+    } catch (e) {
+      showToast(`Could not load that PDF: ${(e as Error).message}`, 'error');
+      setAppState('empty');
+    }
+  }
+
+  function hostOf(url: string): string {
+    try {
+      return new URL(url).hostname || 'this tab';
+    } catch {
+      return 'this tab';
+    }
+  }
 
   // Keyboard shortcuts.
   useEffect(() => {
@@ -379,6 +405,20 @@ export default function App() {
           onUndo={() => dispatch({ type: 'undo' })}
           onRedo={() => dispatch({ type: 'redo' })}
         />
+      )}
+
+      {pendingSource && (
+        <div className="pending-banner">
+          <span className="pending-text">
+            A PDF from <strong>{hostOf(pendingSource)}</strong> is ready to load.
+          </span>
+          <button className="btn-go pending-btn" onClick={loadPending}>
+            Load PDF
+          </button>
+          <button className="btn-secondary pending-btn" onClick={() => setPendingSource(null)}>
+            Dismiss
+          </button>
+        </div>
       )}
 
       <main className="main">
