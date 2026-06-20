@@ -3,7 +3,7 @@ import pkg from '../package.json';
 
 export default defineManifest({
   manifest_version: 3,
-  name: 'Mana',
+  name: 'PDF Mana',
   description:
     'Merge, Arrange, Nip & Adjust your PDF pages — fully local, nothing uploaded.',
   version: pkg.version,
@@ -14,7 +14,7 @@ export default defineManifest({
     128: 'src/icons/icon128.png',
   },
   action: {
-    default_title: 'Open Mana',
+    default_title: 'Open PDF Mana',
     default_icon: {
       16: 'src/icons/icon16.png',
       32: 'src/icons/icon32.png',

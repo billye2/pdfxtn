@@ -33,13 +33,13 @@ chrome.action.onClicked.addListener((tab) => {
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: 'open-pdf-link',
-    title: 'Open link in Mana',
+    title: 'Open link in PDF Mana',
     contexts: ['link'],
     targetUrlPatterns: PDF_PATTERNS,
   });
   chrome.contextMenus.create({
     id: 'open-pdf-page',
-    title: 'Open this PDF in Mana',
+    title: 'Open this PDF in PDF Mana',
     contexts: ['page'],
     documentUrlPatterns: PDF_PATTERNS,
   });

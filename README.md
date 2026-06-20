@@ -1,4 +1,4 @@
-# Mana
+# PDF Mana
 
 **M**erge · **A**rrange · **N**ip · **A**djust
 

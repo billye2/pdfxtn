@@ -38,7 +38,7 @@ export default function Header(props: Props) {
           <span className="brand-page" />
         </span>
         <span className="brand-text">
-          <span className="brand-title">Mana</span>
+          <span className="brand-title">PDF Mana</span>
           <span className="brand-sub">Merge · Arrange · Nip · Adjust</span>
         </span>
       </div>
