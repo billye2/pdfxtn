@@ -1,12 +1,13 @@
 # Chrome Web Store — submission package
 
-Everything you need to paste into the Developer Dashboard for PDF Mana 1.0.2.
+Everything you need to paste into the Developer Dashboard for PDF Mana.
 
 ## Upload package
 
-- **File:** `release/pdf-mana-1.0.2.zip` (built from `dist/`, manifest.json at the zip root).
-- Rebuild + repackage anytime: `npm run build` then
-  `cd dist && zip -qr ../release/pdf-mana-1.0.2.zip .`
+- **File:** `release/pdf-mana-<version>.zip` (built from `dist/`, manifest.json at the zip root).
+- (Re)package with **`npm run release`** — it bumps the patch version, builds, and writes a
+  fresh version-named zip. Always use this so the uploaded version always increases (the Web
+  Store rejects re-uploads of an existing version).
 
 ## Listing fields
 
@@ -112,7 +113,7 @@ Everything you need to paste into the Developer Dashboard for PDF Mana 1.0.2.
 
 ## Pre-submit checklist
 
-- [ ] `npm run build` is clean; `release/pdf-mana-1.0.2.zip` is fresh.
+- [ ] `npm run release` produced a fresh `release/pdf-mana-<version>.zip` (version bumped).
 - [ ] Register as a Chrome Web Store developer (one-time $5 fee) at
       https://chrome.google.com/webstore/devconsole
 - [ ] Create item → upload the ZIP.
