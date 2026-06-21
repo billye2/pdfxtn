@@ -57,17 +57,6 @@ export default function Toolbar(props: Props) {
       </div>
 
       <div className="tgroup">
-        <button className="btn-secondary" onClick={props.onOpenMix} disabled={!props.canMix} title="Interleave two documents (e.g. double-sided scans)">
-          <Shuffle size={16} /> Mix
-        </button>
-        <button className="btn-secondary" onClick={props.onOpenSplitEvery}>
-          <SplitSquareHorizontal size={16} /> Split every…
-        </button>
-      </div>
-
-      <span className="tdivider" />
-
-      <div className="tgroup">
         <button className="btn-secondary" onClick={props.onSelectAll}>
           Select all
         </button>
@@ -94,6 +83,15 @@ export default function Toolbar(props: Props) {
       </div>
 
       <span className="tspacer" />
+
+      <div className="tgroup">
+        <button className="btn-secondary" onClick={props.onOpenMix} disabled={!props.canMix} title="Interleave two documents (e.g. double-sided scans)">
+          <Shuffle size={16} /> Mix
+        </button>
+        <button className="btn-secondary" onClick={props.onOpenSplitEvery}>
+          <SplitSquareHorizontal size={16} /> Split every…
+        </button>
+      </div>
 
       <button className="btn-secondary" onClick={props.onOpenRange}>
         Export range…
