@@ -5,10 +5,14 @@ _Snapshot for picking this back up later._
 ## Status
 
 - **Product:** PDF Mana — MV3 Chrome extension, local PDF *page* manager (Merge · Arrange · Nip · Adjust).
-- **Version:** 1.0.3 — packaged at `release/pdf-mana-1.0.3.zip`.
+- **Version:** 1.0.4 — packaged at `release/pdf-mana-1.0.4.zip`.
 - **Repo:** https://github.com/billye2/pdfxtn — **public, MIT** (© Billy Ye). `main` is the working branch; everything is committed and pushed.
 - **Chrome Web Store:** fully prepared but **not yet published** by the user. The only remaining work is the dashboard submission (register, upload zip, paste copy, submit).
 - **Tests:** 46 unit (Vitest) + 12 e2e (Playwright; 11 run, 1 drag test skipped) — all green.
+- **Last change (v1.0.4):** fixed an MV3 service-worker race in `src/background.ts` that
+  surfaced as "Unchecked runtime.lastError: Cannot create item with duplicate id open-pdf-link".
+  `removeAll()` is async, so `onInstalled` + `onStartup` racing could both reach `create()`;
+  `create()` now takes a callback that reads `runtime.lastError`, making the duplicate benign.
 
 ## Commands
 
@@ -52,7 +56,7 @@ node scripts/promo.mjs         # promo tiles (440x280, 1400x560) → release/pro
 ## To submit (user-only steps)
 
 1. Register at https://chrome.google.com/webstore/devconsole (one-time $5).
-2. Create item → upload `release/pdf-mana-1.0.3.zip`.
+2. Create item → upload `release/pdf-mana-1.0.4.zip`.
 3. Paste listing fields from `docs/STORE_LISTING.md`; justifications from `docs/privacy-practices-copy.md`.
 4. **Remote code → No.** Data collected → **None** (certify the 3 boxes). Privacy policy URL → the PRIVACY.md GitHub link.
 5. Upload icon (128) + screenshots (`release/screenshots/`), optional promo tiles (`release/promo/`).
