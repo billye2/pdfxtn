@@ -28,17 +28,25 @@ chrome.action.onClicked.addListener((tab) => {
   void openEditor(looksLikePdf(tab?.url) ? tab!.url! : null);
 });
 
+// Create a menu item, swallowing the benign "duplicate id" error: removeAll()
+// is async, so two registerMenus() passes racing (onInstalled + onStartup can
+// fire close together) may both reach create(). Reading lastError in the
+// callback also clears the "Unchecked runtime.lastError" warning.
+function createMenu(props: chrome.contextMenus.CreateProperties): void {
+  chrome.contextMenus.create(props, () => void chrome.runtime.lastError);
+}
+
 // (Re)create context menus on install/update. removeAll() first so a reload
-// always re-registers cleanly (avoids duplicate-id errors on stale menus).
+// always re-registers cleanly (avoids stale menus).
 function registerMenus(): void {
   chrome.contextMenus.removeAll(() => {
-    chrome.contextMenus.create({
+    createMenu({
       id: 'open-pdf-link',
       title: 'Open link in PDF Mana',
       contexts: ['link'],
       targetUrlPatterns: PDF_PATTERNS,
     });
-    chrome.contextMenus.create({
+    createMenu({
       id: 'open-pdf-page',
       title: 'Open in PDF Mana',
       contexts: ['page'],
