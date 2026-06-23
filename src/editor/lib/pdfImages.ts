@@ -9,7 +9,11 @@ export interface ImageExportOptions {
   scale: number;
 }
 
-function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality?: number): Promise<Blob> {
+function canvasToBlob(
+  canvas: HTMLCanvasElement,
+  type: string,
+  quality?: number,
+): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => (blob ? resolve(blob) : reject(new Error('Failed to encode image'))),
@@ -70,7 +74,11 @@ export async function exportPagesAsImages(
     });
     if (opts.format === 'jpeg') canvas = flattenForJpeg(canvas);
 
-    const blob = await canvasToBlob(canvas, type, opts.format === 'jpeg' ? 0.92 : undefined);
+    const blob = await canvasToBlob(
+      canvas,
+      type,
+      opts.format === 'jpeg' ? 0.92 : undefined,
+    );
     download(blob, `${base}-p${String(i + 1).padStart(pad, '0')}.${ext}`);
     saved += 1;
   }

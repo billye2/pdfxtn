@@ -81,7 +81,7 @@ describe('buildDocument', () => {
     expect(out.getPage(0).getRotation().angle).toBe(90);
   });
 
-  it('composes descriptor rotation with the page\'s intrinsic rotation', async () => {
+  it("composes descriptor rotation with the page's intrinsic rotation", async () => {
     const bytes = await makeSourceBytes([[100, 200]], 90);
     const docs = new Map([['d1', fakeDoc('d1', bytes)]]);
 
@@ -98,9 +98,7 @@ describe('buildDocument', () => {
     const docs = new Map([['d1', fakeDoc('d1', bytes)]]);
 
     const crop = { x: 0.1, y: 0.2, w: 0.5, h: 0.3 };
-    const out = await loadOutput(
-      await buildDocument([desc('d1', 0, { crop })], docs),
-    );
+    const out = await loadOutput(await buildDocument([desc('d1', 0, { crop })], docs));
 
     const box = out.getPage(0).getCropBox();
     expect(box.x).toBeCloseTo(crop.x * W, 4); // 40

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { ChevronDown, Check } from './icons';
 import { LOOKS, LOOK_ORDER, paletteDots, type LookId } from '../themes';
 
@@ -20,9 +21,24 @@ function Dots({ look }: { look: LookId }) {
 }
 
 export default function LookPicker({ look, open, onToggle, onPick, onClose }: Props) {
+  // Close the menu on Escape while it's open.
+  useEffect(() => {
+    if (!open) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+
   return (
     <div className="look-picker">
-      <button className="btn-secondary look-trigger" onClick={onToggle}>
+      <button
+        className="btn-secondary look-trigger"
+        onClick={onToggle}
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
         <Dots look={look} />
         <span className="look-name">{LOOKS[look].name}</span>
         <ChevronDown size={14} className="chev" />

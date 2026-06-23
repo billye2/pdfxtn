@@ -14,5 +14,8 @@ execSync('npm run build', { stdio: 'inherit' });
 
 mkdirSync('release', { recursive: true });
 const zip = `pdf-mana-${version}.zip`;
-execSync(`zip -qr ../release/${zip} . -x '*.DS_Store'`, { cwd: 'dist', stdio: 'inherit' });
+execSync(`zip -qr ../release/${zip} . -x '*.DS_Store'`, {
+  cwd: 'dist',
+  stdio: 'inherit',
+});
 console.log(`\n✓ release/${zip}`);

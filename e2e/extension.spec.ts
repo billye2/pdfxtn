@@ -1,4 +1,11 @@
-import { test, expect, chromium, type BrowserContext, type Page, type Download } from '@playwright/test';
+import {
+  test,
+  expect,
+  chromium,
+  type BrowserContext,
+  type Page,
+  type Download,
+} from '@playwright/test';
 import { PDFDocument, degrees } from 'pdf-lib';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -63,10 +70,14 @@ async function openEditor(): Promise<Page> {
   return page;
 }
 
-async function drop(page: Page, files: Array<{ name: string; bytes: number[]; type: string }>) {
+async function drop(
+  page: Page,
+  files: Array<{ name: string; bytes: number[]; type: string }>,
+) {
   const dt = await page.evaluateHandle((fs) => {
     const d = new DataTransfer();
-    for (const f of fs) d.items.add(new File([new Uint8Array(f.bytes)], f.name, { type: f.type }));
+    for (const f of fs)
+      d.items.add(new File([new Uint8Array(f.bytes)], f.name, { type: f.type }));
     return d;
   }, files);
   await page.dispatchEvent('.app', 'dragover', { dataTransfer: dt });
@@ -84,11 +95,22 @@ async function widths(d: Download): Promise<number[]> {
 
 test('load, render thumbnails, original labels, delete, export', async () => {
   const page = await openEditor();
-  await drop(page, [pdf('s.pdf', await makePdf([[300, 400], [400, 300], [350, 500]]))]);
+  await drop(page, [
+    pdf(
+      's.pdf',
+      await makePdf([
+        [300, 400],
+        [400, 300],
+        [350, 500],
+      ]),
+    ),
+  ]);
 
   await expect(page.locator('.card')).toHaveCount(3);
   await expect(page.locator('.card-label').nth(0)).toHaveText('Page 1');
-  await expect(page.locator('.card .page-canvas').first()).toBeVisible({ timeout: 15_000 });
+  await expect(page.locator('.card .page-canvas').first()).toBeVisible({
+    timeout: 15_000,
+  });
 
   await page.locator('.card').nth(1).click();
   await page.keyboard.press('Delete');
@@ -97,7 +119,7 @@ test('load, render thumbnails, original labels, delete, export', async () => {
 
   const dl = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Save PDF' }).click();
-  expect((await widths(await dl))).toEqual([300, 350]);
+  expect(await widths(await dl)).toEqual([300, 350]);
 });
 
 test('merging two image-heavy PDFs keeps the exported size sane', async () => {
@@ -131,7 +153,16 @@ test('rotate a page (clockwise) reflects in the export', async () => {
 // (pageModel `reorder`) and verified manually in the browser.
 test.skip('drag to reorder changes page order', async () => {
   const page = await openEditor();
-  await drop(page, [pdf('o.pdf', await makePdf([[100, 100], [200, 200], [300, 300]]))]);
+  await drop(page, [
+    pdf(
+      'o.pdf',
+      await makePdf([
+        [100, 100],
+        [200, 200],
+        [300, 300],
+      ]),
+    ),
+  ]);
   await expect(page.locator('.card')).toHaveCount(3);
 
   // Drag card 0 onto card 2's position. dnd-kit's PointerSensor needs the move
@@ -159,29 +190,54 @@ test.skip('drag to reorder changes page order', async () => {
 
   const dl = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Save PDF' }).click();
-  expect((await widths(await dl))).toEqual([200, 300, 100]);
+  expect(await widths(await dl)).toEqual([200, 300, 100]);
 });
 
 test('extract ("Keep these") keeps only selected pages', async () => {
   const page = await openEditor();
-  await drop(page, [pdf('e.pdf', await makePdf([[100, 100], [200, 200], [300, 300], [400, 400]]))]);
+  await drop(page, [
+    pdf(
+      'e.pdf',
+      await makePdf([
+        [100, 100],
+        [200, 200],
+        [300, 300],
+        [400, 400],
+      ]),
+    ),
+  ]);
   await expect(page.locator('.card')).toHaveCount(4);
 
   await page.locator('.card').nth(0).click();
-  await page.locator('.card').nth(2).click({ modifiers: ['ControlOrMeta'] });
+  await page
+    .locator('.card')
+    .nth(2)
+    .click({ modifiers: ['ControlOrMeta'] });
   await page.getByRole('button', { name: 'Keep these' }).click();
   await expect(page.locator('.card')).toHaveCount(2);
 
   const dl = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Save PDF' }).click();
-  expect((await widths(await dl))).toEqual([100, 300]);
+  expect(await widths(await dl)).toEqual([100, 300]);
 });
 
 test('Mix interleaves two documents', async () => {
   const page = await openEditor();
   await drop(page, [
-    pdf('A.pdf', await makePdf([[100, 100], [101, 101]])),
-    pdf('B.pdf', await makePdf([[200, 200], [201, 201]])),
+    pdf(
+      'A.pdf',
+      await makePdf([
+        [100, 100],
+        [101, 101],
+      ]),
+    ),
+    pdf(
+      'B.pdf',
+      await makePdf([
+        [200, 200],
+        [201, 201],
+      ]),
+    ),
   ]);
   await expect(page.locator('.card')).toHaveCount(4);
 
@@ -192,12 +248,22 @@ test('Mix interleaves two documents', async () => {
 
   const dl = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Save PDF' }).click();
-  expect((await widths(await dl))).toEqual([100, 200, 101, 201]);
+  expect(await widths(await dl)).toEqual([100, 200, 101, 201]);
 });
 
 test('Split every N produces one file per chunk', async () => {
   const page = await openEditor();
-  await drop(page, [pdf('sp.pdf', await makePdf([[100, 100], [200, 200], [300, 300], [400, 400]]))]);
+  await drop(page, [
+    pdf(
+      'sp.pdf',
+      await makePdf([
+        [100, 100],
+        [200, 200],
+        [300, 300],
+        [400, 400],
+      ]),
+    ),
+  ]);
   await expect(page.locator('.card')).toHaveCount(4);
 
   await page.getByRole('button', { name: 'Split every…' }).click();
@@ -208,19 +274,32 @@ test('Split every N produces one file per chunk', async () => {
   page.on('download', (d) => downloads.push(d));
   await page.getByRole('button', { name: 'Save PDF' }).click();
   await expect.poll(() => downloads.length, { timeout: 10_000 }).toBe(2);
-  expect((await PDFDocument.load(readFileSync(await downloads[0].path()))).getPageCount()).toBe(2);
+  expect(
+    (await PDFDocument.load(readFileSync(await downloads[0].path()))).getPageCount(),
+  ).toBe(2);
 });
 
 test('Export by position (range) exports the chosen pages', async () => {
   const page = await openEditor();
-  await drop(page, [pdf('rg.pdf', await makePdf([[110, 1], [120, 1], [130, 1], [140, 1], [150, 1]]))]);
+  await drop(page, [
+    pdf(
+      'rg.pdf',
+      await makePdf([
+        [110, 1],
+        [120, 1],
+        [130, 1],
+        [140, 1],
+        [150, 1],
+      ]),
+    ),
+  ]);
   await expect(page.locator('.card')).toHaveCount(5);
 
   await page.getByRole('button', { name: 'Export range…' }).click();
   await page.locator('.range-input').fill('1, 3, 5');
   const dl = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export these pages' }).click();
-  expect((await widths(await dl))).toEqual([110, 130, 150]);
+  expect(await widths(await dl)).toEqual([110, 130, 150]);
 });
 
 test('Images → PDF: dropping a PNG adds a page', async () => {
@@ -230,12 +309,22 @@ test('Images → PDF: dropping a PNG adds a page', async () => {
 
   const dl = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Save PDF' }).click();
-  expect((await PDFDocument.load(readFileSync(await (await dl).path()))).getPageCount()).toBe(1);
+  expect(
+    (await PDFDocument.load(readFileSync(await (await dl).path()))).getPageCount(),
+  ).toBe(1);
 });
 
 test('PDF → Images exports one image per page', async () => {
   const page = await openEditor();
-  await drop(page, [pdf('im.pdf', await makePdf([[200, 200], [200, 200]]))]);
+  await drop(page, [
+    pdf(
+      'im.pdf',
+      await makePdf([
+        [200, 200],
+        [200, 200],
+      ]),
+    ),
+  ]);
   await expect(page.locator('.card')).toHaveCount(2);
 
   await page.getByRole('button', { name: 'Export images…' }).click();
@@ -250,7 +339,15 @@ test('PDF → Images exports one image per page', async () => {
 
 test('Lightbox preview opens, pages, and closes', async () => {
   const page = await openEditor();
-  await drop(page, [pdf('lb.pdf', await makePdf([[200, 300], [300, 200]]))]);
+  await drop(page, [
+    pdf(
+      'lb.pdf',
+      await makePdf([
+        [200, 300],
+        [300, 200],
+      ]),
+    ),
+  ]);
   await expect(page.locator('.card')).toHaveCount(2);
 
   await page.locator('.card').nth(0).dblclick();

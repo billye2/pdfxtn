@@ -14,6 +14,7 @@ Everything you need to paste into the Developer Dashboard for PDF Mana.
 **Name:** PDF Mana
 
 **Summary (short description, ≤132 chars):**
+
 > Merge, arrange, rotate, split, crop & convert PDF pages — fast, friendly, and 100% local. Nothing is ever uploaded.
 
 **Category:** Productivity (alt: Tools)
@@ -21,6 +22,7 @@ Everything you need to paste into the Developer Dashboard for PDF Mana.
 **Language:** English
 
 **Detailed description:**
+
 > **PDF Mana — Merge · Arrange · Nip · Adjust**
 >
 > A friendly, all-on-your-device PDF page manager. Open a PDF (or several), rearrange and
@@ -70,10 +72,12 @@ Everything you need to paste into the Developer Dashboard for PDF Mana.
 > PDF Mana is completely free and open source under the MIT license.
 >
 > ---
+>
 > Tip: open a PDF in a tab and click the toolbar icon, right-click a PDF link to send it
 > straight to PDF Mana, or just drag a file into the window.
 
 **Single purpose (required):**
+
 > Manage the pages of PDF files locally — reorder, rotate, delete, merge, split, crop, and
 > convert between PDF and images — entirely in the browser.
 
@@ -83,7 +87,7 @@ Everything you need to paste into the Developer Dashboard for PDF Mana.
 - **Data collection:** None. Declare "does not collect or use" for every data category.
 - **Remote code:** Select **"No, I am not using remote code."** All code/assets (pdf.js
   worker, fonts) are bundled; the extension executes no remotely-hosted or dynamically
-  fetched code — it only fetches PDF *data* the user opens (data, not code).
+  fetched code — it only fetches PDF _data_ the user opens (data, not code).
 - **Disclosures to check (certify):** "I do not sell or transfer user data to third
   parties," "…not use or transfer for purposes unrelated to the item's single purpose,"
   "…not use or transfer to determine creditworthiness / for lending."

@@ -161,7 +161,10 @@ export default function PageThumb({
       <div className="card-thumb">
         <div className="card-thumb-inner" ref={innerRef}>
           <div className="card-page" style={pageStyle}>
-            <div className={`card-canvas-host${rendered ? '' : ' skeleton'}`} ref={hostRef} />
+            <div
+              className={`card-canvas-host${rendered ? '' : ' skeleton'}`}
+              ref={hostRef}
+            />
             {page.crop && (
               <div
                 className="card-crop"
@@ -181,16 +184,32 @@ export default function PageThumb({
         <span className="card-label">Page {page.pageIndex + 1}</span>
         {showParts && <span className="card-part">Part {partNumber}</span>}
         <span className="card-ops" onPointerDown={(e) => e.stopPropagation()}>
-          <button title="Rotate" onClick={(e) => { e.stopPropagation(); onRotate(page.id, 90); }}>
+          <button
+            title="Rotate"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRotate(page.id, 90);
+            }}
+          >
             <RotateCw size={15} />
           </button>
           <button
             title={splitMark ? 'Remove split' : 'Split after this page'}
-            onClick={(e) => { e.stopPropagation(); onToggleSplit(page.id); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleSplit(page.id);
+            }}
           >
             <Scissors size={15} />
           </button>
-          <button className="op-del" title="Delete page" onClick={(e) => { e.stopPropagation(); onDelete(page.id); }}>
+          <button
+            className="op-del"
+            title="Delete page"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(page.id);
+            }}
+          >
             <X size={15} />
           </button>
         </span>

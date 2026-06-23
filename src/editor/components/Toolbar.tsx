@@ -60,7 +60,11 @@ export default function Toolbar(props: Props) {
         <button className="btn-secondary" onClick={props.onSelectAll}>
           Select all
         </button>
-        <button className="btn-secondary" onClick={props.onClearSelection} disabled={!hasSel}>
+        <button
+          className="btn-secondary"
+          onClick={props.onClearSelection}
+          disabled={!hasSel}
+        >
           Clear
         </button>
       </div>
@@ -68,7 +72,11 @@ export default function Toolbar(props: Props) {
       <span className="tdivider" />
 
       <div className="tgroup">
-        <button className="btn-rotate" onClick={() => props.onRotateSelected(90)} disabled={!hasSel}>
+        <button
+          className="btn-rotate"
+          onClick={() => props.onRotateSelected(90)}
+          disabled={!hasSel}
+        >
           <RotateCw size={16} /> Rotate
         </button>
         <button className="btn-crop" onClick={props.onOpenCrop}>
@@ -85,7 +93,12 @@ export default function Toolbar(props: Props) {
       <span className="tspacer" />
 
       <div className="tgroup">
-        <button className="btn-secondary" onClick={props.onOpenMix} disabled={!props.canMix} title="Interleave two documents (e.g. double-sided scans)">
+        <button
+          className="btn-secondary"
+          onClick={props.onOpenMix}
+          disabled={!props.canMix}
+          title="Interleave two documents (e.g. double-sided scans)"
+        >
           <Shuffle size={16} /> Mix
         </button>
         <button className="btn-secondary" onClick={props.onOpenSplitEvery}>

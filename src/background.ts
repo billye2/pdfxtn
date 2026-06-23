@@ -61,8 +61,6 @@ chrome.runtime.onStartup.addListener(registerMenus);
 
 chrome.contextMenus.onClicked.addListener((info) => {
   const url =
-    info.menuItemId === 'open-pdf-link'
-      ? info.linkUrl ?? null
-      : info.pageUrl ?? null;
+    info.menuItemId === 'open-pdf-link' ? (info.linkUrl ?? null) : (info.pageUrl ?? null);
   void openEditor(url);
 });

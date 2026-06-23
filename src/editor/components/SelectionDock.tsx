@@ -41,7 +41,11 @@ export default function SelectionDock({
       </button>
 
       <span className="dock-divider" />
-      <button className="btn-secondary dock-btn icon-only" title="Clear selection" onClick={onClear}>
+      <button
+        className="btn-secondary dock-btn icon-only"
+        title="Clear selection"
+        onClick={onClear}
+      >
         <X size={16} />
       </button>
     </div>

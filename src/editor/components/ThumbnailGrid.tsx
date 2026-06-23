@@ -54,7 +54,11 @@ export default function ThumbnailGrid({
   }
 
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
       <SortableContext items={pages.map((p) => p.id)} strategy={rectSortingStrategy}>
         <div
           className="grid"

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import Modal from './Modal';
 import type { CropRect, PageDescriptor } from '../lib/pageModel';
 import { renderThumbnail, type LoadedDoc } from '../lib/pdfRender';
 
@@ -20,7 +21,13 @@ interface PxRect {
 const PREVIEW_W = 240; // px; height follows the 0.78 page aspect
 
 // Crop is defined over the unrotated page (rotation 0) to match pdfExport.
-export default function CropDialog({ page, doc, selectedCount, onApply, onCancel }: Props) {
+export default function CropDialog({
+  page,
+  doc,
+  selectedCount,
+  onApply,
+  onCancel,
+}: Props) {
   const stageRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const [rect, setRect] = useState<PxRect | null>(null);
@@ -93,48 +100,45 @@ export default function CropDialog({ page, doc, selectedCount, onApply, onCancel
   const hasRect = !!rect && rect.w >= 4 && rect.h >= 4;
 
   return (
-    <div className="modal-backdrop" onClick={onCancel}>
-      <div className="modal crop-modal" onClick={(e) => e.stopPropagation()}>
-        <h2>Crop your pages</h2>
-        <p className="modal-help">Drag a box across the page to choose what to keep.</p>
+    <Modal title="Crop your pages" onClose={onCancel} className="crop-modal">
+      <p className="modal-help">Drag a box across the page to choose what to keep.</p>
 
-        <div
-          ref={stageRef}
-          className="crop-stage"
-          style={size ? { width: size.w, height: size.h } : undefined}
-          onPointerDown={down}
-          onPointerMove={move}
-          onPointerUp={up}
-        >
-          {rect && (
-            <div
-              className="crop-rect"
-              style={{ left: rect.x, top: rect.y, width: rect.w, height: rect.h }}
-            >
-              <span className="crop-handle tl" />
-              <span className="crop-handle tr" />
-              <span className="crop-handle bl" />
-              <span className="crop-handle br" />
-            </div>
-          )}
-        </div>
-
-        <div className="modal-footer">
-          <button className="btn-secondary" onClick={onCancel}>
-            Cancel
-          </button>
-          <button
-            className="btn-secondary"
-            disabled={!hasRect || selectedCount === 0}
-            onClick={() => apply('selected')}
+      <div
+        ref={stageRef}
+        className="crop-stage"
+        style={size ? { width: size.w, height: size.h } : undefined}
+        onPointerDown={down}
+        onPointerMove={move}
+        onPointerUp={up}
+      >
+        {rect && (
+          <div
+            className="crop-rect"
+            style={{ left: rect.x, top: rect.y, width: rect.w, height: rect.h }}
           >
-            Keep {selectedCount} picked
-          </button>
-          <button className="btn-go" disabled={!hasRect} onClick={() => apply('all')}>
-            Apply to all
-          </button>
-        </div>
+            <span className="crop-handle tl" />
+            <span className="crop-handle tr" />
+            <span className="crop-handle bl" />
+            <span className="crop-handle br" />
+          </div>
+        )}
       </div>
-    </div>
+
+      <div className="modal-footer">
+        <button className="btn-secondary" onClick={onCancel}>
+          Cancel
+        </button>
+        <button
+          className="btn-secondary"
+          disabled={!hasRect || selectedCount === 0}
+          onClick={() => apply('selected')}
+        >
+          Keep {selectedCount} picked
+        </button>
+        <button className="btn-go" disabled={!hasRect} onClick={() => apply('all')}>
+          Apply to all
+        </button>
+      </div>
+    </Modal>
   );
 }

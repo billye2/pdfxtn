@@ -4,7 +4,7 @@ _Snapshot for picking this back up later._
 
 ## Status
 
-- **Product:** PDF Mana — MV3 Chrome extension, local PDF *page* manager (Merge · Arrange · Nip · Adjust).
+- **Product:** PDF Mana — MV3 Chrome extension, local PDF _page_ manager (Merge · Arrange · Nip · Adjust).
 - **Version:** 1.0.4 — packaged at `release/pdf-mana-1.0.4.zip`.
 - **Repo:** https://github.com/billye2/pdfxtn — **public, MIT** (© Billy Ye). `main` is the working branch; everything is committed and pushed.
 - **Chrome Web Store:** fully prepared but **not yet published** by the user. The only remaining work is the dashboard submission (register, upload zip, paste copy, submit).
@@ -22,6 +22,8 @@ npm run dev        # Vite dev server (HMR)
 npm run build      # tsc + vite build → dist/
 npm test           # unit tests (Vitest)
 npm run e2e        # end-to-end (Playwright, loads built dist/)
+npm run lint       # ESLint (lint:fix to auto-fix)
+npm run format     # Prettier write (format:check to verify)
 npm run release    # BUMP patch version + build + zip → release/pdf-mana-<version>.zip
 npm run icons      # regenerate icons from src/icons/icon.svg
 node scripts/screenshots.mjs   # store screenshots (1280x800) → release/screenshots/
@@ -36,7 +38,7 @@ node scripts/promo.mjs         # promo tiles (440x280, 1400x560) → release/pro
 1. `npm run build`
 2. `chrome://extensions` → Developer mode → **Load unpacked** → select `dist/`.
 3. For `file://` PDFs: extension **Details** → enable "Allow access to file URLs".
-4. Context menu only shows on **`.pdf` links / PDF pages** (right-click a `.pdf` hyperlink to see "Open link in PDF Mana"). Reload the *extension* (not the browser) after code changes.
+4. Context menu only shows on **`.pdf` links / PDF pages** (right-click a `.pdf` hyperlink to see "Open link in PDF Mana"). Reload the _extension_ (not the browser) after code changes.
 
 ## Repo map
 
@@ -66,6 +68,9 @@ node scripts/promo.mjs         # promo tiles (440x280, 1400x560) → release/pro
 
 - **No persistence** — reload loses work (only a `beforeunload` warning). Planned-but-deferred:
   IndexedDB autosave + a "Restore previous work?" banner.
+- **Accessibility** — modals now trap focus + close on Esc (`components/Modal.tsx`), the empty-state
+  mascot is a real button, and toasts announce via `aria-live`. Still worth a fuller screen-reader
+  pass on the thumbnail grid (drag-reorder isn't announced) before a big a11y claim.
 - **Scale/perf** — untested on very large PDFs; source docs stay in memory; image export is
   sequential downloads (a zip option would be nicer).
 - **Context menu discoverability** — scoped to `.pdf` links/pages by design; could broaden if desired.

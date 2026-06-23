@@ -15,13 +15,32 @@ mkdirSync(outDir, { recursive: true });
 async function samplePdf() {
   const doc = await PDFDocument.create();
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
-  const titles = ['Quarterly Report', 'Invoice #1042', 'Project Brief', 'Meeting Notes', 'Appendix A', 'Contract'];
+  const titles = [
+    'Quarterly Report',
+    'Invoice #1042',
+    'Project Brief',
+    'Meeting Notes',
+    'Appendix A',
+    'Contract',
+  ];
   for (let i = 0; i < titles.length; i += 1) {
     const p = doc.addPage([612, 792]);
-    p.drawText(titles[i], { x: 56, y: 712, size: 26, font: bold, color: rgb(0.13, 0.12, 0.25) });
+    p.drawText(titles[i], {
+      x: 56,
+      y: 712,
+      size: 26,
+      font: bold,
+      color: rgb(0.13, 0.12, 0.25),
+    });
     for (let l = 0; l < 22; l += 1) {
       const w = 360 + ((i * 7 + l * 13) % 130);
-      p.drawRectangle({ x: 56, y: 672 - l * 26, width: w, height: 9, color: rgb(0.86, 0.87, 0.91) });
+      p.drawRectangle({
+        x: 56,
+        y: 672 - l * 26,
+        width: w,
+        height: 9,
+        color: rgb(0.86, 0.87, 0.91),
+      });
     }
   }
   return [...(await doc.save())];
@@ -29,7 +48,12 @@ async function samplePdf() {
 
 const ctx = await chromium.launchPersistentContext('', {
   headless: false,
-  args: ['--headless=new', '--no-sandbox', `--disable-extensions-except=${distPath}`, `--load-extension=${distPath}`],
+  args: [
+    '--headless=new',
+    '--no-sandbox',
+    `--disable-extensions-except=${distPath}`,
+    `--load-extension=${distPath}`,
+  ],
 });
 await ctx.newPage();
 let sw = ctx.serviceWorkers()[0];
@@ -60,8 +84,14 @@ await page.screenshot({ path: join(outDir, '01-editor.png') });
 
 // 2) Selection + dock
 await page.locator('.card').nth(0).click();
-await page.locator('.card').nth(2).click({ modifiers: ['ControlOrMeta'] });
-await page.locator('.card').nth(4).click({ modifiers: ['ControlOrMeta'] });
+await page
+  .locator('.card')
+  .nth(2)
+  .click({ modifiers: ['ControlOrMeta'] });
+await page
+  .locator('.card')
+  .nth(4)
+  .click({ modifiers: ['ControlOrMeta'] });
 await page.waitForTimeout(300);
 await page.screenshot({ path: join(outDir, '02-select-dock.png') });
 

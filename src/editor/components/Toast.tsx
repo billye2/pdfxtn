@@ -7,8 +7,13 @@ interface Props {
 
 export default function Toast({ message, tone = 'success' }: Props) {
   return (
-    <div className={`toast ${tone}`}>
-      <span className="toast-icon">
+    <div
+      className={`toast ${tone}`}
+      role="status"
+      aria-live={tone === 'error' ? 'assertive' : 'polite'}
+      aria-atomic="true"
+    >
+      <span className="toast-icon" aria-hidden="true">
         <CircleCheck size={18} />
       </span>
       <span>{message}</span>

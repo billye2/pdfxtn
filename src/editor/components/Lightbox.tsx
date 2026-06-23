@@ -71,7 +71,9 @@ export default function Lightbox({
         <div className="lightbox-stagewrap">
           <div
             className={`lightbox-stage${loading ? ' loading' : ''}`}
-            style={{ transform: `rotate(${page.rotation}deg) scale(${rotated ? 0.78 : 1})` }}
+            style={{
+              transform: `rotate(${page.rotation}deg) scale(${rotated ? 0.78 : 1})`,
+            }}
           >
             <div className="lightbox-host" ref={hostRef} />
             {page.crop && (

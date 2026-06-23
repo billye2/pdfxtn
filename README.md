@@ -35,8 +35,13 @@ npm run dev      # Vite dev server with HMR
 npm run build    # production build → dist/
 npm test         # unit tests (Vitest)
 npm run e2e      # end-to-end tests (Playwright; loads the built extension)
+npm run lint     # ESLint (use `npm run lint:fix` to auto-fix)
+npm run format   # Prettier write (use `npm run format:check` to verify)
 npm run icons    # regenerate icons from src/icons/icon.svg
 ```
+
+Lint, format, unit tests, build, and the e2e suite all run in CI on every push and
+pull request (`.github/workflows/ci.yml`).
 
 > If `npm install` warns about skipped install scripts, run
 > `npm approve-scripts esbuild` once (esbuild needs its native binary).

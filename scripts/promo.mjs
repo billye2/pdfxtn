@@ -19,7 +19,11 @@ const mark = (x, y, s) => `
           stroke="#e94b43" stroke-width="14" stroke-linejoin="round" stroke-linecap="round"/>
   </g>`;
 
-function tile(w, h, { tileX, tileY, tileS, tx, titleY, titleSize, tagY, tagSize, subY, subSize, decor }) {
+function tile(
+  w,
+  h,
+  { tileX, tileY, tileS, tx, titleY, titleSize, tagY, tagSize, subY, subSize, decor },
+) {
   return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <linearGradient id="bg" x1="0" y1="0" x2="${w}" y2="${h}" gradientUnits="userSpaceOnUse">
@@ -37,8 +41,16 @@ function tile(w, h, { tileX, tileY, tileS, tx, titleY, titleSize, tagY, tagSize,
 }
 
 const small = tile(440, 280, {
-  tileX: 34, tileY: 96, tileS: 88,
-  tx: 146, titleY: 130, titleSize: 40, tagY: 160, tagSize: 16, subY: 188, subSize: 13,
+  tileX: 34,
+  tileY: 96,
+  tileS: 88,
+  tx: 146,
+  titleY: 130,
+  titleSize: 40,
+  tagY: 160,
+  tagSize: 16,
+  subY: 188,
+  subSize: 13,
   decor: `
     <circle cx="402" cy="46" r="34" fill="#ffffff" opacity="0.08"/>
     <circle cx="44" cy="250" r="20" fill="#ffffff" opacity="0.08"/>
@@ -46,8 +58,16 @@ const small = tile(440, 280, {
 });
 
 const marquee = tile(1400, 560, {
-  tileX: 130, tileY: 180, tileS: 200,
-  tx: 380, titleY: 280, titleSize: 104, tagY: 344, tagSize: 38, subY: 404, subSize: 28,
+  tileX: 130,
+  tileY: 180,
+  tileS: 200,
+  tx: 380,
+  titleY: 280,
+  titleSize: 104,
+  tagY: 344,
+  tagSize: 38,
+  subY: 404,
+  subSize: 28,
   decor: `
     <circle cx="1300" cy="110" r="80" fill="#ffffff" opacity="0.08"/>
     <circle cx="120" cy="470" r="44" fill="#ffffff" opacity="0.07"/>
@@ -55,11 +75,16 @@ const marquee = tile(1400, 560, {
     <circle cx="1360" cy="430" r="26" fill="#ffffff" opacity="0.09"/>`,
 });
 
-for (const [name, svg, w] of [['small-440x280', small, 440], ['marquee-1400x560', marquee, 1400]]) {
+for (const [name, svg, w] of [
+  ['small-440x280', small, 440],
+  ['marquee-1400x560', marquee, 1400],
+]) {
   const png = new Resvg(svg, {
     fitTo: { mode: 'width', value: w },
     font: { loadSystemFonts: true },
-  }).render().asPng();
+  })
+    .render()
+    .asPng();
   writeFileSync(join(outDir, `${name}.png`), png);
   console.log(`${name}.png  (${png.length} bytes)`);
 }
