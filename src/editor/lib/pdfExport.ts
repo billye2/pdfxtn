@@ -1,4 +1,5 @@
-import { PDFDocument, PDFPage, degrees } from 'pdf-lib';
+import type { PDFDocument, PDFPage } from 'pdf-lib';
+import { loadPdfLib } from './pdfLib';
 import type { LoadedDoc } from './pdfRender';
 import type { PageDescriptor } from './pageModel';
 
@@ -10,7 +11,8 @@ export async function buildDocument(
   pages: PageDescriptor[],
   docsById: Map<string, LoadedDoc>,
 ): Promise<Uint8Array> {
-  const out = await PDFDocument.create();
+  const { PDFDocument: Lib, degrees } = await loadPdfLib();
+  const out = await Lib.create();
   const sourceCache = new Map<string, PDFDocument>();
 
   async function getSource(docId: string): Promise<PDFDocument> {
@@ -19,7 +21,7 @@ export async function buildDocument(
     const loaded = docsById.get(docId);
     if (!loaded) throw new Error(`Unknown source document: ${docId}`);
     // Copy bytes — PDFDocument.load may detach the underlying buffer.
-    const src = await PDFDocument.load(loaded.bytes.slice());
+    const src = await Lib.load(loaded.bytes.slice());
     sourceCache.set(docId, src);
     return src;
   }

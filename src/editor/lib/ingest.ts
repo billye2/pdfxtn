@@ -1,4 +1,4 @@
-import { PDFDocument } from 'pdf-lib';
+import { loadPdfLib } from './pdfLib';
 import { loadDoc, type LoadedDoc } from './pdfRender';
 import { nextPageId, type PageDescriptor } from './pageModel';
 
@@ -42,6 +42,7 @@ export async function ingestFile(file: File): Promise<IngestResult> {
  * the image — then ingest it like any other PDF so it becomes normal pages.
  */
 export async function ingestImages(files: File[]): Promise<IngestResult> {
+  const { PDFDocument } = await loadPdfLib();
   const pdf = await PDFDocument.create();
   for (const file of files) {
     const bytes = new Uint8Array(await file.arrayBuffer());

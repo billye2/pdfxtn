@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import Modal from './Modal';
+import SegmentedControl from './SegmentedControl';
 import type { ImageFormat } from '../lib/pdfImages';
 import { parsePageRange } from '../lib/pageRange';
 
@@ -59,27 +60,20 @@ export default function ImagesDialog({
 
       <div className="field-row">
         <span className="field-label">Pages</span>
-        <div className="seg">
-          <button
-            className={`seg-btn${scope === 'all' ? ' active' : ''}`}
-            onClick={() => setScope('all')}
-          >
-            All ({total})
-          </button>
-          <button
-            className={`seg-btn${scope === 'selected' ? ' active' : ''}`}
-            disabled={selectedIndices.length === 0}
-            onClick={() => setScope('selected')}
-          >
-            Selected ({selectedIndices.length})
-          </button>
-          <button
-            className={`seg-btn${scope === 'custom' ? ' active' : ''}`}
-            onClick={() => setScope('custom')}
-          >
-            Custom…
-          </button>
-        </div>
+        <SegmentedControl
+          ariaLabel="Pages"
+          value={scope}
+          onChange={setScope}
+          options={[
+            { value: 'all', label: `All (${total})` },
+            {
+              value: 'selected',
+              label: `Selected (${selectedIndices.length})`,
+              disabled: selectedIndices.length === 0,
+            },
+            { value: 'custom', label: 'Custom…' },
+          ]}
+        />
       </div>
 
       {scope === 'custom' && (
@@ -99,35 +93,25 @@ export default function ImagesDialog({
 
       <div className="field-row">
         <span className="field-label">Format</span>
-        <div className="seg">
-          <button
-            className={`seg-btn${format === 'png' ? ' active' : ''}`}
-            onClick={() => setFormat('png')}
-          >
-            PNG
-          </button>
-          <button
-            className={`seg-btn${format === 'jpeg' ? ' active' : ''}`}
-            onClick={() => setFormat('jpeg')}
-          >
-            JPG
-          </button>
-        </div>
+        <SegmentedControl
+          ariaLabel="Format"
+          value={format}
+          onChange={setFormat}
+          options={[
+            { value: 'png', label: 'PNG' },
+            { value: 'jpeg', label: 'JPG' },
+          ]}
+        />
       </div>
 
       <div className="field-row">
         <span className="field-label">Resolution</span>
-        <div className="seg">
-          {SCALES.map((s) => (
-            <button
-              key={s.value}
-              className={`seg-btn${scale === s.value ? ' active' : ''}`}
-              onClick={() => setScale(s.value)}
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          ariaLabel="Resolution"
+          value={scale}
+          onChange={setScale}
+          options={SCALES}
+        />
       </div>
 
       <div className="range-status">
