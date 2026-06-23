@@ -70,7 +70,10 @@ export default function App() {
   const [dragActive, setDragActive] = useState(false);
   const [saving, setSaving] = useState(false);
   // For multi-file (split) exports we can show real progress; single is indeterminate.
-  const [saveProgress, setSaveProgress] = useState<{ done: number; total: number } | null>(null);
+  const [saveProgress, setSaveProgress] = useState<{
+    done: number;
+    total: number;
+  } | null>(null);
   const tipIndex = useRef(0);
   const toastTimer = useRef<number | null>(null);
 
@@ -97,15 +100,18 @@ export default function App() {
   }
   const canMix = new Set(pages.map((p) => p.docId)).size >= 2;
 
-  const showToast = useCallback((message: string, tone: 'success' | 'error' = 'success') => {
-    setToast({ message, tone });
-    // Reset the dismiss timer so rapid toasts each get the full duration.
-    if (toastTimer.current !== null) clearTimeout(toastTimer.current);
-    toastTimer.current = window.setTimeout(() => {
-      setToast(null);
-      toastTimer.current = null;
-    }, 3500);
-  }, []);
+  const showToast = useCallback(
+    (message: string, tone: 'success' | 'error' = 'success') => {
+      setToast({ message, tone });
+      // Reset the dismiss timer so rapid toasts each get the full duration.
+      if (toastTimer.current !== null) clearTimeout(toastTimer.current);
+      toastTimer.current = window.setTimeout(() => {
+        setToast(null);
+        toastTimer.current = null;
+      }, 3500);
+    },
+    [],
+  );
 
   const addFiles = useCallback(
     async (files: FileList | File[]) => {
@@ -192,8 +198,10 @@ export default function App() {
       // While the preview is open, arrows page and Esc closes; nothing else runs.
       if (previewIndex !== null) {
         if (e.key === 'Escape') setPreviewIndex(null);
-        else if (e.key === 'ArrowRight') setPreviewIndex((i) => (i === null ? i : Math.min(i + 1, pages.length - 1)));
-        else if (e.key === 'ArrowLeft') setPreviewIndex((i) => (i === null ? i : Math.max(i - 1, 0)));
+        else if (e.key === 'ArrowRight')
+          setPreviewIndex((i) => (i === null ? i : Math.min(i + 1, pages.length - 1)));
+        else if (e.key === 'ArrowLeft')
+          setPreviewIndex((i) => (i === null ? i : Math.max(i - 1, 0)));
         return;
       }
 
@@ -217,7 +225,11 @@ export default function App() {
         dispatch({ type: 'selectAll' });
       } else if (e.key === 'Escape') {
         dispatch({ type: 'clearSelection' });
-      } else if ((e.key === 'Delete' || e.key === 'Backspace') && selected.size > 0 && !typing) {
+      } else if (
+        (e.key === 'Delete' || e.key === 'Backspace') &&
+        selected.size > 0 &&
+        !typing
+      ) {
         e.preventDefault();
         dispatch({ type: 'deleteSelected' });
       }
@@ -238,12 +250,13 @@ export default function App() {
     return () => window.removeEventListener('beforeunload', handler);
   }, [pages.length]);
 
-  // Keep the preview index valid as pages are deleted/extracted.
-  useEffect(() => {
-    if (previewIndex === null) return;
-    if (pages.length === 0) setPreviewIndex(null);
-    else if (previewIndex >= pages.length) setPreviewIndex(pages.length - 1);
-  }, [pages.length, previewIndex]);
+  // Keep the preview valid as pages are deleted/extracted by clamping at render
+  // time instead of syncing state in an effect: if the previewed page is gone,
+  // fall back to the last page (or close the preview when nothing is left).
+  const previewPos =
+    previewIndex === null || pages.length === 0
+      ? null
+      : Math.min(previewIndex, pages.length - 1);
 
   const handleSelect = useCallback((id: string, e: React.MouseEvent) => {
     if (e.shiftKey) dispatch({ type: 'selectRangeTo', id });
@@ -399,7 +412,9 @@ export default function App() {
           onSplit={applySplitToSelection}
           onOpenSplitEvery={() => setSplitEveryOpen(true)}
           onOpenMix={() => setMixOpen(true)}
-          onClearCrop={() => dispatch({ type: 'applyCrop', crop: undefined, scope: 'all' })}
+          onClearCrop={() =>
+            dispatch({ type: 'applyCrop', crop: undefined, scope: 'all' })
+          }
           onOpenRange={() => setRangeOpen(true)}
           onOpenImages={() => setImagesOpen(true)}
           onUndo={() => dispatch({ type: 'undo' })}
@@ -415,7 +430,10 @@ export default function App() {
           <button className="btn-go pending-btn" onClick={loadPending}>
             Load PDF
           </button>
-          <button className="btn-secondary pending-btn" onClick={() => setPendingSource(null)}>
+          <button
+            className="btn-secondary pending-btn"
+            onClick={() => setPendingSource(null)}
+          >
             Dismiss
           </button>
         </div>
@@ -512,31 +530,33 @@ export default function App() {
           onApply={(n) => {
             dispatch({ type: 'splitEveryN', n });
             setSplitEveryOpen(false);
-            showToast(`Split every ${n} page${n === 1 ? '' : 's'} — click Save PDF to export`);
+            showToast(
+              `Split every ${n} page${n === 1 ? '' : 's'} — click Save PDF to export`,
+            );
           }}
           onCancel={() => setSplitEveryOpen(false)}
         />
       )}
 
-      {previewIndex !== null && pages[previewIndex] && (
+      {previewPos !== null && (
         <Lightbox
-          page={pages[previewIndex]}
-          index={previewIndex}
+          page={pages[previewPos]}
+          index={previewPos}
           total={pages.length}
-          doc={docs.get(pages[previewIndex].docId)}
+          doc={docs.get(pages[previewPos].docId)}
           onPrev={() => setPreviewIndex((i) => (i === null ? i : Math.max(i - 1, 0)))}
           onNext={() =>
             setPreviewIndex((i) => (i === null ? i : Math.min(i + 1, pages.length - 1)))
           }
           onRotate={(delta) =>
-            dispatch({ type: 'rotateOne', id: pages[previewIndex].id, delta })
+            dispatch({ type: 'rotateOne', id: pages[previewPos].id, delta })
           }
           onDelete={() => {
-            dispatch({ type: 'toggleSelect', id: pages[previewIndex].id, additive: false });
+            dispatch({ type: 'toggleSelect', id: pages[previewPos].id, additive: false });
             dispatch({ type: 'deleteSelected' });
           }}
           onCrop={() => {
-            dispatch({ type: 'toggleSelect', id: pages[previewIndex].id, additive: false });
+            dispatch({ type: 'toggleSelect', id: pages[previewPos].id, additive: false });
             setPreviewIndex(null);
             setCropOpen(true);
           }}

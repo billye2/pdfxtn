@@ -10,10 +10,8 @@ export function isImageFile(file: File): boolean {
   );
 }
 
-let docCounter = 0;
 function nextDocId(): string {
-  docCounter += 1;
-  return `d${docCounter}`;
+  return `d_${crypto.randomUUID()}`;
 }
 
 export interface IngestResult {

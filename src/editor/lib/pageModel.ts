@@ -27,14 +27,12 @@ export interface PageDescriptor {
   crop?: CropRect;
 }
 
-let idCounter = 0;
 export function nextPageId(): string {
-  idCounter += 1;
-  return `p${idCounter}`;
+  return `p_${crypto.randomUUID()}`;
 }
 
 export function rotateOne(r: Rotation, delta: 90 | -90 | 180): Rotation {
-  return (((r + delta) % 360) + 360) % 360 as Rotation;
+  return ((((r + delta) % 360) + 360) % 360) as Rotation;
 }
 
 /** Move the page at `from` to `to` (array-move). Returns a new array. */
@@ -68,6 +66,22 @@ export function rotateSelected(
 }
 
 /**
+ * Clamp a crop rectangle into the unit square so x/y stay in [0,1] and the box
+ * never extends past the page edge. Guards against bad input from the UI or a
+ * future deserialized state; the normal CropDialog path is already in-bounds.
+ */
+export function clampCrop(crop: CropRect): CropRect {
+  const x = Math.min(Math.max(crop.x, 0), 1);
+  const y = Math.min(Math.max(crop.y, 0), 1);
+  return {
+    x,
+    y,
+    w: Math.min(Math.max(crop.w, 0), 1 - x),
+    h: Math.min(Math.max(crop.h, 0), 1 - y),
+  };
+}
+
+/**
  * Apply one crop rectangle to either all pages or just the selected ones.
  * Passing `undefined` clears the crop.
  */
@@ -77,9 +91,10 @@ export function applyCrop(
   scope: 'all' | 'selected',
   selected: ReadonlySet<string>,
 ): PageDescriptor[] {
+  const safe = crop ? clampCrop(crop) : undefined;
   return pages.map((p) => {
     const inScope = scope === 'all' || selected.has(p.id);
-    return inScope ? { ...p, crop } : p;
+    return inScope ? { ...p, crop: safe } : p;
   });
 }
 
@@ -145,10 +160,7 @@ export function boundariesFromMarks(
  * Split marks for "split every N pages": a mark after every Nth page, except a
  * trailing mark on the very last page (which would make an empty final part).
  */
-export function everyNMarks(
-  pages: PageDescriptor[],
-  n: number,
-): Set<string> {
+export function everyNMarks(pages: PageDescriptor[], n: number): Set<string> {
   const marks = new Set<string>();
   if (n < 1) return marks;
   pages.forEach((p, i) => {

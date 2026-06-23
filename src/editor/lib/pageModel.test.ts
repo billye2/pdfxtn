@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   applyCrop,
+  clampCrop,
   boundariesFromMarks,
   deleteSelected,
   everyNMarks,
@@ -82,7 +83,8 @@ describe('applyCrop', () => {
 
   it('applies to all pages when scope is "all"', () => {
     const result = applyCrop(makePages(3), crop, 'all', new Set(['p0']));
-    expect(result.every((p) => p.crop === crop)).toBe(true);
+    expect(result.every((p) => p.crop)).toBe(true);
+    expect(result.map((p) => p.crop)).toEqual([crop, crop, crop]);
   });
   it('applies only to selected when scope is "selected"', () => {
     const result = applyCrop(makePages(3), crop, 'selected', new Set(['p1']));
@@ -92,6 +94,40 @@ describe('applyCrop', () => {
     const cropped = applyCrop(makePages(2), crop, 'all', new Set());
     const cleared = applyCrop(cropped, undefined, 'all', new Set());
     expect(cleared.every((p) => p.crop === undefined)).toBe(true);
+  });
+  it('clamps an out-of-bounds crop into the unit square', () => {
+    const c = applyCrop(
+      makePages(1),
+      { x: 0.8, y: 0.9, w: 0.5, h: 0.5 },
+      'all',
+      new Set(),
+    )[0].crop!;
+    expect(c.x).toBe(0.8);
+    expect(c.y).toBe(0.9);
+    expect(c.x + c.w).toBeCloseTo(1);
+    expect(c.y + c.h).toBeCloseTo(1);
+  });
+});
+
+describe('clampCrop', () => {
+  it('leaves an in-bounds rectangle unchanged', () => {
+    const c = { x: 0.1, y: 0.2, w: 0.3, h: 0.4 };
+    expect(clampCrop(c)).toEqual(c);
+  });
+  it('clamps negative origins to zero', () => {
+    expect(clampCrop({ x: -0.2, y: -0.5, w: 0.5, h: 0.5 })).toEqual({
+      x: 0,
+      y: 0,
+      w: 0.5,
+      h: 0.5,
+    });
+  });
+  it('shrinks width/height so the box never overflows', () => {
+    const c = clampCrop({ x: 0.7, y: 0.6, w: 0.9, h: 0.9 });
+    expect(c.x).toBe(0.7);
+    expect(c.y).toBe(0.6);
+    expect(c.x + c.w).toBeCloseTo(1);
+    expect(c.y + c.h).toBeCloseTo(1);
   });
 });
 
@@ -138,7 +174,12 @@ describe('interleave', () => {
     const b = makePages(3, 'B');
     const out = interleave([a, b]);
     expect(out.map((p) => `${p.docId}${p.pageIndex}`)).toEqual([
-      'A0', 'B0', 'A1', 'B1', 'A2', 'B2',
+      'A0',
+      'B0',
+      'A1',
+      'B1',
+      'A2',
+      'B2',
     ]);
   });
 
@@ -150,7 +191,12 @@ describe('interleave', () => {
     const out = interleave([fronts, backs]);
     // expected document order: 1,4,2,5,3,6
     expect(out.map((p) => `${p.docId}${p.pageIndex}`)).toEqual([
-      'F0', 'B2', 'F1', 'B1', 'F2', 'B0',
+      'F0',
+      'B2',
+      'F1',
+      'B1',
+      'F2',
+      'B0',
     ]);
   });
 
@@ -171,7 +217,11 @@ describe('everyNMarks', () => {
     const pages = makePages(7);
     // split every 2 → marks after pages at index 1,3,5 (pages 2,4,6)
     const marks = everyNMarks(pages, 2);
-    expect(pages.filter((p) => marks.has(p.id)).map((p) => p.id)).toEqual(['p1', 'p3', 'p5']);
+    expect(pages.filter((p) => marks.has(p.id)).map((p) => p.id)).toEqual([
+      'p1',
+      'p3',
+      'p5',
+    ]);
   });
   it('produces ceil(total/n) parts when round-tripped through splitAt', () => {
     const pages = makePages(7);
