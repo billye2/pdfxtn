@@ -41,7 +41,7 @@ const HELP_TIPS = [
   'Tip: use Mix to interleave two PDFs — perfect for double-sided scans.',
   'Tip: Split every N pages, then Save to get one file per chunk.',
   'Tip: drop JPG or PNG files right in — they become PDF pages instantly.',
-  'Tip: Export images saves pages as PNG or JPG, at up to 3× resolution.',
+  'Tip: Export images as PNG or JPG (up to 3×) — bundle them into one .zip in a click.',
   'Tip: crop one region and apply it to all pages or just the selected ones.',
   'Tip: pick some pages, then "Keep these" to extract only those.',
   'Tip: Cmd/Ctrl+Z undoes, Cmd/Ctrl+A selects all, Esc clears your selection.',
@@ -49,6 +49,7 @@ const HELP_TIPS = [
   'Tip: right-click a PDF link on the web → "Open link in PDF Mana".',
   'Tip: open a PDF in a tab, then click the toolbar icon to load it automatically.',
   'Tip: page labels keep their original number even after you reorder pages.',
+  'Tip: your work autosaves — if the tab reloads, click "Restore" to pick up where you left off.',
   'Tip: switch the Look in the top-right to recolor the whole app.',
 ];
 
