@@ -5,17 +5,22 @@ _Snapshot for picking this back up later._
 ## Status
 
 - **Product:** PDF Mana — MV3 Chrome extension, local PDF _page_ manager (Merge · Arrange · Nip · Adjust).
-- **Version:** 1.0.8 — packaged at `release/pdf-mana-1.0.8.zip`.
+- **Version:** 1.0.10 — packaged at `release/pdf-mana-1.0.10.zip`.
 - **Repo:** https://github.com/billye2/pdfxtn — **public, MIT** (© Billy Ye). `main` is the working branch; everything is committed and pushed.
-- **Chrome Web Store:** **published / live** at https://chromewebstore.google.com/detail/pdf-mana/bhkhobdaindpenllbgliigfafkkigpnk — the store currently shows **v1.0.5**. Local is **v1.0.8** (peek, widened lightbox, icon swap), not yet uploaded; push an update by uploading `release/pdf-mana-1.0.8.zip` in the dashboard.
-- **Tests:** 109 unit (Vitest; pure logic + persistence via `fake-indexeddb` in Node, hooks via jsdom `// @vitest-environment` docblock) + 16 e2e (Playwright; 15 run, 1 drag test skipped) — all green. e2e now covers the zip bundle, keyboard reorder + undo, the Space-toggle preview, and the autosave reload→restore round-trip.
-- **Last change (v1.0.7–1.0.8):** added a **page peek** — a floating, read-only page
-  enlargement for confirming the right page while reordering on small screens
-  (`components/PagePeek.tsx`). Opens on **touch/pen press-and-hold** only (mouse hover was
-  removed because the popover covered the card's rotate/split/delete controls); the wheel
-  scrolls its clipped page. The **Lightbox** was made width-driven (up to 84vw) and clips
-  vertical overflow with native wheel scrolling. The card's preview button icon changed
-  from `Maximize2` to `ZoomIn`, and the header `?` tips were refreshed.
+- **Chrome Web Store:** **published / live** at https://chromewebstore.google.com/detail/pdf-mana/bhkhobdaindpenllbgliigfafkkigpnk — the store currently shows **v1.0.5**. Local is **v1.0.10** with everything below, not yet uploaded; push an update by uploading `release/pdf-mana-1.0.10.zip` in the dashboard (and optionally refresh the listing copy + Homepage URL from `docs/STORE_LISTING.md`).
+- **Tests:** 109 unit (Vitest; pure logic + persistence via `fake-indexeddb` in Node, hooks via jsdom `// @vitest-environment` docblock) + 16 e2e (Playwright; 15 run, 1 pointer-drag test skipped) — all green. e2e now covers the zip bundle, keyboard reorder + undo, the Space-toggle preview, and the autosave reload→restore round-trip. (No coverage reporting wired up yet — would be `@vitest/coverage-v8` + a `test:coverage` script.)
+- **Recent work (v1.0.6 → 1.0.10):**
+  - **Page peek** (`components/PagePeek.tsx` + `hooks/usePeek.ts`) — floating read-only
+    enlargement on touch/pen **press-and-hold** (mouse hover intentionally doesn't trigger
+    it); wheel-scrolls its clipped page.
+  - **Lightbox** is width-driven (up to 84vw), clips vertical overflow, native wheel scroll;
+    preview-button icon `Maximize2` → `ZoomIn`.
+  - **Autosave + restore** (`lib/persist.ts`, `hooks/useAutosave.ts`, store `restore`) —
+    IndexedDB, no new permission. Reload offers "Restore your previous work?".
+  - **Image export → optional single `.zip`** (fflate) instead of N downloads.
+  - **Keyboard reorder** is modeless: select a page, `←`/`→` nudges it one slot (aria-live
+    announced). Replaced dnd-kit's spacebar grab-mode. **Space** now toggles the preview.
+  - **App refactored** into `hooks/` (useToast, useDialogs, useExport, useAutosave, usePeek).
 
 ## Commands
 
