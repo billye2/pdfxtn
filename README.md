@@ -91,15 +91,16 @@ pure transform over that list, which keeps edits non-destructive and undoable.
 
 - **Unit** (`npm test`) — pure logic: `pageModel` transforms, `pageRange` parsing, and the
   `pdfExport` pipeline (page count/order, rotation, crop box, merge, and a resource
-  de-duplication regression test). The editor hooks (`useToast`, `useDialogs`, `useExport`,
-  `usePeek`) are tested via `@testing-library/react`'s `renderHook` — those files opt into a
-  jsdom environment with a `// @vitest-environment jsdom` docblock; everything else runs in
-  Node. Persistence and keyboard reordering, which need IndexedDB and a real browser, are
-  exercised by headless-extension smoke checks rather than unit tests.
+  de-duplication regression test) plus IndexedDB persistence via `fake-indexeddb`. The editor
+  hooks (`useToast`, `useDialogs`, `useExport`, `usePeek`) are tested via
+  `@testing-library/react`'s `renderHook` — those files opt into a jsdom environment with a
+  `// @vitest-environment jsdom` docblock; everything else runs in Node.
 - **E2E** (`npm run e2e`) — loads the built extension in headless Chromium and exercises
-  load/render, delete, rotate, extract, Mix, split-every-N, range export, images↔PDF,
-  the lightbox, and theme switching. (Drag-reorder is covered by unit tests and manual
-  checks — dnd-kit's pointer sensor doesn't engage with synthetic events.)
+  load/render, delete, rotate, extract, Mix, split-every-N, range export, images↔PDF
+  (incl. the single-`.zip` bundle), the lightbox, theme switching, keyboard reorder + undo,
+  the Space-toggle preview, and the autosave reload→restore round-trip. (Pointer drag-reorder
+  is the one skipped case — dnd-kit's pointer sensor doesn't engage with synthetic events;
+  it's covered by `pageModel` unit tests and the keyboard-reorder e2e.)
 
 ## Project layout
 

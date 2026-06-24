@@ -8,7 +8,7 @@ _Snapshot for picking this back up later._
 - **Version:** 1.0.8 — packaged at `release/pdf-mana-1.0.8.zip`.
 - **Repo:** https://github.com/billye2/pdfxtn — **public, MIT** (© Billy Ye). `main` is the working branch; everything is committed and pushed.
 - **Chrome Web Store:** **published / live** at https://chromewebstore.google.com/detail/pdf-mana/bhkhobdaindpenllbgliigfafkkigpnk — the store currently shows **v1.0.5**. Local is **v1.0.8** (peek, widened lightbox, icon swap), not yet uploaded; push an update by uploading `release/pdf-mana-1.0.8.zip` in the dashboard.
-- **Tests:** 102 unit (Vitest; pure logic in Node + the `hooks/` tests opt into jsdom via a `// @vitest-environment jsdom` docblock) + 12 e2e (Playwright; 11 run, 1 drag test skipped) — all green. Persistence + keyboard reorder are verified with one-off headless-extension smoke scripts (not committed).
+- **Tests:** 109 unit (Vitest; pure logic + persistence via `fake-indexeddb` in Node, hooks via jsdom `// @vitest-environment` docblock) + 16 e2e (Playwright; 15 run, 1 drag test skipped) — all green. e2e now covers the zip bundle, keyboard reorder + undo, the Space-toggle preview, and the autosave reload→restore round-trip.
 - **Last change (v1.0.7–1.0.8):** added a **page peek** — a floating, read-only page
   enlargement for confirming the right page while reordering on small screens
   (`components/PagePeek.tsx`). Opens on **touch/pen press-and-hold** only (mouse hover was

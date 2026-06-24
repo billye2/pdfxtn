@@ -330,11 +330,35 @@ test('PDF → Images exports one image per page', async () => {
   await page.getByRole('button', { name: 'Export images…' }).click();
   await page.getByRole('button', { name: 'PNG' }).click();
   await page.getByRole('button', { name: '1×' }).click();
+  await page.locator('.zip-toggle input').uncheck(); // test the per-file path
   const downloads: Download[] = [];
   page.on('download', (d) => downloads.push(d));
   await page.getByRole('button', { name: /Export \d+ image/ }).click();
   await expect.poll(() => downloads.length, { timeout: 10_000 }).toBe(2);
   expect(downloads[0].suggestedFilename()).toMatch(/\.png$/);
+});
+
+test('PDF → Images can bundle pages into a single .zip', async () => {
+  const page = await openEditor();
+  await drop(page, [
+    pdf(
+      'z.pdf',
+      await makePdf([
+        [200, 200],
+        [200, 200],
+        [200, 200],
+      ]),
+    ),
+  ]);
+  await expect(page.locator('.card')).toHaveCount(3);
+
+  await page.getByRole('button', { name: 'Export images…' }).click();
+  await page.getByRole('button', { name: '1×' }).click();
+  // The zip toggle defaults on for multi-page exports → one .zip download.
+  await expect(page.locator('.zip-toggle input')).toBeChecked();
+  const dl = page.waitForEvent('download');
+  await page.getByRole('button', { name: /Export \d+ image/ }).click();
+  expect((await dl).suggestedFilename()).toMatch(/-images\.zip$/);
 });
 
 test('Lightbox preview opens, pages, and closes', async () => {
@@ -364,4 +388,93 @@ test('switching the Look re-themes the app', async () => {
   await page.locator('.look-trigger').click();
   await page.locator('.look-option', { hasText: 'Sticker' }).click();
   await expect(page.locator('.app')).toHaveAttribute('data-look', 'sticker');
+});
+
+const META = process.platform === 'darwin' ? 'Meta' : 'Control';
+
+test('keyboard: arrow keys nudge the selected page, undo reverts', async () => {
+  const page = await openEditor();
+  await drop(page, [
+    pdf(
+      'k.pdf',
+      await makePdf([
+        [100, 1],
+        [200, 1],
+        [300, 1],
+      ]),
+    ),
+  ]);
+  await expect(page.locator('.card')).toHaveCount(3);
+
+  // Select page 1 and nudge it right one slot.
+  await page.locator('.card').nth(0).click();
+  await page.keyboard.press('ArrowRight');
+  await expect(page.locator('.card-label').nth(0)).toHaveText('Page 2');
+  await expect(page.locator('.card-label').nth(1)).toHaveText('Page 1');
+
+  // The reorder is undoable.
+  await page.keyboard.press(`${META}+z`);
+  await expect(page.locator('.card-label').nth(0)).toHaveText('Page 1');
+
+  // Re-do the move and confirm it reflects in the export order.
+  await page.keyboard.press('ArrowRight');
+  const dl = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save PDF' }).click();
+  expect(await widths(await dl)).toEqual([200, 100, 300]);
+});
+
+test('keyboard: Space toggles the preview open and closed', async () => {
+  const page = await openEditor();
+  await drop(page, [pdf('s2.pdf', await makePdf([[200, 300]]))]);
+  await expect(page.locator('.card')).toHaveCount(1);
+
+  await page.locator('.card').nth(0).click();
+  await page.keyboard.press('Space');
+  await expect(page.locator('.lightbox-canvas')).toBeVisible({ timeout: 15_000 });
+  await page.keyboard.press('Space'); // toggles closed
+  await expect(page.locator('.lightbox-backdrop')).toHaveCount(0);
+  await page.keyboard.press('Space'); // open again
+  await expect(page.locator('.lightbox-backdrop')).toHaveCount(1);
+  await page.keyboard.press('Escape'); // Esc still closes
+  await expect(page.locator('.lightbox-backdrop')).toHaveCount(0);
+});
+
+test('persistence: a reload offers to restore the session', async () => {
+  const page = await openEditor();
+  await drop(page, [
+    pdf(
+      'persist.pdf',
+      await makePdf([
+        [100, 1],
+        [200, 1],
+        [300, 1],
+      ]),
+    ),
+  ]);
+  await expect(page.locator('.card')).toHaveCount(3);
+
+  // Let the debounced autosave flush, then reload as if the tab had crashed.
+  await page.waitForTimeout(1200);
+  await page.reload();
+
+  const banner = page.locator('.restore-banner');
+  await expect(banner).toBeVisible({ timeout: 5_000 });
+  await expect(banner).toContainText('3 pages');
+  await banner.getByRole('button', { name: 'Restore' }).click();
+  await expect(page.locator('.card')).toHaveCount(3);
+  await expect(page.locator('.card-label').nth(0)).toHaveText('Page 1');
+
+  // The restored pages still export correctly.
+  const dl = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save PDF' }).click();
+  expect(await widths(await dl)).toEqual([100, 200, 300]);
+
+  // Tidy up so the saved session doesn't leak into other runs.
+  await page.evaluate(
+    () =>
+      new Promise<void>((res) => {
+        const r = indexedDB.deleteDatabase('pdf-mana');
+        r.onsuccess = r.onerror = r.onblocked = () => res();
+      }),
+  );
 });
