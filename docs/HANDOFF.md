@@ -7,7 +7,7 @@ _Snapshot for picking this back up later._
 - **Product:** PDF Mana — MV3 Chrome extension, local PDF _page_ manager (Merge · Arrange · Nip · Adjust).
 - **Version:** 1.0.8 — packaged at `release/pdf-mana-1.0.8.zip`.
 - **Repo:** https://github.com/billye2/pdfxtn — **public, MIT** (© Billy Ye). `main` is the working branch; everything is committed and pushed.
-- **Chrome Web Store:** fully prepared but **not yet submitted**. The only remaining work is the dashboard submission (register, upload zip, paste copy, submit).
+- **Chrome Web Store:** **published / live** at https://chromewebstore.google.com/detail/pdf-mana/bhkhobdaindpenllbgliigfafkkigpnk — the store currently shows **v1.0.5**. Local is **v1.0.8** (peek, widened lightbox, icon swap), not yet uploaded; push an update by uploading `release/pdf-mana-1.0.8.zip` in the dashboard.
 - **Tests:** 78 unit (Vitest) + 12 e2e (Playwright; 11 run, 1 drag test skipped) — all green.
 - **Last change (v1.0.7–1.0.8):** added a **page peek** — a floating, read-only page
   enlargement for confirming the right page while reordering on small screens
@@ -58,13 +58,15 @@ node scripts/promo.mjs         # promo tiles (440x280, 1400x560) → release/pro
 - `docs/privacy-practices-copy.md` — paste-ready justification blocks for the dashboard.
 - `PRIVACY.md` — privacy policy (also the policy URL on GitHub).
 
-## To submit (user-only steps)
+## To publish an update (user-only steps)
 
-1. Register at https://chrome.google.com/webstore/devconsole (one-time $5).
-2. Create item → upload `release/pdf-mana-1.0.8.zip`.
-3. Paste listing fields from `docs/STORE_LISTING.md`; justifications from `docs/privacy-practices-copy.md`.
+The item is already live. To ship the local v1.0.8:
+
+1. Open the item in https://chrome.google.com/webstore/devconsole.
+2. **Package** → upload a new version → `release/pdf-mana-1.0.8.zip`.
+3. Refresh listing copy from `docs/STORE_LISTING.md` (description now mentions the wider/scrollable preview + touch peek; repo link added). Optionally set **Homepage URL** → `https://github.com/billye2/pdfxtn` for a clickable source link.
 4. **Remote code → No.** Data collected → **None** (certify the 3 boxes). Privacy policy URL → the PRIVACY.md GitHub link.
-5. Upload icon (128) + screenshots (`release/screenshots/`), optional promo tiles (`release/promo/`).
+5. Refresh screenshots (`release/screenshots/`, now five incl. crop), optional promo tiles (`release/promo/`).
 6. Submit for review.
 
 ## Known gaps / next steps (none blocking)

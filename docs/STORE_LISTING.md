@@ -54,8 +54,10 @@ Everything you need to paste into the Developer Dashboard for PDF Mana.
 >
 > 🔢 **Export any range** — save just the pages you want (e.g. 1-3, 5, 8-10).
 >
-> 🔍 **Preview** — double-click any page for a big, readable view with arrow-key paging and
-> inline rotate, crop, and delete.
+> 🔍 **Preview** — double-click any page (or tap the magnifier) for a big, readable view
+> that fills the width; scroll to read down a long page, page through with the arrow keys,
+> and rotate, crop, or delete right there. On a touch screen, press and hold a page for a
+> quick peek — handy for confirming the right one before you reorder on a small display.
 >
 > 🎨 **Make it yours** — four playful themes, undo/redo, handy keyboard shortcuts, and a
 > heads-up before you accidentally lose unsaved work.
@@ -69,12 +71,18 @@ Everything you need to paste into the Developer Dashboard for PDF Mana.
 >
 > **Free and open source**
 >
-> PDF Mana is completely free and open source under the MIT license.
+> PDF Mana is completely free and open source under the MIT license. Browse the code,
+> report an issue, or contribute on GitHub:
+> https://github.com/billye2/pdfxtn
 >
 > ---
 >
 > Tip: open a PDF in a tab and click the toolbar icon, right-click a PDF link to send it
 > straight to PDF Mana, or just drag a file into the window.
+
+> **Note:** The Web Store renders description URLs as plain text (not clickable). For a
+> clickable link, also set the repo as the **Homepage URL** in the dashboard:
+> _Store listing → Additional fields → Homepage URL_ → `https://github.com/billye2/pdfxtn`.
 
 **Single purpose (required):**
 
@@ -110,8 +118,9 @@ Everything you need to paste into the Developer Dashboard for PDF Mana.
 ## Assets
 
 - **Store icon:** 128×128 — `dist/src/icons/icon128.png` (or export from `src/icons/icon.svg`).
-- **Screenshots (1280×800):** `release/screenshots/01-editor.png` … `04-theme.png`
-  (regenerate with `node scripts/screenshots.mjs`). At least one is required; up to five.
+- **Screenshots (1280×800):** `release/screenshots/01-editor.png` … `05-theme.png`
+  (editor, crop, select+dock, preview, theme — regenerate with `node scripts/screenshots.mjs`).
+  At least one is required; up to five (all five are generated).
 - **Promo tiles (optional):** `release/promo/small-440x280.png` and
   `release/promo/marquee-1400x560.png` (regenerate with `node scripts/promo.mjs`).
 
