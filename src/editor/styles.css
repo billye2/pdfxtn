@@ -1258,6 +1258,62 @@ button:disabled {
   filter: none;
 }
 
+/* ---------- Page peek (hover / long-press preview) ---------- */
+.page-peek {
+  position: fixed;
+  z-index: 95;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(20, 16, 30, 0.82);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  animation: peek-in 0.12s ease-out;
+}
+@keyframes peek-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+/* Clip box: lets the page grow wide (up to 78vw) while cropping the vertical
+   overflow, so a portrait page reads wider instead of being height-bound. The
+   top of the page (most identifying) stays in view. */
+.page-peek-view {
+  max-width: 78vw;
+  max-height: 46vh;
+  overflow: hidden;
+  border-radius: 6px;
+}
+.page-peek-stage {
+  position: relative;
+  display: inline-flex;
+}
+.page-peek-host {
+  display: inline-flex;
+}
+.page-peek-canvas {
+  display: block;
+  max-width: 78vw;
+  width: auto;
+  height: auto;
+  background: var(--page);
+}
+.page-peek-crop {
+  position: absolute;
+  border: 2px solid var(--c-sel);
+  box-shadow: 0 0 0 9999px rgba(20, 16, 30, 0.55);
+}
+.page-peek-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+}
+
 /* ---------- Drag overlay ---------- */
 .drag-overlay {
   position: fixed;

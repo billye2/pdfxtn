@@ -4,6 +4,10 @@ import { CSS } from '@dnd-kit/utilities';
 import { RotateCw, Scissors, X, Check, Maximize2 } from './icons';
 import type { PageDescriptor } from '../lib/pageModel';
 import { renderThumbnail, type LoadedDoc } from '../lib/pdfRender';
+import PagePeek from './PagePeek';
+
+const HOVER_PEEK_DELAY = 450; // ms a mouse must dwell before the peek appears
+const PRESS_PEEK_DELAY = 500; // ms of long-press (touch/pen) before the peek appears
 
 interface Props {
   page: PageDescriptor;
@@ -45,6 +49,58 @@ export default function PageThumb({
   const [rendered, setRendered] = useState(false);
   const [aspect, setAspect] = useState(DEFAULT_ASPECT); // page width / height
   const [box, setBox] = useState<{ w: number; h: number } | null>(null);
+
+  // Peek: a larger floating preview shown on hover-dwell (mouse) or long-press
+  // (touch), so the page is legible enough to confirm before/while reordering.
+  const [peekAnchor, setPeekAnchor] = useState<DOMRect | null>(null);
+  const peekTimer = useRef<number | null>(null);
+  const pressPos = useRef<{ x: number; y: number } | null>(null);
+  const suppressClick = useRef(false);
+
+  const clearPeekTimer = () => {
+    if (peekTimer.current !== null) {
+      clearTimeout(peekTimer.current);
+      peekTimer.current = null;
+    }
+  };
+  const hidePeek = () => {
+    clearPeekTimer();
+    setPeekAnchor(null);
+  };
+  const schedulePeek = (delay: number, suppressNextClick: boolean) => {
+    clearPeekTimer();
+    peekTimer.current = window.setTimeout(() => {
+      const node = rootRef.current;
+      if (!node) return;
+      if (suppressNextClick) suppressClick.current = true;
+      setPeekAnchor(node.getBoundingClientRect());
+    }, delay);
+  };
+
+  // Scrolling the grid or resizing invalidates the anchor rect, so dismiss the
+  // peek — but ignore scrolls originating inside the peek itself (it scrolls its
+  // own clipped page in response to the wheel).
+  useEffect(() => {
+    if (!peekAnchor) return;
+    const dismiss = (e: Event) => {
+      if (e.target instanceof Element && e.target.closest('.page-peek')) return;
+      clearPeekTimer();
+      setPeekAnchor(null);
+    };
+    window.addEventListener('scroll', dismiss, true);
+    window.addEventListener('resize', dismiss);
+    return () => {
+      window.removeEventListener('scroll', dismiss, true);
+      window.removeEventListener('resize', dismiss);
+    };
+  }, [peekAnchor]);
+
+  useEffect(
+    () => () => {
+      if (peekTimer.current !== null) clearTimeout(peekTimer.current);
+    },
+    [],
+  );
 
   // Combine dnd-kit's ref with our own so we can observe the DOM node.
   const setRefs = (node: HTMLDivElement | null) => {
@@ -113,6 +169,25 @@ export default function PageThumb({
     transition,
   };
 
+  // Long-press (touch/pen) starts a peek; compose with dnd-kit's own
+  // onPointerDown so dragging keeps working.
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    listeners?.onPointerDown?.(e);
+    pressPos.current = { x: e.clientX, y: e.clientY };
+    if (e.pointerType !== 'mouse') schedulePeek(PRESS_PEEK_DELAY, true);
+  };
+
+  // A press that moves past the drag threshold is a drag, not a peek — dismiss.
+  // Plain hover (no button held) keeps its peek as the pointer moves.
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const start = pressPos.current;
+    if (!start || e.buttons === 0) return;
+    if (Math.hypot(e.clientX - start.x, e.clientY - start.y) > 8) {
+      pressPos.current = null;
+      hidePeek();
+    }
+  };
+
   // When rotated to a side, scale to fit (page aspect ≈ 0.78 → 1/0.78 overflow).
   const rotated = page.rotation === 90 || page.rotation === 270;
   const pageStyle: React.CSSProperties = {
@@ -128,10 +203,31 @@ export default function PageThumb({
       className={`card${selected ? ' selected' : ''}${isDragging ? ' dragging' : ''}${
         isOver ? ' over' : ''
       }`}
-      onClick={(e) => onSelect(page.id, e)}
+      onClick={(e) => {
+        // Swallow the click that ends a long-press peek so it doesn't select.
+        if (suppressClick.current) {
+          suppressClick.current = false;
+          return;
+        }
+        onSelect(page.id, e);
+      }}
       onDoubleClick={() => onOpenPreview(page.id)}
+      onPointerEnter={(e) => {
+        if (e.pointerType === 'mouse') schedulePeek(HOVER_PEEK_DELAY, false);
+      }}
+      onPointerLeave={hidePeek}
+      onPointerMove={onPointerMove}
+      onPointerUp={(e) => {
+        pressPos.current = null;
+        if (e.pointerType !== 'mouse') hidePeek();
+      }}
+      onPointerCancel={() => {
+        pressPos.current = null;
+        hidePeek();
+      }}
       {...attributes}
       {...listeners}
+      onPointerDown={onPointerDown}
     >
       <button
         className="card-expand"
@@ -214,6 +310,8 @@ export default function PageThumb({
           </button>
         </span>
       </div>
+
+      {peekAnchor && <PagePeek page={page} doc={doc} anchor={peekAnchor} />}
     </div>
   );
 }
