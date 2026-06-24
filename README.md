@@ -7,8 +7,8 @@ Nothing is uploaded; all parsing and writing happens locally.
 
 ## Features
 
-- **Reorder** pages — drag a whole card anywhere to move it, or keyboard-reorder
-  (focus a card, Space to pick up, arrow keys to move, Space to drop)
+- **Reorder** pages — drag a whole card anywhere to move it, or select a page and
+  nudge it with the ← / → arrow keys
 - **Delete / extract** — remove pages, or "Keep these" to extract only the selected ones
 - **Rotate** pages (per page or across a selection)
 - **Merge** — add multiple PDFs and they append into one document

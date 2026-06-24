@@ -76,9 +76,9 @@ The item is already live. To ship the local v1.0.8:
   `hooks/useAutosave.ts`, store `restore`). Still single-session/local only — no cross-device sync
   or named projects.
 - **Accessibility — improved.** Modals trap focus + close on Esc, the empty-state mascot is a real
-  button, toasts announce via `aria-live`, and drag-reorder now has a keyboard path (dnd-kit
-  KeyboardSensor) with live-region announcements. Next: a fuller screen-reader pass on selection
-  and the dialogs.
+  button, toasts announce via `aria-live`, and reordering has a modeless keyboard path — select a
+  page, then `←`/`→` nudges it one position (announced via an `aria-live` region in `App`). Next:
+  a fuller screen-reader pass on selection and the dialogs.
 - **Scale/perf** — source docs still stay in memory; image export can now bundle to one `.zip`
   (`opts.zip`) instead of N downloads. Still worth profiling a 500-page / 100 MB PDF (render is
   lazy via IntersectionObserver, but parse + bytes are held in full).

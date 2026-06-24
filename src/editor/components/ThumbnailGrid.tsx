@@ -1,28 +1,15 @@
 import {
   DndContext,
-  KeyboardSensor,
   PointerSensor,
   closestCenter,
   useSensor,
   useSensors,
-  type Announcements,
   type DragEndEvent,
-  type ScreenReaderInstructions,
 } from '@dnd-kit/core';
-import {
-  SortableContext,
-  rectSortingStrategy,
-  sortableKeyboardCoordinates,
-} from '@dnd-kit/sortable';
+import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { partNumbers, type PageDescriptor } from '../lib/pageModel';
 import type { LoadedDoc } from '../lib/pdfRender';
 import PageThumb from './PageThumb';
-
-const screenReaderInstructions: ScreenReaderInstructions = {
-  draggable:
-    'To reorder a page, press Space or Enter to pick it up, use the arrow keys to ' +
-    'move it, then press Space or Enter to drop it, or Escape to cancel.',
-};
 
 interface Props {
   pages: PageDescriptor[];
@@ -53,7 +40,6 @@ export default function ThumbnailGrid({
 }: Props) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
   const parts = partNumbers(pages, splitMarks);
@@ -67,28 +53,11 @@ export default function ThumbnailGrid({
     if (from >= 0 && to >= 0) onReorder(from, to);
   }
 
-  // Announce reorders to screen readers by current page position (1-based).
-  const posOf = (id: string | number) => pages.findIndex((p) => p.id === id) + 1;
-  const announcements: Announcements = {
-    onDragStart: ({ active }) => `Picked up page at position ${posOf(active.id)}.`,
-    onDragOver: ({ active, over }) =>
-      over
-        ? `Page from position ${posOf(active.id)} is now over position ${posOf(over.id)}.`
-        : undefined,
-    onDragEnd: ({ active, over }) =>
-      over
-        ? `Page dropped at position ${posOf(over.id)}.`
-        : `Page returned to position ${posOf(active.id)}.`,
-    onDragCancel: ({ active }) =>
-      `Reorder cancelled. Page returned to position ${posOf(active.id)}.`,
-  };
-
   return (
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
       onDragEnd={handleDragEnd}
-      accessibility={{ announcements, screenReaderInstructions }}
     >
       <SortableContext items={pages.map((p) => p.id)} strategy={rectSortingStrategy}>
         <div

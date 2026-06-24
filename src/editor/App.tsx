@@ -34,6 +34,7 @@ import { useAutosave } from './hooks/useAutosave';
 // Rotating single-line tips shown by the header "?" button — one per click.
 const HELP_TIPS = [
   'Tip: drag any page to reorder — grab anywhere on the card, not just the edge.',
+  'Tip: select a page and tap ← or → to nudge it one spot without dragging.',
   'Tip: Shift-click to pick a range; Cmd/Ctrl-click to add or remove one page.',
   'Tip: double-click a page, tap the magnifier, or press Space to preview it large — scroll to see the rest.',
   'Tip: on a touch screen, press and hold a page to peek at it while you reorder.',
@@ -61,6 +62,7 @@ export default function App() {
   const [pendingSource, setPendingSource] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [restorable, setRestorable] = useState<RestoredSession | null>(null);
+  const [liveMsg, setLiveMsg] = useState(''); // screen-reader announcements
   const tipIndex = useRef(0);
 
   const { pages, selected, splitMarks } = history.present;
@@ -233,14 +235,29 @@ export default function App() {
         return;
       }
 
-      // Space opens the preview for a single selected page — unless a card has
-      // keyboard focus, where Space picks it up for drag-reordering (dnd-kit).
-      const onCard = !!(e.target as HTMLElement)?.closest?.('.card');
-      if (e.key === ' ' && !typing && !onCard && selected.size === 1) {
+      // Space opens the preview for a single selected page.
+      if (e.key === ' ' && !typing && selected.size === 1) {
         e.preventDefault();
         const id = [...selected][0];
         const idx = pages.findIndex((p) => p.id === id);
         if (idx >= 0) setPreviewIndex(idx);
+        return;
+      }
+
+      // Left/Right nudge the single selected page one position — a modeless
+      // keyboard alternative to dragging.
+      if (
+        (e.key === 'ArrowLeft' || e.key === 'ArrowRight') &&
+        !typing &&
+        selected.size === 1
+      ) {
+        const id = [...selected][0];
+        const from = pages.findIndex((p) => p.id === id);
+        const to = e.key === 'ArrowLeft' ? from - 1 : from + 1;
+        if (from < 0 || to < 0 || to >= pages.length) return; // at an edge
+        e.preventDefault();
+        dispatch({ type: 'reorder', from, to });
+        setLiveMsg(`Moved page to position ${to + 1} of ${pages.length}.`);
         return;
       }
 
@@ -563,6 +580,10 @@ export default function App() {
 
       {dragActive && <DragOverlay />}
       {toast && <Toast message={toast.message} tone={toast.tone} />}
+
+      <div className="sr-only" aria-live="polite" role="status">
+        {liveMsg}
+      </div>
     </div>
   );
 }
