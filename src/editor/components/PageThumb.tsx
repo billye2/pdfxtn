@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { RotateCw, Scissors, X, Check, Maximize2 } from './icons';
+import { RotateCw, Scissors, X, Check, ZoomIn } from './icons';
 import type { PageDescriptor } from '../lib/pageModel';
 import { renderThumbnail, type LoadedDoc } from '../lib/pdfRender';
 import PagePeek from './PagePeek';
@@ -236,7 +236,7 @@ export default function PageThumb({
           onOpenPreview(page.id);
         }}
       >
-        <Maximize2 size={15} />
+        <ZoomIn size={15} />
       </button>
 
       {splitMark && <span className="card-split-line" />}

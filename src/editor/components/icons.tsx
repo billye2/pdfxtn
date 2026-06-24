@@ -14,7 +14,7 @@ export {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Maximize2,
+  ZoomIn,
   Shuffle,
   SplitSquareHorizontal,
   HelpCircle,

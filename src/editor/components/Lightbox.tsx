@@ -29,6 +29,7 @@ export default function Lightbox({
   onClose,
 }: Props) {
   const hostRef = useRef<HTMLDivElement | null>(null);
+  const viewRef = useRef<HTMLDivElement | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Render the page large and unrotated; rotation is applied via CSS transform.
@@ -36,6 +37,7 @@ export default function Lightbox({
     let cancelled = false;
     if (!doc || !hostRef.current) return;
     setLoading(true);
+    if (viewRef.current) viewRef.current.scrollTop = 0; // start a new page at the top
     renderThumbnail(doc, page.pageIndex, { rotation: 0, maxEdge: 1500 })
       .then((canvas) => {
         if (cancelled || !hostRef.current) return;
@@ -69,24 +71,26 @@ export default function Lightbox({
 
       <div className="lightbox-body" onClick={(e) => e.stopPropagation()}>
         <div className="lightbox-stagewrap">
-          <div
-            className={`lightbox-stage${loading ? ' loading' : ''}`}
-            style={{
-              transform: `rotate(${page.rotation}deg) scale(${rotated ? 0.78 : 1})`,
-            }}
-          >
-            <div className="lightbox-host" ref={hostRef} />
-            {page.crop && (
-              <div
-                className="lightbox-crop"
-                style={{
-                  left: `${page.crop.x * 100}%`,
-                  top: `${page.crop.y * 100}%`,
-                  width: `${page.crop.w * 100}%`,
-                  height: `${page.crop.h * 100}%`,
-                }}
-              />
-            )}
+          <div className="lightbox-view" ref={viewRef}>
+            <div
+              className={`lightbox-stage${loading ? ' loading' : ''}`}
+              style={{
+                transform: `rotate(${page.rotation}deg) scale(${rotated ? 0.78 : 1})`,
+              }}
+            >
+              <div className="lightbox-host" ref={hostRef} />
+              {page.crop && (
+                <div
+                  className="lightbox-crop"
+                  style={{
+                    left: `${page.crop.x * 100}%`,
+                    top: `${page.crop.y * 100}%`,
+                    width: `${page.crop.w * 100}%`,
+                    height: `${page.crop.h * 100}%`,
+                  }}
+                />
+              )}
+            </div>
           </div>
         </div>
 

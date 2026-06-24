@@ -38,7 +38,8 @@ interface ToastState {
 const HELP_TIPS = [
   'Tip: drag any page to reorder — grab anywhere on the card, not just the edge.',
   'Tip: Shift-click to pick a range; Cmd/Ctrl-click to add or remove one page.',
-  'Tip: double-click a page (or select one and press Space) to preview it large.',
+  'Tip: double-click a page, tap the magnifier, or press Space to preview it large — scroll to see the rest.',
+  'Tip: on a touch screen, press and hold a page to peek at it while you reorder.',
   'Tip: use Mix to interleave two PDFs — perfect for double-sided scans.',
   'Tip: Split every N pages, then Save to get one file per chunk.',
   'Tip: drop JPG or PNG files right in — they become PDF pages instantly.',
