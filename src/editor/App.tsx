@@ -233,8 +233,10 @@ export default function App() {
         return;
       }
 
-      // Space opens the preview for a single selected page.
-      if (e.key === ' ' && !typing && selected.size === 1) {
+      // Space opens the preview for a single selected page — unless a card has
+      // keyboard focus, where Space picks it up for drag-reordering (dnd-kit).
+      const onCard = !!(e.target as HTMLElement)?.closest?.('.card');
+      if (e.key === ' ' && !typing && !onCard && selected.size === 1) {
         e.preventDefault();
         const id = [...selected][0];
         const idx = pages.findIndex((p) => p.id === id);
