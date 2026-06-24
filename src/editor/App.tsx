@@ -23,16 +23,11 @@ import {
   isImageFile,
   type IngestResult,
 } from './lib/ingest';
-import { boundariesFromMarks, splitAt } from './lib/pageModel';
-import { exportGroups, exportSingle } from './lib/pdfExport';
-import { exportPagesAsImages, type ImageFormat } from './lib/pdfImages';
 import type { LoadedDoc } from './lib/pdfRender';
 import { lookStyle, type LookId } from './themes';
-
-interface ToastState {
-  message: string;
-  tone: 'success' | 'error';
-}
+import { useToast } from './hooks/useToast';
+import { useDialogs } from './hooks/useDialogs';
+import { useExport } from './hooks/useExport';
 
 // Rotating single-line tips shown by the header "?" button — one per click.
 const HELP_TIPS = [
@@ -60,26 +55,22 @@ export default function App() {
   const [appState, setAppState] = useState<AppState>('empty');
   const [look, setLook] = useState<LookId>('blocks');
   const [lookMenuOpen, setLookMenuOpen] = useState(false);
-  const [toast, setToast] = useState<ToastState | null>(null);
-  const [cropOpen, setCropOpen] = useState(false);
-  const [rangeOpen, setRangeOpen] = useState(false);
-  const [mixOpen, setMixOpen] = useState(false);
-  const [splitEveryOpen, setSplitEveryOpen] = useState(false);
-  const [imagesOpen, setImagesOpen] = useState(false);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const [pendingSource, setPendingSource] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
-  const [saving, setSaving] = useState(false);
-  // For multi-file (split) exports we can show real progress; single is indeterminate.
-  const [saveProgress, setSaveProgress] = useState<{
-    done: number;
-    total: number;
-  } | null>(null);
   const tipIndex = useRef(0);
-  const toastTimer = useRef<number | null>(null);
 
   const { pages, selected, splitMarks } = history.present;
   const hasCrop = pages.some((p) => p.crop);
+
+  const { toast, showToast } = useToast();
+  const dialogs = useDialogs();
+  const { saving, saveProgress, save, exportRange, exportImages } = useExport({
+    pages,
+    docs,
+    splitMarks,
+    showToast,
+  });
 
   // Group the current pages by their source document, preserving first-seen
   // order — the unit Mix interleaves over.
@@ -100,19 +91,6 @@ export default function App() {
     }));
   }
   const canMix = new Set(pages.map((p) => p.docId)).size >= 2;
-
-  const showToast = useCallback(
-    (message: string, tone: 'success' | 'error' = 'success') => {
-      setToast({ message, tone });
-      // Reset the dismiss timer so rapid toasts each get the full duration.
-      if (toastTimer.current !== null) clearTimeout(toastTimer.current);
-      toastTimer.current = window.setTimeout(() => {
-        setToast(null);
-        toastTimer.current = null;
-      }, 3500);
-    },
-    [],
-  );
 
   const addFiles = useCallback(
     async (files: FileList | File[]) => {
@@ -275,64 +253,6 @@ export default function App() {
     input.click();
   }
 
-  function sourceName() {
-    return docs.size ? [...docs.values()][0].name : 'document.pdf';
-  }
-
-  async function handleSave() {
-    if (saving) return; // guard against double-clicks
-    setSaving(true);
-    try {
-      if (splitMarks.size > 0) {
-        const groups = splitAt(pages, boundariesFromMarks(pages, splitMarks));
-        setSaveProgress({ done: 0, total: groups.length });
-        await exportGroups(groups, docs, sourceName(), (done, total) =>
-          setSaveProgress({ done, total }),
-        );
-        showToast(`Saved ${groups.length} files`);
-      } else {
-        // Yield a frame so the saving UI paints before the (blocking) build.
-        await new Promise((r) => requestAnimationFrame(() => r(null)));
-        await exportSingle(pages, docs, sourceName());
-        showToast(`Saved ${sourceName().replace(/\.pdf$/i, '')}-edited.pdf`);
-      }
-    } catch (e) {
-      showToast(`Save failed: ${(e as Error).message}`, 'error');
-    } finally {
-      setSaving(false);
-      setSaveProgress(null);
-    }
-  }
-
-  async function handleExportImages(opts: {
-    format: ImageFormat;
-    scale: number;
-    indices: number[];
-  }) {
-    setImagesOpen(false);
-    try {
-      const subset = opts.indices.map((i) => pages[i]).filter(Boolean);
-      const n = await exportPagesAsImages(subset, docs, sourceName(), {
-        format: opts.format,
-        scale: opts.scale,
-      });
-      showToast(`Saved ${n} image${n === 1 ? '' : 's'}`);
-    } catch (e) {
-      showToast(`Image export failed: ${(e as Error).message}`, 'error');
-    }
-  }
-
-  async function handleExportRange(indices: number[]) {
-    setRangeOpen(false);
-    try {
-      const subset = indices.map((i) => pages[i]).filter(Boolean);
-      await exportSingle(subset, docs, sourceName());
-      showToast(`Saved ${subset.length} page${subset.length === 1 ? '' : 's'}`);
-    } catch (e) {
-      showToast(`Export failed: ${(e as Error).message}`, 'error');
-    }
-  }
-
   function applySplitToSelection() {
     pages.forEach((p) => {
       if (selected.has(p.id) && !splitMarks.has(p.id)) {
@@ -394,7 +314,7 @@ export default function App() {
           showToast(HELP_TIPS[tipIndex.current]);
           tipIndex.current = (tipIndex.current + 1) % HELP_TIPS.length;
         }}
-        onSave={handleSave}
+        onSave={save}
       />
 
       {appState === 'editor' && (
@@ -409,15 +329,15 @@ export default function App() {
           onClearSelection={() => dispatch({ type: 'clearSelection' })}
           onRotateSelected={(delta) => dispatch({ type: 'rotateSelected', delta })}
           onDeleteSelected={() => dispatch({ type: 'deleteSelected' })}
-          onOpenCrop={() => setCropOpen(true)}
+          onOpenCrop={() => dialogs.openDialog('crop')}
           onSplit={applySplitToSelection}
-          onOpenSplitEvery={() => setSplitEveryOpen(true)}
-          onOpenMix={() => setMixOpen(true)}
+          onOpenSplitEvery={() => dialogs.openDialog('splitEvery')}
+          onOpenMix={() => dialogs.openDialog('mix')}
           onClearCrop={() =>
             dispatch({ type: 'applyCrop', crop: undefined, scope: 'all' })
           }
-          onOpenRange={() => setRangeOpen(true)}
-          onOpenImages={() => setImagesOpen(true)}
+          onOpenRange={() => dialogs.openDialog('range')}
+          onOpenImages={() => dialogs.openDialog('images')}
           onUndo={() => dispatch({ type: 'undo' })}
           onRedo={() => dispatch({ type: 'redo' })}
         />
@@ -470,7 +390,7 @@ export default function App() {
         <SelectionDock
           count={selected.size}
           onRotate={(delta) => dispatch({ type: 'rotateSelected', delta })}
-          onCrop={() => setCropOpen(true)}
+          onCrop={() => dialogs.openDialog('crop')}
           onExtract={() => {
             dispatch({ type: 'extractSelected' });
             showToast('Kept the picked pages');
@@ -480,62 +400,68 @@ export default function App() {
         />
       )}
 
-      {cropOpen && cropRefPage && cropRefDoc && (
+      {dialogs.isOpen('crop') && cropRefPage && cropRefDoc && (
         <CropDialog
           page={cropRefPage}
           doc={cropRefDoc}
           selectedCount={selected.size}
           onApply={(crop, scope) => {
             dispatch({ type: 'applyCrop', crop, scope });
-            setCropOpen(false);
+            dialogs.closeDialog();
             showToast('Cropped your pages');
           }}
-          onCancel={() => setCropOpen(false)}
+          onCancel={dialogs.closeDialog}
         />
       )}
 
-      {rangeOpen && (
+      {dialogs.isOpen('range') && (
         <RangeDialog
           total={pages.length}
-          onExport={handleExportRange}
-          onCancel={() => setRangeOpen(false)}
+          onExport={(indices) => {
+            dialogs.closeDialog();
+            exportRange(indices);
+          }}
+          onCancel={dialogs.closeDialog}
         />
       )}
 
-      {mixOpen && (
+      {dialogs.isOpen('mix') && (
         <MixDialog
           groups={pageGroups()}
           onMix={(mixed) => {
             dispatch({ type: 'setPages', pages: mixed });
-            setMixOpen(false);
+            dialogs.closeDialog();
             showToast('Mixed the pages');
           }}
-          onCancel={() => setMixOpen(false)}
+          onCancel={dialogs.closeDialog}
         />
       )}
 
-      {imagesOpen && (
+      {dialogs.isOpen('images') && (
         <ImagesDialog
           total={pages.length}
           selectedIndices={pages
             .map((p, i) => (selected.has(p.id) ? i : -1))
             .filter((i) => i >= 0)}
-          onExport={handleExportImages}
-          onCancel={() => setImagesOpen(false)}
+          onExport={(opts) => {
+            dialogs.closeDialog();
+            exportImages(opts);
+          }}
+          onCancel={dialogs.closeDialog}
         />
       )}
 
-      {splitEveryOpen && (
+      {dialogs.isOpen('splitEvery') && (
         <SplitEveryDialog
           total={pages.length}
           onApply={(n) => {
             dispatch({ type: 'splitEveryN', n });
-            setSplitEveryOpen(false);
+            dialogs.closeDialog();
             showToast(
               `Split every ${n} page${n === 1 ? '' : 's'} — click Save PDF to export`,
             );
           }}
-          onCancel={() => setSplitEveryOpen(false)}
+          onCancel={dialogs.closeDialog}
         />
       )}
 
@@ -559,7 +485,7 @@ export default function App() {
           onCrop={() => {
             dispatch({ type: 'toggleSelect', id: pages[previewPos].id, additive: false });
             setPreviewIndex(null);
-            setCropOpen(true);
+            dialogs.openDialog('crop');
           }}
           onClose={() => setPreviewIndex(null)}
         />
