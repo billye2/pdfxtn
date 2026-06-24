@@ -23,11 +23,13 @@ import {
   isImageFile,
   type IngestResult,
 } from './lib/ingest';
-import type { LoadedDoc } from './lib/pdfRender';
+import { loadDoc, type LoadedDoc } from './lib/pdfRender';
+import { clearSession, loadSession, type RestoredSession } from './lib/persist';
 import { lookStyle, type LookId } from './themes';
 import { useToast } from './hooks/useToast';
 import { useDialogs } from './hooks/useDialogs';
 import { useExport } from './hooks/useExport';
+import { useAutosave } from './hooks/useAutosave';
 
 // Rotating single-line tips shown by the header "?" button — one per click.
 const HELP_TIPS = [
@@ -58,6 +60,7 @@ export default function App() {
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const [pendingSource, setPendingSource] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [restorable, setRestorable] = useState<RestoredSession | null>(null);
   const tipIndex = useRef(0);
 
   const { pages, selected, splitMarks } = history.present;
@@ -71,6 +74,8 @@ export default function App() {
     splitMarks,
     showToast,
   });
+
+  useAutosave({ pages, splitMarks, docs, look, active: appState === 'editor' });
 
   // Group the current pages by their source document, preserving first-seen
   // order — the unit Mix interleaves over.
@@ -101,6 +106,7 @@ export default function App() {
       );
       if (images.length === 0 && pdfs.length === 0) return;
 
+      setRestorable(null); // starting fresh work supersedes any restore offer
       setAppState('loading');
       try {
         let added = 0;
@@ -135,11 +141,54 @@ export default function App() {
     };
   }, []);
 
+  // On first load, look for an autosaved session and offer to restore it.
+  useEffect(() => {
+    let done = false;
+    loadSession()
+      .then((session) => {
+        if (session && !done) setRestorable(session);
+      })
+      .catch(() => {});
+    return () => {
+      done = true;
+    };
+  }, []);
+
+  // Rebuild the saved session: re-parse each stored PDF, then load the pages.
+  async function restoreSession() {
+    const session = restorable;
+    if (!session) return;
+    setRestorable(null);
+    setAppState('loading');
+    try {
+      const map = new Map<string, LoadedDoc>();
+      for (const d of session.docs) map.set(d.id, await loadDoc(d.id, d.name, d.bytes));
+      setDocs(map);
+      dispatch({
+        type: 'restore',
+        pages: session.state.pages,
+        splitMarks: session.state.splitMarks,
+      });
+      setLook(session.state.look as LookId);
+      setAppState('editor');
+      showToast(`Restored ${session.state.pages.length} pages`);
+    } catch (e) {
+      showToast(`Could not restore: ${(e as Error).message}`, 'error');
+      setAppState('empty');
+    }
+  }
+
+  function discardSession() {
+    setRestorable(null);
+    clearSession().catch(() => {});
+  }
+
   // User clicked "Load PDF" in the banner — request that origin's host
   // permission (within this gesture), then fetch and ingest.
   async function loadPending() {
     const url = pendingSource;
     if (!url) return;
+    setRestorable(null);
     const granted = await ensureHostPermission(url);
     setPendingSource(null);
     if (!granted) {
@@ -341,6 +390,25 @@ export default function App() {
           onUndo={() => dispatch({ type: 'undo' })}
           onRedo={() => dispatch({ type: 'redo' })}
         />
+      )}
+
+      {restorable && appState !== 'editor' && (
+        <div className="pending-banner restore-banner">
+          <span className="pending-text">
+            Restore your previous work?{' '}
+            <strong>
+              {restorable.state.pages.length} page
+              {restorable.state.pages.length === 1 ? '' : 's'}
+            </strong>{' '}
+            from your last session.
+          </span>
+          <button className="btn-go pending-btn" onClick={restoreSession}>
+            Restore
+          </button>
+          <button className="btn-secondary pending-btn" onClick={discardSession}>
+            Discard
+          </button>
+        </div>
       )}
 
       {pendingSource && (

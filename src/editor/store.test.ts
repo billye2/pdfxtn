@@ -36,6 +36,27 @@ describe('addPages', () => {
   });
 });
 
+describe('restore', () => {
+  it('replaces the session and clears history', () => {
+    // Build up some history, then restore a saved session over it.
+    let h = historyWith(2);
+    h = reducer(h, { type: 'reorder', from: 0, to: 1 });
+    expect(h.past.length).toBeGreaterThan(0);
+
+    h = reducer(h, {
+      type: 'restore',
+      pages: makePages(3, 'saved'),
+      splitMarks: ['p1'],
+    });
+    expect(ids(h)).toEqual(['p0', 'p1', 'p2']);
+    expect(h.present.splitMarks).toEqual(new Set(['p1']));
+    expect(h.present.selected.size).toBe(0);
+    // Nothing to undo back into — a restore is a fresh start.
+    expect(h.past).toHaveLength(0);
+    expect(h.future).toHaveLength(0);
+  });
+});
+
 describe('reorder', () => {
   it('moves a page and records history', () => {
     const h = reducer(historyWith(3), { type: 'reorder', from: 0, to: 2 });

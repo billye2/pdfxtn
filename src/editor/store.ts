@@ -52,6 +52,7 @@ export type Action =
   | { type: 'toggleSplitMark'; id: string }
   | { type: 'splitEveryN'; n: number }
   | { type: 'setPages'; pages: PageDescriptor[] }
+  | { type: 'restore'; pages: PageDescriptor[]; splitMarks: string[] }
   | { type: 'undo' }
   | { type: 'redo' };
 
@@ -157,6 +158,19 @@ function applyEdit(state: EditState, action: Action): EditState {
 }
 
 export function reducer(state: HistoryState, action: Action): HistoryState {
+  if (action.type === 'restore') {
+    // Replace the whole session (from autosave) and start a fresh history —
+    // there's nothing meaningful to undo back into.
+    return {
+      past: [],
+      present: {
+        pages: action.pages,
+        selected: new Set(),
+        splitMarks: new Set(action.splitMarks),
+      },
+      future: [],
+    };
+  }
   if (action.type === 'undo') {
     if (state.past.length === 0) return state;
     const previous = state.past[state.past.length - 1];
