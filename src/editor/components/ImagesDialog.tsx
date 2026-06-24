@@ -10,7 +10,12 @@ interface Props {
   total: number;
   /** 0-based indices of pages currently selected in the editor, in page order. */
   selectedIndices: number[];
-  onExport: (opts: { format: ImageFormat; scale: number; indices: number[] }) => void;
+  onExport: (opts: {
+    format: ImageFormat;
+    scale: number;
+    indices: number[];
+    zip: boolean;
+  }) => void;
   onCancel: () => void;
 }
 
@@ -30,6 +35,8 @@ export default function ImagesDialog({
   const [scale, setScale] = useState(2);
   const [scope, setScope] = useState<Scope>(selectedIndices.length ? 'selected' : 'all');
   const [range, setRange] = useState('');
+  // Default to a single zip for multi-page exports (avoids N browser downloads).
+  const [zip, setZip] = useState(total > 1);
 
   // Resolve the chosen scope to a concrete list of page indices (+ any error).
   const resolved = useMemo<{ indices: number[]; error: string }>(() => {
@@ -114,6 +121,16 @@ export default function ImagesDialog({
         />
       </div>
 
+      <label className="zip-toggle">
+        <input
+          type="checkbox"
+          checked={zip && count > 1}
+          disabled={count < 2}
+          onChange={(e) => setZip(e.target.checked)}
+        />
+        <span>Bundle into a single .zip</span>
+      </label>
+
       <div className="range-status">
         {resolved.error ? (
           <span className="range-error">{resolved.error}</span>
@@ -131,7 +148,9 @@ export default function ImagesDialog({
         <button
           className="btn-go"
           disabled={count === 0}
-          onClick={() => onExport({ format, scale, indices: resolved.indices })}
+          onClick={() =>
+            onExport({ format, scale, indices: resolved.indices, zip: zip && count > 1 })
+          }
         >
           Export {count} image{count === 1 ? '' : 's'}
         </button>

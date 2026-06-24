@@ -69,14 +69,24 @@ export function useExport({ pages, docs, splitMarks, showToast }: Args) {
   );
 
   const exportImages = useCallback(
-    async (opts: { format: ImageFormat; scale: number; indices: number[] }) => {
+    async (opts: {
+      format: ImageFormat;
+      scale: number;
+      indices: number[];
+      zip?: boolean;
+    }) => {
       try {
         const subset = opts.indices.map((i) => pages[i]).filter(Boolean);
         const n = await exportPagesAsImages(subset, docs, sourceName(), {
           format: opts.format,
           scale: opts.scale,
+          zip: opts.zip,
         });
-        showToast(`Saved ${n} image${n === 1 ? '' : 's'}`);
+        showToast(
+          opts.zip && n > 0
+            ? `Saved ${n} image${n === 1 ? '' : 's'} as a .zip`
+            : `Saved ${n} image${n === 1 ? '' : 's'}`,
+        );
       } catch (e) {
         showToast(`Image export failed: ${(e as Error).message}`, 'error');
       }

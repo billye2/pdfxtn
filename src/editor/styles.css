@@ -1011,6 +1011,26 @@ button:disabled {
   font-size: 13px;
   color: var(--sub);
 }
+.zip-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+  cursor: pointer;
+}
+.zip-toggle input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+.zip-toggle:has(input:disabled) {
+  opacity: 0.5;
+  cursor: default;
+}
 .range-error {
   color: var(--c-del);
 }

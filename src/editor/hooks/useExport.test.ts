@@ -73,6 +73,16 @@ describe('useExport', () => {
     expect(showToast).toHaveBeenCalledWith('Saved 3 images');
   });
 
+  it('exportImages() forwards the zip option and toasts the .zip variant', async () => {
+    vi.mocked(exportPagesAsImages).mockResolvedValue(3);
+    const { result, showToast } = setup();
+    await act(async () =>
+      result.current.exportImages({ format: 'png', scale: 2, indices: [0, 1, 2], zip: true }),
+    );
+    expect(vi.mocked(exportPagesAsImages).mock.calls[0][3]).toMatchObject({ zip: true });
+    expect(showToast).toHaveBeenCalledWith('Saved 3 images as a .zip');
+  });
+
   it('surfaces export failures as an error toast', async () => {
     vi.mocked(exportSingle).mockRejectedValue(new Error('disk full'));
     const { result, showToast } = setup();

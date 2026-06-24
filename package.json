@@ -25,6 +25,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@fontsource/fredoka": "^5.2.10",
     "@fontsource/nunito": "^5.2.7",
+    "fflate": "^0.8.3",
     "lucide-react": "^1.21.0",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^4.10.38",

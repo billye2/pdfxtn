@@ -1,3 +1,4 @@
+import { zipSync } from 'fflate';
 import { renderPageBitmap, type LoadedDoc } from './pdfRender';
 import type { PageDescriptor } from './pageModel';
 
@@ -7,6 +8,8 @@ export interface ImageExportOptions {
   format: ImageFormat;
   /** Multiplies the page's native pixel size (1 = ~72dpi, 2 = ~144dpi, …). */
   scale: number;
+  /** Bundle the pages into one `.zip` instead of downloading each separately. */
+  zip?: boolean;
 }
 
 function canvasToBlob(
@@ -47,8 +50,10 @@ function flattenForJpeg(canvas: HTMLCanvasElement): HTMLCanvasElement {
 }
 
 /**
- * Render each page to an image and download it. One file per page,
- * `<name>-pNN.<ext>`, reflecting current rotation and crop.
+ * Render each page to an image, reflecting current rotation and crop. Files are
+ * named `<name>-pNN.<ext>`. By default each downloads separately; with
+ * `opts.zip` they're bundled into a single `<name>-images.zip` — much friendlier
+ * than N browser downloads when exporting a large document.
  */
 export async function exportPagesAsImages(
   pages: PageDescriptor[],
@@ -61,7 +66,7 @@ export async function exportPagesAsImages(
   const type = opts.format === 'jpeg' ? 'image/jpeg' : 'image/png';
   const pad = String(pages.length).length;
 
-  let saved = 0;
+  const files: { name: string; blob: Blob }[] = [];
   for (let i = 0; i < pages.length; i += 1) {
     const desc = pages[i];
     const doc = docsById.get(desc.docId);
@@ -79,8 +84,18 @@ export async function exportPagesAsImages(
       type,
       opts.format === 'jpeg' ? 0.92 : undefined,
     );
-    download(blob, `${base}-p${String(i + 1).padStart(pad, '0')}.${ext}`);
-    saved += 1;
+    files.push({ name: `${base}-p${String(i + 1).padStart(pad, '0')}.${ext}`, blob });
   }
-  return saved;
+
+  if (opts.zip && files.length > 0) {
+    // JPEG/PNG are already compressed, so store (level 0) — faster, same size.
+    const entries: Record<string, [Uint8Array, { level: 0 }]> = {};
+    for (const f of files) {
+      entries[f.name] = [new Uint8Array(await f.blob.arrayBuffer()), { level: 0 }];
+    }
+    download(new Blob([zipSync(entries)], { type: 'application/zip' }), `${base}-images.zip`);
+  } else {
+    for (const f of files) download(f.blob, f.name);
+  }
+  return files.length;
 }
