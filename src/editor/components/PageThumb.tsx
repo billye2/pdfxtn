@@ -6,7 +6,6 @@ import type { PageDescriptor } from '../lib/pageModel';
 import { renderThumbnail, type LoadedDoc } from '../lib/pdfRender';
 import PagePeek from './PagePeek';
 
-const HOVER_PEEK_DELAY = 450; // ms a mouse must dwell before the peek appears
 const PRESS_PEEK_DELAY = 500; // ms of long-press (touch/pen) before the peek appears
 
 interface Props {
@@ -50,8 +49,10 @@ export default function PageThumb({
   const [aspect, setAspect] = useState(DEFAULT_ASPECT); // page width / height
   const [box, setBox] = useState<{ w: number; h: number } | null>(null);
 
-  // Peek: a larger floating preview shown on hover-dwell (mouse) or long-press
-  // (touch), so the page is legible enough to confirm before/while reordering.
+  // Peek: a larger floating preview shown on long-press (touch/pen), so the page
+  // is legible enough to confirm before/while reordering on small displays.
+  // (Mouse hover deliberately does not trigger it — the popover would cover the
+  // card's rotate/split/delete controls.)
   const [peekAnchor, setPeekAnchor] = useState<DOMRect | null>(null);
   const peekTimer = useRef<number | null>(null);
   const pressPos = useRef<{ x: number; y: number } | null>(null);
@@ -212,9 +213,6 @@ export default function PageThumb({
         onSelect(page.id, e);
       }}
       onDoubleClick={() => onOpenPreview(page.id)}
-      onPointerEnter={(e) => {
-        if (e.pointerType === 'mouse') schedulePeek(HOVER_PEEK_DELAY, false);
-      }}
       onPointerLeave={hidePeek}
       onPointerMove={onPointerMove}
       onPointerUp={(e) => {
