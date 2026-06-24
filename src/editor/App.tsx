@@ -226,10 +226,14 @@ export default function App() {
       const tag = (e.target as HTMLElement)?.tagName;
       const typing = tag === 'INPUT' || tag === 'TEXTAREA';
 
-      // While the preview is open, arrows page and Esc closes; nothing else runs.
+      // While the preview is open, arrows page and Esc/Space close; nothing
+      // else runs. (Space toggles: it opened the preview, so it also closes it.)
       if (previewIndex !== null) {
         if (e.key === 'Escape') setPreviewIndex(null);
-        else if (e.key === 'ArrowRight')
+        else if (e.key === ' ') {
+          e.preventDefault();
+          setPreviewIndex(null);
+        } else if (e.key === 'ArrowRight')
           setPreviewIndex((i) => (i === null ? i : Math.min(i + 1, pages.length - 1)));
         else if (e.key === 'ArrowLeft')
           setPreviewIndex((i) => (i === null ? i : Math.max(i - 1, 0)));
