@@ -1,6 +1,6 @@
 {
   "name": "pdfxtn",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "PDF Mana — a Chrome extension to Merge, Arrange, Nip & Adjust PDF pages locally.",
   "license": "MIT",
   "private": true,
