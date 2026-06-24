@@ -18,8 +18,11 @@ Nothing is uploaded; all parsing and writing happens locally.
 - **Images → PDF** — drop JPG/PNG files in and they become pages
 - **PDF → Images** — export pages as PNG/JPG at 1×–3× (all / selected / custom range)
 - **Export by position** — save an arbitrary page range (`1-3, 5, 8-10`)
-- **Page preview** — double-click a page (or expand / Space) for a large view with
-  arrow-key paging and inline rotate / crop / delete
+- **Page preview** — double-click a page (or the magnifier / Space) for a large view with
+  arrow-key paging and inline rotate / crop / delete; the view fills the width and you
+  scroll the wheel to read down a tall page
+- **Peek** — on a touch screen, press and hold a page for a quick enlarged look (handy for
+  confirming the right page before reordering on a small display)
 - **Page labels stay original** — a page keeps its source page number after reordering
 - **Four themes** — switchable "Looks" (Blocks, Bubble, Sticker, Sunny)
 - **Undo / redo** (Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z), select-all, Esc to clear
@@ -101,7 +104,7 @@ src/
     App.tsx            top-level state wiring
     store.ts           reducer + undo/redo history
     themes.ts          the four Looks (CSS-var token sets)
-    components/        Header, Toolbar, ThumbnailGrid, PageThumb, Lightbox,
+    components/        Header, Toolbar, ThumbnailGrid, PageThumb, PagePeek, Lightbox,
                        CropDialog, RangeDialog, ImagesDialog, MixDialog, SplitEveryDialog,
                        SelectionDock, EmptyState, LoadingState, Toast, DragOverlay
     lib/
