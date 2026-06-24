@@ -87,7 +87,9 @@ pure transform over that list, which keeps edits non-destructive and undoable.
 
 - **Unit** (`npm test`) — pure logic: `pageModel` transforms, `pageRange` parsing, and the
   `pdfExport` pipeline (page count/order, rotation, crop box, merge, and a resource
-  de-duplication regression test).
+  de-duplication regression test). The editor hooks (`useToast`, `useDialogs`, `useExport`)
+  are tested via `@testing-library/react`'s `renderHook` — those files opt into a jsdom
+  environment with a `// @vitest-environment jsdom` docblock; everything else runs in Node.
 - **E2E** (`npm run e2e`) — loads the built extension in headless Chromium and exercises
   load/render, delete, rotate, extract, Mix, split-every-N, range export, images↔PDF,
   the lightbox, and theme switching. (Drag-reorder is covered by unit tests and manual
