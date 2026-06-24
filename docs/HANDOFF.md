@@ -8,7 +8,7 @@ _Snapshot for picking this back up later._
 - **Version:** 1.0.8 — packaged at `release/pdf-mana-1.0.8.zip`.
 - **Repo:** https://github.com/billye2/pdfxtn — **public, MIT** (© Billy Ye). `main` is the working branch; everything is committed and pushed.
 - **Chrome Web Store:** **published / live** at https://chromewebstore.google.com/detail/pdf-mana/bhkhobdaindpenllbgliigfafkkigpnk — the store currently shows **v1.0.5**. Local is **v1.0.8** (peek, widened lightbox, icon swap), not yet uploaded; push an update by uploading `release/pdf-mana-1.0.8.zip` in the dashboard.
-- **Tests:** 93 unit (Vitest; pure logic in Node + the `hooks/` tests opt into jsdom via a `// @vitest-environment jsdom` docblock) + 12 e2e (Playwright; 11 run, 1 drag test skipped) — all green.
+- **Tests:** 102 unit (Vitest; pure logic in Node + the `hooks/` tests opt into jsdom via a `// @vitest-environment jsdom` docblock) + 12 e2e (Playwright; 11 run, 1 drag test skipped) — all green. Persistence + keyboard reorder are verified with one-off headless-extension smoke scripts (not committed).
 - **Last change (v1.0.7–1.0.8):** added a **page peek** — a floating, read-only page
   enlargement for confirming the right page while reordering on small screens
   (`components/PagePeek.tsx`). Opens on **touch/pen press-and-hold** only (mouse hover was
@@ -48,11 +48,12 @@ node scripts/promo.mjs         # promo tiles (440x280, 1400x560) → release/pro
 - `src/manifest.ts` — MV3 manifest (perms: activeTab, storage, contextMenus + optional host).
 - `src/background.ts` — service worker: icon click, context menus, tab→editor handoff.
 - `src/editor/` — the app:
-  - `App.tsx` (wiring), `store.ts` (reducer + undo/redo), `themes.ts` (4 Looks)
+  - `App.tsx` (wiring), `store.ts` (reducer + undo/redo + `restore`), `themes.ts` (4 Looks)
   - `components/` — Header, Toolbar, ThumbnailGrid, PageThumb, PagePeek, Lightbox, CropDialog,
     RangeDialog, ImagesDialog, MixDialog, SplitEveryDialog, SelectionDock, EmptyState, …
+  - `hooks/` — `useToast`, `useDialogs`, `useExport`, `useAutosave`, `usePeek`
   - `lib/` — `pageModel.ts` (descriptor ops), `ingest.ts`, `pdfRender.ts`, `pdfExport.ts`,
-    `pdfImages.ts`, `pageRange.ts`
+    `pdfImages.ts` (download or fflate `.zip`), `persist.ts` (IndexedDB autosave), `pageRange.ts`
 - `e2e/` — Playwright suite. `scripts/` — release, icons, screenshots, promo.
 - `docs/STORE_LISTING.md` — listing copy + per-permission justifications + checklist.
 - `docs/privacy-practices-copy.md` — paste-ready justification blocks for the dashboard.
@@ -71,13 +72,16 @@ The item is already live. To ship the local v1.0.8:
 
 ## Known gaps / next steps (none blocking)
 
-- **No persistence** — reload loses work (only a `beforeunload` warning). Planned-but-deferred:
-  IndexedDB autosave + a "Restore previous work?" banner.
-- **Accessibility** — modals now trap focus + close on Esc (`components/Modal.tsx`), the empty-state
-  mascot is a real button, and toasts announce via `aria-live`. Still worth a fuller screen-reader
-  pass on the thumbnail grid (drag-reorder isn't announced) before a big a11y claim.
-- **Scale/perf** — untested on very large PDFs; source docs stay in memory; image export is
-  sequential downloads (a zip option would be nicer).
+- **Persistence — DONE.** IndexedDB autosave + "Restore previous work?" banner (`lib/persist.ts`,
+  `hooks/useAutosave.ts`, store `restore`). Still single-session/local only — no cross-device sync
+  or named projects.
+- **Accessibility — improved.** Modals trap focus + close on Esc, the empty-state mascot is a real
+  button, toasts announce via `aria-live`, and drag-reorder now has a keyboard path (dnd-kit
+  KeyboardSensor) with live-region announcements. Next: a fuller screen-reader pass on selection
+  and the dialogs.
+- **Scale/perf** — source docs still stay in memory; image export can now bundle to one `.zip`
+  (`opts.zip`) instead of N downloads. Still worth profiling a 500-page / 100 MB PDF (render is
+  lazy via IntersectionObserver, but parse + bytes are held in full).
 - **Context menu discoverability** — scoped to `.pdf` links/pages by design; could broaden if desired.
 - **Bundle trim** — fonts ship both `.woff` and `.woff2` + `latin-ext`; dropping the legacy/
   unused ones saves ~480 KB (only matters for store size).

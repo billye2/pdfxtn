@@ -7,7 +7,8 @@ Nothing is uploaded; all parsing and writing happens locally.
 
 ## Features
 
-- **Reorder** pages — drag a whole card anywhere to move it
+- **Reorder** pages — drag a whole card anywhere to move it, or keyboard-reorder
+  (focus a card, Space to pick up, arrow keys to move, Space to drop)
 - **Delete / extract** — remove pages, or "Keep these" to extract only the selected ones
 - **Rotate** pages (per page or across a selection)
 - **Merge** — add multiple PDFs and they append into one document
@@ -16,7 +17,8 @@ Nothing is uploaded; all parsing and writing happens locally.
 - **Split** — mark boundaries by hand, or **Split every N pages**; export one file per part
 - **Crop** — draw one region and apply it to all or just the selected pages
 - **Images → PDF** — drop JPG/PNG files in and they become pages
-- **PDF → Images** — export pages as PNG/JPG at 1×–3× (all / selected / custom range)
+- **PDF → Images** — export pages as PNG/JPG at 1×–3× (all / selected / custom range),
+  optionally bundled into a single `.zip`
 - **Export by position** — save an arbitrary page range (`1-3, 5, 8-10`)
 - **Page preview** — double-click a page (or the magnifier / Space) for a large view with
   arrow-key paging and inline rotate / crop / delete; the view fills the width and you
@@ -26,6 +28,8 @@ Nothing is uploaded; all parsing and writing happens locally.
 - **Page labels stay original** — a page keeps its source page number after reordering
 - **Four themes** — switchable "Looks" (Blocks, Bubble, Sticker, Sunny)
 - **Undo / redo** (Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z), select-all, Esc to clear
+- **Autosave & restore** — your session is saved locally (IndexedDB) as you work, so an
+  accidental reload offers a one-click "Restore your previous work?"
 - **Save progress** indicator, and a warning before you reload away unsaved work
 - Load from a **local file** (picker or drag-drop), the **PDF open in the current tab**, or
   a **right-click** on any PDF link → "Open link in PDF Mana"
@@ -87,9 +91,11 @@ pure transform over that list, which keeps edits non-destructive and undoable.
 
 - **Unit** (`npm test`) — pure logic: `pageModel` transforms, `pageRange` parsing, and the
   `pdfExport` pipeline (page count/order, rotation, crop box, merge, and a resource
-  de-duplication regression test). The editor hooks (`useToast`, `useDialogs`, `useExport`)
-  are tested via `@testing-library/react`'s `renderHook` — those files opt into a jsdom
-  environment with a `// @vitest-environment jsdom` docblock; everything else runs in Node.
+  de-duplication regression test). The editor hooks (`useToast`, `useDialogs`, `useExport`,
+  `usePeek`) are tested via `@testing-library/react`'s `renderHook` — those files opt into a
+  jsdom environment with a `// @vitest-environment jsdom` docblock; everything else runs in
+  Node. Persistence and keyboard reordering, which need IndexedDB and a real browser, are
+  exercised by headless-extension smoke checks rather than unit tests.
 - **E2E** (`npm run e2e`) — loads the built extension in headless Chromium and exercises
   load/render, delete, rotate, extract, Mix, split-every-N, range export, images↔PDF,
   the lightbox, and theme switching. (Drag-reorder is covered by unit tests and manual
@@ -109,21 +115,24 @@ src/
     components/        Header, Toolbar, ThumbnailGrid, PageThumb, PagePeek, Lightbox,
                        CropDialog, RangeDialog, ImagesDialog, MixDialog, SplitEveryDialog,
                        SelectionDock, EmptyState, LoadingState, Toast, DragOverlay
+    hooks/             useToast, useDialogs, useExport, useAutosave, usePeek
     lib/
       pageModel.ts     PageDescriptor type + pure operations
       ingest.ts        load PDFs / images from file, URL, or tab
       pdfRender.ts     pdf.js thumbnails + full-res bitmap (for image export)
       pdfExport.ts     pdf-lib export (single + split)
-      pdfImages.ts     PDF → image rasterization & download
+      pdfImages.ts     PDF → images (download each or as one .zip via fflate)
+      persist.ts       IndexedDB autosave / restore of the working session
       pageRange.ts     "1-3, 5" range parsing
 e2e/                   Playwright tests
 ```
 
 ## Limitations
 
-No content/text editing, OCR, form filling, annotations, or persistence across reload
-(beyond an unsaved-work warning). The original file is never overwritten — output is
-always a fresh download. Encrypted PDFs may fail to load.
+No content/text editing, OCR, form filling, or annotations. Work is autosaved locally and
+offered back on reload, but there's no cross-device sync or named projects. The original
+file is never overwritten — output is always a fresh download. Encrypted PDFs may fail to
+load.
 
 ## License
 
