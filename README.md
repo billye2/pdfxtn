@@ -128,12 +128,18 @@ src/
 e2e/                   Playwright tests
 ```
 
+## Scope
+
+Mana is a page-level tool — merge, arrange, nip, adjust. **Text/content editing is a
+deliberate non-goal and will never be added**: it's a different mental model, well covered
+by Acrobat and others, and would dilute the focus. The same applies to OCR, form filling,
+and annotations.
+
 ## Limitations
 
-No content/text editing, OCR, form filling, or annotations. Work is autosaved locally and
-offered back on reload, but there's no cross-device sync or named projects. The original
-file is never overwritten — output is always a fresh download. Encrypted PDFs may fail to
-load.
+Work is autosaved locally and offered back on reload, but there's no cross-device sync or
+named projects. The original file is never overwritten — output is always a fresh download.
+Encrypted PDFs may fail to load.
 
 ## License
 
