@@ -4,6 +4,13 @@ All notable changes to PDF Mana are documented here. This project follows
 [Keep a Changelog](https://keepachangelog.com/) conventions and
 [Semantic Versioning](https://semver.org/).
 
+## [1.0.13] — 2026-06-24
+
+### Docs
+
+- Documented text/content editing (and OCR, forms, annotations) as a permanent
+  non-goal in a new README "Scope" section.
+
 ## [1.0.12] — 2026-06-24
 
 ### Changed
@@ -115,6 +122,7 @@ Adjust).
 - Warn-before-unload when work is in progress; Save progress UI.
 - Full-feature Playwright e2e suite.
 
+[1.0.13]: https://github.com/billye2/pdfxtn/releases/tag/v1.0.13
 [1.0.12]: https://github.com/billye2/pdfxtn/releases/tag/v1.0.12
 [1.0.11]: https://github.com/billye2/pdfxtn/releases/tag/v1.0.11
 [1.0.10]: https://github.com/billye2/pdfxtn/releases/tag/v1.0.10
