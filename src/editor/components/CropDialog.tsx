@@ -18,7 +18,10 @@ interface PxRect {
   h: number;
 }
 
-const PREVIEW_W = 240; // px; height follows the 0.78 page aspect
+// The preview fills the available viewport (capped) while keeping the page
+// aspect ratio, so portrait and landscape pages both get a generous canvas.
+const PREVIEW_MAX_W = 620; // px
+const PREVIEW_VIEWPORT_H = 0.72; // fraction of window height the stage may use
 
 // Crop is defined over the unrotated page (rotation 0) to match pdfExport.
 export default function CropDialog({
@@ -35,12 +38,21 @@ export default function CropDialog({
 
   useEffect(() => {
     let cancelled = false;
-    renderThumbnail(doc, page.pageIndex, { rotation: 0, maxEdge: 480 }).then((canvas) => {
+    renderThumbnail(doc, page.pageIndex, { rotation: 0, maxEdge: 1000 }).then((canvas) => {
       if (cancelled || !stageRef.current) return;
-      const h = (canvas.height / canvas.width) * PREVIEW_W;
+      const aspect = canvas.height / canvas.width;
+      // Fit the page within both a width cap and a share of the viewport height.
+      const maxW = Math.min(PREVIEW_MAX_W, window.innerWidth * 0.9);
+      const maxH = window.innerHeight * PREVIEW_VIEWPORT_H;
+      let w = maxW;
+      let h = w * aspect;
+      if (h > maxH) {
+        h = maxH;
+        w = h / aspect;
+      }
       canvas.className = 'crop-canvas';
       stageRef.current.replaceChildren(canvas);
-      setSize({ w: PREVIEW_W, h });
+      setSize({ w, h });
     });
     return () => {
       cancelled = true;

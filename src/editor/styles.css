@@ -950,6 +950,10 @@ button:disabled {
   color: var(--sub);
   margin: 0 0 16px;
 }
+.crop-modal {
+  width: auto;
+  max-width: 94vw;
+}
 .crop-stage {
   position: relative;
   margin: 0 auto;
