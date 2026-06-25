@@ -91,6 +91,30 @@ async function widths(d: Download): Promise<number[]> {
   return out.getPages().map((p) => Math.round(p.getWidth()));
 }
 
+// Crop is applied as the PDF CropBox (not the MediaBox), so getWidth() — which
+// reads the MediaBox — won't reflect it. Read the CropBox of page 0 directly.
+async function cropBox(d: Download): Promise<{ w: number; h: number }> {
+  const out = await PDFDocument.load(readFileSync(await d.path()));
+  const b = out.getPage(0).getCropBox();
+  return { w: Math.round(b.width), h: Math.round(b.height) };
+}
+
+// Generate a real JPEG in the page so embedJpg has valid bytes to ingest.
+async function makeJpeg(page: Page): Promise<number[]> {
+  return page.evaluate(async () => {
+    const c = document.createElement('canvas');
+    c.width = 64;
+    c.height = 48;
+    const ctx = c.getContext('2d')!;
+    ctx.fillStyle = '#c33';
+    ctx.fillRect(0, 0, c.width, c.height);
+    const blob: Blob = await new Promise((res) =>
+      c.toBlob((b) => res(b!), 'image/jpeg', 0.9),
+    );
+    return [...new Uint8Array(await blob.arrayBuffer())];
+  });
+}
+
 // ---- tests ------------------------------------------------------------------
 
 test('load, render thumbnails, original labels, delete, export', async () => {
@@ -470,6 +494,318 @@ test('persistence: a reload offers to restore the session', async () => {
   expect(await widths(await dl)).toEqual([100, 200, 300]);
 
   // Tidy up so the saved session doesn't leak into other runs.
+  await page.evaluate(
+    () =>
+      new Promise<void>((res) => {
+        const r = indexedDB.deleteDatabase('pdf-mana');
+        r.onsuccess = r.onerror = r.onblocked = () => res();
+      }),
+  );
+});
+
+test('crop: drag a box, apply to all, then Clear crop restores full size', async () => {
+  const page = await openEditor();
+  await drop(page, [pdf('c.pdf', await makePdf([[400, 600]]))]);
+  await expect(page.locator('.card')).toHaveCount(1);
+
+  // Open Crop from the toolbar (no selection needed — it uses the first page).
+  await page.locator('.toolbar').getByRole('button', { name: 'Crop' }).click();
+  await expect(page.locator('.crop-canvas')).toBeVisible({ timeout: 15_000 });
+
+  // Drag a box across roughly the middle ~50% of the page.
+  const stage = (await page.locator('.crop-stage').boundingBox())!;
+  await page.mouse.move(stage.x + stage.width * 0.15, stage.y + stage.height * 0.15);
+  await page.mouse.down();
+  await page.mouse.move(stage.x + stage.width * 0.4, stage.y + stage.height * 0.4, {
+    steps: 5,
+  });
+  await page.mouse.move(stage.x + stage.width * 0.6, stage.y + stage.height * 0.6, {
+    steps: 5,
+  });
+  await page.mouse.up();
+  await expect(page.locator('.crop-rect')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Apply to all' }).click();
+  await expect(page.locator('.toolbar').getByText('Clear crop')).toBeVisible();
+
+  // The exported CropBox is meaningfully smaller than the 400×600 MediaBox.
+  let dl = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save PDF' }).click();
+  const cropped = await cropBox(await dl);
+  expect(cropped.w).toBeLessThan(360);
+  expect(cropped.h).toBeLessThan(540);
+
+  // Clear crop puts the full page back.
+  await page.locator('.toolbar').getByRole('button', { name: 'Clear crop' }).click();
+  dl = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save PDF' }).click();
+  expect(await cropBox(await dl)).toEqual({ w: 400, h: 600 });
+});
+
+test('manual Split (toolbar) marks a boundary and exports one file per part', async () => {
+  const page = await openEditor();
+  await drop(page, [
+    pdf(
+      'ms.pdf',
+      await makePdf([
+        [100, 100],
+        [200, 200],
+        [300, 300],
+        [400, 400],
+      ]),
+    ),
+  ]);
+  await expect(page.locator('.card')).toHaveCount(4);
+
+  // Split *after* page 2 → parts [1,2] and [3,4].
+  await page.locator('.card').nth(1).click();
+  await page
+    .locator('.toolbar')
+    .getByRole('button', { name: 'Split', exact: true })
+    .click();
+  await expect(page.locator('.card-split-badge')).toHaveCount(1);
+
+  const downloads: Download[] = [];
+  page.on('download', (d) => downloads.push(d));
+  await page.getByRole('button', { name: 'Save PDF' }).click();
+  await expect.poll(() => downloads.length, { timeout: 10_000 }).toBe(2);
+  expect(
+    (await PDFDocument.load(readFileSync(await downloads[0].path()))).getPageCount(),
+  ).toBe(2);
+  expect(
+    (await PDFDocument.load(readFileSync(await downloads[1].path()))).getPageCount(),
+  ).toBe(2);
+});
+
+test('rotation accumulates: two turns → 180°, four → back to 0°', async () => {
+  const page = await openEditor();
+  await drop(page, [pdf('rot.pdf', await makePdf([[300, 500]]))]);
+  await expect(page.locator('.card')).toHaveCount(1);
+
+  const rotate = page.locator('.toolbar').getByRole('button', { name: 'Rotate' });
+  await page.locator('.card').nth(0).click();
+  await rotate.click();
+  await rotate.click();
+
+  let dl = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save PDF' }).click();
+  expect(
+    (await PDFDocument.load(readFileSync(await (await dl).path())))
+      .getPage(0)
+      .getRotation().angle,
+  ).toBe(180);
+
+  // Two more turns wrap back to 0 rather than 360.
+  await rotate.click();
+  await rotate.click();
+  dl = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save PDF' }).click();
+  expect(
+    (await PDFDocument.load(readFileSync(await (await dl).path())))
+      .getPage(0)
+      .getRotation().angle,
+  ).toBe(0);
+});
+
+test('Add PDF via the file picker appends to the current session', async () => {
+  const page = await openEditor();
+  await drop(page, [
+    pdf(
+      'first.pdf',
+      await makePdf([
+        [150, 1],
+        [160, 1],
+      ]),
+    ),
+  ]);
+  await expect(page.locator('.card')).toHaveCount(2);
+
+  // The toolbar's hidden <input type=file> — the picker path, not drag-drop.
+  const more = await makePdf([
+    [250, 1],
+    [260, 1],
+    [270, 1],
+  ]);
+  await page.locator('.toolbar input[type="file"]').setInputFiles({
+    name: 'second.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.from(more),
+  });
+  await expect(page.locator('.card')).toHaveCount(5);
+
+  const dl = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save PDF' }).click();
+  expect(await widths(await dl)).toEqual([150, 160, 250, 260, 270]);
+});
+
+test('Images → PDF: dropping a JPEG adds a page', async () => {
+  const page = await openEditor();
+  await drop(page, [
+    { name: 'pic.jpg', bytes: await makeJpeg(page), type: 'image/jpeg' },
+  ]);
+  await expect(page.locator('.card')).toHaveCount(1);
+
+  const dl = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save PDF' }).click();
+  expect(
+    (await PDFDocument.load(readFileSync(await (await dl).path()))).getPageCount(),
+  ).toBe(1);
+});
+
+test('PDF → Images: JPG format at 2× exports one .jpg per page', async () => {
+  const page = await openEditor();
+  await drop(page, [
+    pdf(
+      'j.pdf',
+      await makePdf([
+        [200, 200],
+        [200, 200],
+      ]),
+    ),
+  ]);
+  await expect(page.locator('.card')).toHaveCount(2);
+
+  await page.getByRole('button', { name: 'Export images…' }).click();
+  await page.getByRole('button', { name: 'JPG' }).click();
+  await page.getByRole('button', { name: '2×' }).click(); // non-default scale
+  await page.locator('.zip-toggle input').uncheck();
+  const downloads: Download[] = [];
+  page.on('download', (d) => downloads.push(d));
+  await page.getByRole('button', { name: /Export \d+ image/ }).click();
+  await expect.poll(() => downloads.length, { timeout: 10_000 }).toBe(2);
+  expect(downloads[0].suggestedFilename()).toMatch(/\.jpg$/);
+});
+
+test('Mix double-sided preset reverses the second document by default', async () => {
+  const page = await openEditor();
+  await drop(page, [
+    pdf(
+      'fronts.pdf',
+      await makePdf([
+        [100, 100],
+        [101, 101],
+      ]),
+    ),
+    pdf(
+      'backs.pdf',
+      await makePdf([
+        [200, 200],
+        [201, 201],
+      ]),
+    ),
+  ]);
+  await expect(page.locator('.card')).toHaveCount(4);
+
+  await page.locator('.toolbar').getByRole('button', { name: 'Mix' }).click();
+  // The 2nd doc's "Reverse" is checked out of the box — leave it as-is.
+  await expect(page.locator('.mix-row').nth(1).getByRole('checkbox')).toBeChecked();
+  await page.getByRole('button', { name: 'Mix pages' }).click();
+
+  const dl = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save PDF' }).click();
+  // Fronts straight (100,101) interleaved with backs reversed (201,200).
+  expect(await widths(await dl)).toEqual([100, 201, 101, 200]);
+});
+
+test('selection: Shift-click picks a range; Select all picks everything', async () => {
+  const page = await openEditor();
+  await drop(page, [
+    pdf(
+      'sel.pdf',
+      await makePdf([
+        [100, 1],
+        [200, 1],
+        [300, 1],
+        [400, 1],
+      ]),
+    ),
+  ]);
+  await expect(page.locator('.card')).toHaveCount(4);
+
+  await page.locator('.card').nth(0).click();
+  await page
+    .locator('.card')
+    .nth(2)
+    .click({ modifiers: ['Shift'] });
+  await expect(page.locator('.card.selected')).toHaveCount(3);
+
+  await page.locator('.toolbar').getByRole('button', { name: 'Select all' }).click();
+  await expect(page.locator('.card.selected')).toHaveCount(4);
+});
+
+test('undo and redo toolbar buttons step through a delete', async () => {
+  const page = await openEditor();
+  await drop(page, [
+    pdf(
+      'ur.pdf',
+      await makePdf([
+        [100, 1],
+        [200, 1],
+        [300, 1],
+      ]),
+    ),
+  ]);
+  await expect(page.locator('.card')).toHaveCount(3);
+
+  await page.locator('.card').nth(1).click();
+  await page.locator('.toolbar').getByRole('button', { name: 'Delete' }).click();
+  await expect(page.locator('.card')).toHaveCount(2);
+
+  await page.locator('button[title^="Undo"]').click();
+  await expect(page.locator('.card')).toHaveCount(3);
+
+  await page.locator('button[title^="Redo"]').click();
+  await expect(page.locator('.card')).toHaveCount(2);
+});
+
+test('errors: a corrupt PDF shows an error toast', async () => {
+  const page = await openEditor();
+  await drop(page, [pdf('broken.pdf', [1, 2, 3, 4, 5])]);
+  const toast = page.locator('.toast.error');
+  await expect(toast).toBeVisible({ timeout: 15_000 });
+  await expect(toast).toContainText('Could not add');
+
+  // This page ends in the editor with 0 pages, so its debounced autosave fires a
+  // clearSession() on a timer. Close it so that can't wipe a later test's session.
+  await page.close();
+});
+
+test('errors: an unsupported file type is ignored, not loaded', async () => {
+  const page = await openEditor();
+  await drop(page, [{ name: 'note.txt', bytes: [104, 105], type: 'text/plain' }]);
+  // Nothing is ingested — we stay on the empty state with no cards.
+  await expect(page.getByText("Let's fix up your PDF!")).toBeVisible();
+  await expect(page.locator('.card')).toHaveCount(0);
+});
+
+test('persistence: Discard dismisses the offer and clears the session', async () => {
+  const page = await openEditor();
+  await drop(page, [
+    pdf(
+      'discard.pdf',
+      await makePdf([
+        [100, 1],
+        [200, 1],
+      ]),
+    ),
+  ]);
+  await expect(page.locator('.card')).toHaveCount(2);
+
+  await page.waitForTimeout(1200); // let the debounced autosave flush
+  await page.reload();
+
+  const banner = page.locator('.restore-banner');
+  await expect(banner).toBeVisible({ timeout: 5_000 });
+  await banner.getByRole('button', { name: 'Discard' }).click();
+  await expect(banner).toHaveCount(0);
+  await expect(page.getByText("Let's fix up your PDF!")).toBeVisible();
+
+  // Discard cleared the saved session, so a fresh reload offers nothing.
+  await page.reload();
+  await expect(page.getByText("Let's fix up your PDF!")).toBeVisible();
+  await expect(page.locator('.restore-banner')).toHaveCount(0);
+
+  // Belt-and-suspenders cleanup in case the assertion above ever regresses.
   await page.evaluate(
     () =>
       new Promise<void>((res) => {
