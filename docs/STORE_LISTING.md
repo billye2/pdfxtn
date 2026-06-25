@@ -50,7 +50,7 @@ Everything you need to paste into the Developer Dashboard for PDF Mana.
 > 🖼️ **Images → PDF** — drop JPG or PNG files straight in and they become pages.
 >
 > 📸 **PDF → Images** — export pages as PNG or JPG at up to 3× resolution (all pages, your
-> selection, or a custom range).
+> selection, or a custom range), and optionally bundle them all into a single .zip.
 >
 > 🔢 **Export any range** — save just the pages you want (e.g. 1-3, 5, 8-10).
 >
@@ -59,8 +59,14 @@ Everything you need to paste into the Developer Dashboard for PDF Mana.
 > and rotate, crop, or delete right there. On a touch screen, press and hold a page for a
 > quick peek — handy for confirming the right one before you reorder on a small display.
 >
-> 🎨 **Make it yours** — four playful themes, undo/redo, handy keyboard shortcuts, and a
-> heads-up before you accidentally lose unsaved work.
+> 💾 **Never lose your work** — your session is autosaved on your device as you go and
+> offered back the next time you open PDF Mana, plus a heads-up before you accidentally
+> close with unsaved changes.
+>
+> ⌨️ **Accessible** — reorder and edit pages entirely from the keyboard, with screen-reader
+> announcements as you go.
+>
+> 🎨 **Make it yours** — four playful themes, undo/redo, and handy keyboard shortcuts.
 >
 > **Private by design**
 >
