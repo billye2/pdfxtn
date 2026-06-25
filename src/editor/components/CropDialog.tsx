@@ -38,22 +38,24 @@ export default function CropDialog({
 
   useEffect(() => {
     let cancelled = false;
-    renderThumbnail(doc, page.pageIndex, { rotation: 0, maxEdge: 1000 }).then((canvas) => {
-      if (cancelled || !stageRef.current) return;
-      const aspect = canvas.height / canvas.width;
-      // Fit the page within both a width cap and a share of the viewport height.
-      const maxW = Math.min(PREVIEW_MAX_W, window.innerWidth * 0.9);
-      const maxH = window.innerHeight * PREVIEW_VIEWPORT_H;
-      let w = maxW;
-      let h = w * aspect;
-      if (h > maxH) {
-        h = maxH;
-        w = h / aspect;
-      }
-      canvas.className = 'crop-canvas';
-      stageRef.current.replaceChildren(canvas);
-      setSize({ w, h });
-    });
+    renderThumbnail(doc, page.pageIndex, { rotation: 0, maxEdge: 1000 }).then(
+      (canvas) => {
+        if (cancelled || !stageRef.current) return;
+        const aspect = canvas.height / canvas.width;
+        // Fit the page within both a width cap and a share of the viewport height.
+        const maxW = Math.min(PREVIEW_MAX_W, window.innerWidth * 0.9);
+        const maxH = window.innerHeight * PREVIEW_VIEWPORT_H;
+        let w = maxW;
+        let h = w * aspect;
+        if (h > maxH) {
+          h = maxH;
+          w = h / aspect;
+        }
+        canvas.className = 'crop-canvas';
+        stageRef.current.replaceChildren(canvas);
+        setSize({ w, h });
+      },
+    );
     return () => {
       cancelled = true;
     };

@@ -10,8 +10,20 @@ function rootRef() {
 }
 
 // Minimal pointer-event stand-ins (usePeek only reads these four fields).
-const touch = (over = {}) => ({ pointerType: 'touch', clientX: 0, clientY: 0, buttons: 1, ...over });
-const mouse = (over = {}) => ({ pointerType: 'mouse', clientX: 0, clientY: 0, buttons: 1, ...over });
+const touch = (over = {}) => ({
+  pointerType: 'touch',
+  clientX: 0,
+  clientY: 0,
+  buttons: 1,
+  ...over,
+});
+const mouse = (over = {}) => ({
+  pointerType: 'mouse',
+  clientX: 0,
+  clientY: 0,
+  buttons: 1,
+  ...over,
+});
 
 describe('usePeek', () => {
   beforeEach(() => vi.useFakeTimers());

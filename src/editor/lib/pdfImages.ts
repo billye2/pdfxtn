@@ -93,7 +93,10 @@ export async function exportPagesAsImages(
     for (const f of files) {
       entries[f.name] = [new Uint8Array(await f.blob.arrayBuffer()), { level: 0 }];
     }
-    download(new Blob([zipSync(entries)], { type: 'application/zip' }), `${base}-images.zip`);
+    download(
+      new Blob([zipSync(entries)], { type: 'application/zip' }),
+      `${base}-images.zip`,
+    );
   } else {
     for (const f of files) download(f.blob, f.name);
   }
