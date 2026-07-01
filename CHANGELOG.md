@@ -4,6 +4,16 @@ All notable changes to PDF Mana are documented here. This project follows
 [Keep a Changelog](https://keepachangelog.com/) conventions and
 [Semantic Versioning](https://semver.org/).
 
+## [1.0.14] — 2026-07-01
+
+### Added
+
+- New **"Nighty Night"** dark theme (a fifth selectable Look). Rendered PDF pages
+  are inverted so white pages don't glare on the dark UI, and the empty-state
+  mascot adapts to the theme surface.
+- The crop box can now be resized by dragging any of its four corner handles —
+  the opposite corner stays anchored — instead of redrawing from scratch.
+
 ## [1.0.13] — 2026-06-24
 
 ### Docs
