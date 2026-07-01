@@ -985,27 +985,32 @@ button:disabled {
 }
 .crop-handle {
   position: absolute;
-  width: 10px;
-  height: 10px;
+  width: 14px;
+  height: 14px;
   background: #fff;
   border: 2px solid var(--c-sel);
   border-radius: 3px;
+  touch-action: none;
 }
 .crop-handle.tl {
-  top: -6px;
-  left: -6px;
+  top: -8px;
+  left: -8px;
+  cursor: nwse-resize;
 }
 .crop-handle.tr {
-  top: -6px;
-  right: -6px;
+  top: -8px;
+  right: -8px;
+  cursor: nesw-resize;
 }
 .crop-handle.bl {
-  bottom: -6px;
-  left: -6px;
+  bottom: -8px;
+  left: -8px;
+  cursor: nesw-resize;
 }
 .crop-handle.br {
-  bottom: -6px;
-  right: -6px;
+  bottom: -8px;
+  right: -8px;
+  cursor: nwse-resize;
 }
 .modal-footer {
   display: flex;

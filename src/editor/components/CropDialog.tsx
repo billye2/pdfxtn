@@ -34,7 +34,7 @@ export default function CropDialog({
   const stageRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const [rect, setRect] = useState<PxRect | null>(null);
-  const drag = useRef<{ x: number; y: number } | null>(null);
+  const drag = useRef<{ ax: number; ay: number; mode: 'draw' | 'resize' } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -72,25 +72,44 @@ export default function CropDialog({
   function down(e: React.PointerEvent) {
     stageRef.current?.setPointerCapture(e.pointerId);
     const p = rel(e);
-    drag.current = p;
+    drag.current = { ax: p.x, ay: p.y, mode: 'draw' };
     setRect({ x: p.x, y: p.y, w: 0, h: 0 });
+  }
+
+  // Grabbing a corner resizes the box: pin the opposite corner as the anchor and
+  // reuse the same draw math. Dragging past the opposite edge flips naturally.
+  function startResize(e: React.PointerEvent<HTMLSpanElement>) {
+    if (!rect) return;
+    e.stopPropagation();
+    stageRef.current?.setPointerCapture(e.pointerId);
+    const corner = e.currentTarget.dataset.corner as 'tl' | 'tr' | 'bl' | 'br';
+    const right = rect.x + rect.w;
+    const bottom = rect.y + rect.h;
+    const anchor = {
+      tl: { ax: right, ay: bottom },
+      tr: { ax: rect.x, ay: bottom },
+      bl: { ax: right, ay: rect.y },
+      br: { ax: rect.x, ay: rect.y },
+    }[corner];
+    drag.current = { ...anchor, mode: 'resize' };
   }
 
   function move(e: React.PointerEvent) {
     if (!drag.current) return;
     const p = rel(e);
-    const s = drag.current;
+    const { ax, ay } = drag.current;
     setRect({
-      x: Math.min(s.x, p.x),
-      y: Math.min(s.y, p.y),
-      w: Math.abs(p.x - s.x),
-      h: Math.abs(p.y - s.y),
+      x: Math.min(ax, p.x),
+      y: Math.min(ay, p.y),
+      w: Math.abs(p.x - ax),
+      h: Math.abs(p.y - ay),
     });
   }
 
   function up() {
-    // If the user barely dragged, reset to a sensible default centered region.
-    if (rect && size && (rect.w < 4 || rect.h < 4)) {
+    // If the user barely dragged a *new* box, reset to a sensible default centered
+    // region. A resize that collapses the box is left as-is (no snap-to-default).
+    if (drag.current?.mode === 'draw' && rect && size && (rect.w < 4 || rect.h < 4)) {
       setRect({ x: size.w * 0.15, y: size.h * 0.15, w: size.w * 0.7, h: size.h * 0.7 });
     }
     drag.current = null;
@@ -130,10 +149,10 @@ export default function CropDialog({
             className="crop-rect"
             style={{ left: rect.x, top: rect.y, width: rect.w, height: rect.h }}
           >
-            <span className="crop-handle tl" />
-            <span className="crop-handle tr" />
-            <span className="crop-handle bl" />
-            <span className="crop-handle br" />
+            <span className="crop-handle tl" data-corner="tl" onPointerDown={startResize} />
+            <span className="crop-handle tr" data-corner="tr" onPointerDown={startResize} />
+            <span className="crop-handle bl" data-corner="bl" onPointerDown={startResize} />
+            <span className="crop-handle br" data-corner="br" onPointerDown={startResize} />
           </div>
         )}
       </div>

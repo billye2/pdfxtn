@@ -542,6 +542,50 @@ test('crop: drag a box, apply to all, then Clear crop restores full size', async
   expect(await cropBox(await dl)).toEqual({ w: 400, h: 600 });
 });
 
+test('crop: dragging a corner handle resizes the box with the opposite corner pinned', async () => {
+  const page = await openEditor();
+  await drop(page, [pdf('cr.pdf', await makePdf([[400, 600]]))]);
+  await expect(page.locator('.card')).toHaveCount(1);
+
+  await page.locator('.toolbar').getByRole('button', { name: 'Crop' }).click();
+  await expect(page.locator('.crop-canvas')).toBeVisible({ timeout: 15_000 });
+
+  // Draw an initial box across the middle of the page.
+  const stage = (await page.locator('.crop-stage').boundingBox())!;
+  await page.mouse.move(stage.x + stage.width * 0.25, stage.y + stage.height * 0.25);
+  await page.mouse.down();
+  await page.mouse.move(stage.x + stage.width * 0.55, stage.y + stage.height * 0.55, {
+    steps: 5,
+  });
+  await page.mouse.up();
+  const before = (await page.locator('.crop-rect').boundingBox())!;
+
+  // Grab the bottom-right handle and drag it further out; the top-left stays pinned.
+  const br = (await page.locator('.crop-handle.br').boundingBox())!;
+  await page.mouse.move(br.x + br.width / 2, br.y + br.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(stage.x + stage.width * 0.8, stage.y + stage.height * 0.8, {
+    steps: 5,
+  });
+  await page.mouse.up();
+  const after = (await page.locator('.crop-rect').boundingBox())!;
+
+  // Opposite (top-left) corner is anchored (a restart would shift it tens of px);
+  // the box grew rather than starting over.
+  expect(Math.abs(after.x - before.x)).toBeLessThan(8);
+  expect(Math.abs(after.y - before.y)).toBeLessThan(8);
+  expect(after.width).toBeGreaterThan(before.width + 10);
+  expect(after.height).toBeGreaterThan(before.height + 10);
+
+  // The resized box exports a crop smaller than the full 400×600 page.
+  await page.getByRole('button', { name: 'Apply to all' }).click();
+  const dl = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save PDF' }).click();
+  const cropped = await cropBox(await dl);
+  expect(cropped.w).toBeLessThan(400);
+  expect(cropped.h).toBeLessThan(600);
+});
+
 test('manual Split (toolbar) marks a boundary and exports one file per part', async () => {
   const page = await openEditor();
   await drop(page, [
