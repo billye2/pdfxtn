@@ -1,13 +1,16 @@
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
 import Header from './components/Header';
 import Toolbar from './components/Toolbar';
 import ThumbnailGrid from './components/ThumbnailGrid';
-import CropDialog from './components/CropDialog';
-import RangeDialog from './components/RangeDialog';
-import MixDialog, { type MixGroup } from './components/MixDialog';
-import SplitEveryDialog from './components/SplitEveryDialog';
-import ImagesDialog from './components/ImagesDialog';
-import Lightbox from './components/Lightbox';
+import type { MixGroup } from './components/MixDialog';
 import EmptyState from './components/EmptyState';
 import LoadingState from './components/LoadingState';
 import SelectionDock from './components/SelectionDock';
@@ -30,6 +33,16 @@ import { useToast } from './hooks/useToast';
 import { useDialogs } from './hooks/useDialogs';
 import { useExport } from './hooks/useExport';
 import { useAutosave } from './hooks/useAutosave';
+
+// Modals and the lightbox are only ever shown on demand, so they load in their
+// own chunks — this keeps the initial editor bundle lean (see the Suspense wrap
+// around their render below).
+const CropDialog = lazy(() => import('./components/CropDialog'));
+const RangeDialog = lazy(() => import('./components/RangeDialog'));
+const MixDialog = lazy(() => import('./components/MixDialog'));
+const SplitEveryDialog = lazy(() => import('./components/SplitEveryDialog'));
+const ImagesDialog = lazy(() => import('./components/ImagesDialog'));
+const Lightbox = lazy(() => import('./components/Lightbox'));
 
 // Rotating single-line tips shown by the header "?" button — one per click.
 const HELP_TIPS = [
@@ -492,96 +505,106 @@ export default function App() {
         />
       )}
 
-      {dialogs.isOpen('crop') && cropRefPage && cropRefDoc && (
-        <CropDialog
-          page={cropRefPage}
-          doc={cropRefDoc}
-          selectedCount={selected.size}
-          onApply={(crop, scope) => {
-            dispatch({ type: 'applyCrop', crop, scope });
-            dialogs.closeDialog();
-            showToast('Cropped your pages');
-          }}
-          onCancel={dialogs.closeDialog}
-        />
-      )}
+      <Suspense fallback={null}>
+        {dialogs.isOpen('crop') && cropRefPage && cropRefDoc && (
+          <CropDialog
+            page={cropRefPage}
+            doc={cropRefDoc}
+            selectedCount={selected.size}
+            onApply={(crop, scope) => {
+              dispatch({ type: 'applyCrop', crop, scope });
+              dialogs.closeDialog();
+              showToast('Cropped your pages');
+            }}
+            onCancel={dialogs.closeDialog}
+          />
+        )}
 
-      {dialogs.isOpen('range') && (
-        <RangeDialog
-          total={pages.length}
-          onExport={(indices) => {
-            dialogs.closeDialog();
-            exportRange(indices);
-          }}
-          onCancel={dialogs.closeDialog}
-        />
-      )}
+        {dialogs.isOpen('range') && (
+          <RangeDialog
+            total={pages.length}
+            onExport={(indices) => {
+              dialogs.closeDialog();
+              exportRange(indices);
+            }}
+            onCancel={dialogs.closeDialog}
+          />
+        )}
 
-      {dialogs.isOpen('mix') && (
-        <MixDialog
-          groups={pageGroups()}
-          onMix={(mixed) => {
-            dispatch({ type: 'setPages', pages: mixed });
-            dialogs.closeDialog();
-            showToast('Mixed the pages');
-          }}
-          onCancel={dialogs.closeDialog}
-        />
-      )}
+        {dialogs.isOpen('mix') && (
+          <MixDialog
+            groups={pageGroups()}
+            onMix={(mixed) => {
+              dispatch({ type: 'setPages', pages: mixed });
+              dialogs.closeDialog();
+              showToast('Mixed the pages');
+            }}
+            onCancel={dialogs.closeDialog}
+          />
+        )}
 
-      {dialogs.isOpen('images') && (
-        <ImagesDialog
-          total={pages.length}
-          selectedIndices={pages
-            .map((p, i) => (selected.has(p.id) ? i : -1))
-            .filter((i) => i >= 0)}
-          onExport={(opts) => {
-            dialogs.closeDialog();
-            exportImages(opts);
-          }}
-          onCancel={dialogs.closeDialog}
-        />
-      )}
+        {dialogs.isOpen('images') && (
+          <ImagesDialog
+            total={pages.length}
+            selectedIndices={pages
+              .map((p, i) => (selected.has(p.id) ? i : -1))
+              .filter((i) => i >= 0)}
+            onExport={(opts) => {
+              dialogs.closeDialog();
+              exportImages(opts);
+            }}
+            onCancel={dialogs.closeDialog}
+          />
+        )}
 
-      {dialogs.isOpen('splitEvery') && (
-        <SplitEveryDialog
-          total={pages.length}
-          onApply={(n) => {
-            dispatch({ type: 'splitEveryN', n });
-            dialogs.closeDialog();
-            showToast(
-              `Split every ${n} page${n === 1 ? '' : 's'} — click Save PDF to export`,
-            );
-          }}
-          onCancel={dialogs.closeDialog}
-        />
-      )}
+        {dialogs.isOpen('splitEvery') && (
+          <SplitEveryDialog
+            total={pages.length}
+            onApply={(n) => {
+              dispatch({ type: 'splitEveryN', n });
+              dialogs.closeDialog();
+              showToast(
+                `Split every ${n} page${n === 1 ? '' : 's'} — click Save PDF to export`,
+              );
+            }}
+            onCancel={dialogs.closeDialog}
+          />
+        )}
 
-      {previewPos !== null && (
-        <Lightbox
-          page={pages[previewPos]}
-          index={previewPos}
-          total={pages.length}
-          doc={docs.get(pages[previewPos].docId)}
-          onPrev={() => setPreviewIndex((i) => (i === null ? i : Math.max(i - 1, 0)))}
-          onNext={() =>
-            setPreviewIndex((i) => (i === null ? i : Math.min(i + 1, pages.length - 1)))
-          }
-          onRotate={(delta) =>
-            dispatch({ type: 'rotateOne', id: pages[previewPos].id, delta })
-          }
-          onDelete={() => {
-            dispatch({ type: 'toggleSelect', id: pages[previewPos].id, additive: false });
-            dispatch({ type: 'deleteSelected' });
-          }}
-          onCrop={() => {
-            dispatch({ type: 'toggleSelect', id: pages[previewPos].id, additive: false });
-            setPreviewIndex(null);
-            dialogs.openDialog('crop');
-          }}
-          onClose={() => setPreviewIndex(null)}
-        />
-      )}
+        {previewPos !== null && (
+          <Lightbox
+            page={pages[previewPos]}
+            index={previewPos}
+            total={pages.length}
+            doc={docs.get(pages[previewPos].docId)}
+            onPrev={() => setPreviewIndex((i) => (i === null ? i : Math.max(i - 1, 0)))}
+            onNext={() =>
+              setPreviewIndex((i) => (i === null ? i : Math.min(i + 1, pages.length - 1)))
+            }
+            onRotate={(delta) =>
+              dispatch({ type: 'rotateOne', id: pages[previewPos].id, delta })
+            }
+            onDelete={() => {
+              dispatch({
+                type: 'toggleSelect',
+                id: pages[previewPos].id,
+                additive: false,
+              });
+              dispatch({ type: 'deleteSelected' });
+            }}
+            onCrop={() => {
+              dispatch({
+                type: 'toggleSelect',
+                id: pages[previewPos].id,
+                additive: false,
+              });
+              setPreviewIndex(null);
+              dialogs.openDialog('crop');
+            }}
+            onClose={() => setPreviewIndex(null)}
+          />
+        )}
+      </Suspense>
 
       {dragActive && <DragOverlay />}
       {toast && <Toast message={toast.message} tone={toast.tone} />}

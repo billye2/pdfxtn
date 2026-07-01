@@ -149,10 +149,26 @@ export default function CropDialog({
             className="crop-rect"
             style={{ left: rect.x, top: rect.y, width: rect.w, height: rect.h }}
           >
-            <span className="crop-handle tl" data-corner="tl" onPointerDown={startResize} />
-            <span className="crop-handle tr" data-corner="tr" onPointerDown={startResize} />
-            <span className="crop-handle bl" data-corner="bl" onPointerDown={startResize} />
-            <span className="crop-handle br" data-corner="br" onPointerDown={startResize} />
+            <span
+              className="crop-handle tl"
+              data-corner="tl"
+              onPointerDown={startResize}
+            />
+            <span
+              className="crop-handle tr"
+              data-corner="tr"
+              onPointerDown={startResize}
+            />
+            <span
+              className="crop-handle bl"
+              data-corner="bl"
+              onPointerDown={startResize}
+            />
+            <span
+              className="crop-handle br"
+              data-corner="br"
+              onPointerDown={startResize}
+            />
           </div>
         )}
       </div>
