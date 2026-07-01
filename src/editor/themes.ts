@@ -2,7 +2,7 @@
 // app root as inline style vars. Keys mirror the design handoff tokens.
 import type { CSSProperties } from 'react';
 
-export type LookId = 'blocks' | 'bubble' | 'sticker' | 'sunny';
+export type LookId = 'blocks' | 'bubble' | 'sticker' | 'sunny' | 'midnight';
 
 export interface Look {
   id: LookId;
@@ -168,9 +168,48 @@ export const LOOKS: Record<LookId, Look> = {
       'grid-gap': '22px',
     },
   },
+  midnight: {
+    id: 'midnight',
+    name: 'Nighty Night',
+    vars: {
+      bg: '#161326',
+      bgImage: 'radial-gradient(rgba(255,255,255,0.05) 1.6px, transparent 1.6px)',
+      bgSize: '22px 22px',
+      ink: '#f2eeff',
+      sub: '#9b93b8',
+      barBg: '#1c1830',
+      card: '#221d38',
+      cardOutline: '2px solid #322a4f',
+      cardOutlineCol: '#322a4f',
+      cardShadow: '0 4px 0 rgba(0,0,0,0.35)',
+      radCard: '18px',
+      thumbBg: '#2a2444',
+      page: '#f4f1fb',
+      accentSoft: '#33294f',
+      'c-add': '#5ab0ff',
+      'c-go': '#4ad787',
+      'c-rotate': '#ffd24d',
+      'c-crop': '#b78bff',
+      'c-split': '#ff9d5c',
+      'c-del': '#ff6d68',
+      'c-sel': '#5ab0ff',
+      onColor: '#161326',
+      rotateText: '#3a2c00',
+      btnRad: '13px',
+      btnShadow: '0 4px 0 rgba(0,0,0,0.45)',
+      btnShadowActive: '0 1px 0 rgba(0,0,0,0.45)',
+      btnBorder: 'none',
+      press: '3px',
+      brand: '#ff6d68',
+      coin: '#ffd24d',
+      star: '#ff9d5c',
+      'grid-min': '180px',
+      'grid-gap': '22px',
+    },
+  },
 };
 
-export const LOOK_ORDER: LookId[] = ['blocks', 'bubble', 'sticker', 'sunny'];
+export const LOOK_ORDER: LookId[] = ['blocks', 'bubble', 'sticker', 'sunny', 'midnight'];
 
 /** Convert a Look's tokens into a React inline-style object of CSS vars. */
 export function lookStyle(look: LookId): CSSProperties {
