@@ -1,48 +1,25 @@
-import {
-  lazy,
-  Suspense,
-  useCallback,
-  useEffect,
-  useReducer,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import Header from './components/Header';
 import Toolbar from './components/Toolbar';
 import ThumbnailGrid from './components/ThumbnailGrid';
-import type { MixGroup } from './components/MixDialog';
 import EmptyState from './components/EmptyState';
 import LoadingState from './components/LoadingState';
 import SelectionDock from './components/SelectionDock';
 import DragOverlay from './components/DragOverlay';
 import Toast from './components/Toast';
+import Banners from './components/Banners';
+import EditorDialogs from './components/EditorDialogs';
 import { initialHistory, reducer, type AppState } from './store';
-import {
-  consumePendingSource,
-  ensureHostPermission,
-  ingestFile,
-  ingestImages,
-  ingestUrl,
-  isImageFile,
-  type IngestResult,
-} from './lib/ingest';
-import { loadDoc, type LoadedDoc } from './lib/pdfRender';
-import { clearSession, loadSession, type RestoredSession } from './lib/persist';
+import type { LoadedDoc } from './lib/pdfRender';
 import { lookStyle, loadSavedLook, saveLook, type LookId } from './themes';
 import { useToast } from './hooks/useToast';
 import { useDialogs } from './hooks/useDialogs';
 import { useExport } from './hooks/useExport';
 import { useAutosave } from './hooks/useAutosave';
-
-// Modals and the lightbox are only ever shown on demand, so they load in their
-// own chunks — this keeps the initial editor bundle lean (see the Suspense wrap
-// around their render below).
-const CropDialog = lazy(() => import('./components/CropDialog'));
-const RangeDialog = lazy(() => import('./components/RangeDialog'));
-const MixDialog = lazy(() => import('./components/MixDialog'));
-const SplitEveryDialog = lazy(() => import('./components/SplitEveryDialog'));
-const ImagesDialog = lazy(() => import('./components/ImagesDialog'));
-const Lightbox = lazy(() => import('./components/Lightbox'));
+import { useSessionRestore } from './hooks/useSessionRestore';
+import { usePendingSource } from './hooks/usePendingSource';
+import { useFileIngest } from './hooks/useFileIngest';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 // Rotating single-line tips shown by the header "?" button — one per click.
 const HELP_TIPS = [
@@ -73,14 +50,12 @@ export default function App() {
   const [look, setLook] = useState<LookId>(loadSavedLook);
   const [lookMenuOpen, setLookMenuOpen] = useState(false);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
-  const [pendingSource, setPendingSource] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
-  const [restorable, setRestorable] = useState<RestoredSession | null>(null);
-  const [liveMsg, setLiveMsg] = useState(''); // screen-reader announcements
   const tipIndex = useRef(0);
 
   const { pages, selected, splitMarks } = history.present;
   const hasCrop = pages.some((p) => p.crop);
+  const canMix = new Set(pages.map((p) => p.docId)).size >= 2;
 
   const { toast, showToast } = useToast();
   const dialogs = useDialogs();
@@ -97,220 +72,32 @@ export default function App() {
   // without a document loaded (the autosave above only runs in the editor).
   useEffect(() => saveLook(look), [look]);
 
-  // Group the current pages by their source document, preserving first-seen
-  // order — the unit Mix interleaves over.
-  function pageGroups(): MixGroup[] {
-    const order: string[] = [];
-    const byDoc = new Map<string, typeof pages>();
-    for (const p of pages) {
-      if (!byDoc.has(p.docId)) {
-        byDoc.set(p.docId, []);
-        order.push(p.docId);
-      }
-      byDoc.get(p.docId)!.push(p);
-    }
-    return order.map((docId) => ({
-      docId,
-      name: docs.get(docId)?.name ?? 'PDF',
-      pages: byDoc.get(docId)!,
-    }));
-  }
-  const canMix = new Set(pages.map((p) => p.docId)).size >= 2;
+  const { restorable, clearRestorable, restoreSession, discardSession } =
+    useSessionRestore({ dispatch, setDocs, setLook, setAppState, showToast });
 
-  const addFiles = useCallback(
-    async (files: FileList | File[]) => {
-      const all = Array.from(files);
-      const images = all.filter(isImageFile);
-      const pdfs = all.filter(
-        (f) => !isImageFile(f) && (!f.type || f.type === 'application/pdf'),
-      );
-      if (images.length === 0 && pdfs.length === 0) return;
+  const { pendingHost, loadPending, dismiss: dismissPending } = usePendingSource({
+    dispatch,
+    setDocs,
+    setAppState,
+    showToast,
+    clearRestorable,
+  });
 
-      setRestorable(null); // starting fresh work supersedes any restore offer
-      setAppState('loading');
-      try {
-        let added = 0;
-        const ingest = (result: IngestResult) => {
-          setDocs((prev) => new Map(prev).set(result.doc.id, result.doc));
-          dispatch({ type: 'addPages', pages: result.pages });
-          added += result.pages.length;
-        };
-        for (const file of pdfs) ingest(await ingestFile(file));
-        if (images.length) ingest(await ingestImages(images));
-        showToast(`Added ${added} page${added === 1 ? '' : 's'}`);
-      } catch (e) {
-        showToast(`Could not add files: ${(e as Error).message}`, 'error');
-      } finally {
-        setAppState('editor');
-      }
-    },
-    [showToast],
-  );
+  const { addFiles, pickFiles } = useFileIngest({
+    dispatch,
+    setDocs,
+    setAppState,
+    showToast,
+    clearRestorable,
+  });
 
-  // On first load, note the active tab's PDF (if handed off) and offer to load
-  // it. We don't fetch automatically: fetching needs host access, which we only
-  // request on an explicit user click (see loadPending).
-  useEffect(() => {
-    let done = false;
-    (async () => {
-      const url = await consumePendingSource();
-      if (url && !done) setPendingSource(url);
-    })();
-    return () => {
-      done = true;
-    };
-  }, []);
-
-  // On first load, look for an autosaved session and offer to restore it.
-  useEffect(() => {
-    let done = false;
-    loadSession()
-      .then((session) => {
-        if (session && !done) setRestorable(session);
-      })
-      .catch(() => {});
-    return () => {
-      done = true;
-    };
-  }, []);
-
-  // Rebuild the saved session: re-parse each stored PDF, then load the pages.
-  async function restoreSession() {
-    const session = restorable;
-    if (!session) return;
-    setRestorable(null);
-    setAppState('loading');
-    try {
-      const map = new Map<string, LoadedDoc>();
-      for (const d of session.docs) map.set(d.id, await loadDoc(d.id, d.name, d.bytes));
-      setDocs(map);
-      dispatch({
-        type: 'restore',
-        pages: session.state.pages,
-        splitMarks: session.state.splitMarks,
-      });
-      setLook(session.state.look as LookId);
-      setAppState('editor');
-      showToast(`Restored ${session.state.pages.length} pages`);
-    } catch (e) {
-      showToast(`Could not restore: ${(e as Error).message}`, 'error');
-      setAppState('empty');
-    }
-  }
-
-  // Dismiss the banner only after the IndexedDB clear commits, so the offer
-  // can't reappear if the tab is reloaded/closed right after discarding.
-  async function discardSession() {
-    try {
-      await clearSession();
-    } finally {
-      setRestorable(null);
-    }
-  }
-
-  // User clicked "Load PDF" in the banner — request that origin's host
-  // permission (within this gesture), then fetch and ingest.
-  async function loadPending() {
-    const url = pendingSource;
-    if (!url) return;
-    setRestorable(null);
-    const granted = await ensureHostPermission(url);
-    setPendingSource(null);
-    if (!granted) {
-      showToast('Permission needed to load that PDF', 'error');
-      return;
-    }
-    setAppState('loading');
-    try {
-      const { doc, pages: newPages } = await ingestUrl(url);
-      setDocs((prev) => new Map(prev).set(doc.id, doc));
-      dispatch({ type: 'addPages', pages: newPages });
-      setAppState('editor');
-      showToast(`Loaded ${newPages.length} page${newPages.length === 1 ? '' : 's'}`);
-    } catch (e) {
-      showToast(`Could not load that PDF: ${(e as Error).message}`, 'error');
-      setAppState('empty');
-    }
-  }
-
-  function hostOf(url: string): string {
-    try {
-      return new URL(url).hostname || 'this tab';
-    } catch {
-      return 'this tab';
-    }
-  }
-
-  // Keyboard shortcuts.
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      const mod = e.metaKey || e.ctrlKey;
-      const tag = (e.target as HTMLElement)?.tagName;
-      const typing = tag === 'INPUT' || tag === 'TEXTAREA';
-
-      // While the preview is open, arrows page and Esc/Space close; nothing
-      // else runs. (Space toggles: it opened the preview, so it also closes it.)
-      if (previewIndex !== null) {
-        if (e.key === 'Escape') setPreviewIndex(null);
-        else if (e.key === ' ') {
-          e.preventDefault();
-          setPreviewIndex(null);
-        } else if (e.key === 'ArrowRight')
-          setPreviewIndex((i) => (i === null ? i : Math.min(i + 1, pages.length - 1)));
-        else if (e.key === 'ArrowLeft')
-          setPreviewIndex((i) => (i === null ? i : Math.max(i - 1, 0)));
-        return;
-      }
-
-      // Space opens the preview for a single selected page.
-      if (e.key === ' ' && !typing && selected.size === 1) {
-        e.preventDefault();
-        const id = [...selected][0];
-        const idx = pages.findIndex((p) => p.id === id);
-        if (idx >= 0) setPreviewIndex(idx);
-        return;
-      }
-
-      // Left/Right nudge the single selected page one position — a modeless
-      // keyboard alternative to dragging.
-      if (
-        (e.key === 'ArrowLeft' || e.key === 'ArrowRight') &&
-        !typing &&
-        selected.size === 1
-      ) {
-        const id = [...selected][0];
-        const from = pages.findIndex((p) => p.id === id);
-        const to = e.key === 'ArrowLeft' ? from - 1 : from + 1;
-        if (from < 0 || to < 0 || to >= pages.length) return; // at an edge
-        e.preventDefault();
-        dispatch({ type: 'reorder', from, to });
-        setLiveMsg(`Moved page to position ${to + 1} of ${pages.length}.`);
-        return;
-      }
-
-      if (mod && e.key.toLowerCase() === 'z') {
-        e.preventDefault();
-        dispatch({ type: e.shiftKey ? 'redo' : 'undo' });
-      } else if (mod && e.key.toLowerCase() === 'y') {
-        e.preventDefault();
-        dispatch({ type: 'redo' });
-      } else if (mod && e.key.toLowerCase() === 'a' && !typing) {
-        e.preventDefault();
-        dispatch({ type: 'selectAll' });
-      } else if (e.key === 'Escape') {
-        dispatch({ type: 'clearSelection' });
-      } else if (
-        (e.key === 'Delete' || e.key === 'Backspace') &&
-        selected.size > 0 &&
-        !typing
-      ) {
-        e.preventDefault();
-        dispatch({ type: 'deleteSelected' });
-      }
-    }
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [selected, previewIndex, pages]);
+  const { liveMsg } = useKeyboardShortcuts({
+    pages,
+    selected,
+    previewIndex,
+    setPreviewIndex,
+    dispatch,
+  });
 
   // Warn before leaving/reloading while there's work in progress. (Can't help
   // a browser crash, but this catches accidental reloads, Cmd-W, and navigation.)
@@ -337,17 +124,6 @@ export default function App() {
     else dispatch({ type: 'toggleSelect', id, additive: e.metaKey || e.ctrlKey });
   }, []);
 
-  function pickFiles() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'application/pdf,image/png,image/jpeg';
-    input.multiple = true;
-    input.onchange = () => {
-      if (input.files?.length) addFiles(input.files);
-    };
-    input.click();
-  }
-
   function applySplitToSelection() {
     pages.forEach((p) => {
       if (selected.has(p.id) && !splitMarks.has(p.id)) {
@@ -356,9 +132,6 @@ export default function App() {
     });
     showToast('Added split marks');
   }
-
-  const cropRefPage = pages.find((p) => selected.has(p.id)) ?? pages[0];
-  const cropRefDoc = cropRefPage ? docs.get(cropRefPage.docId) : undefined;
 
   return (
     <div
@@ -438,41 +211,16 @@ export default function App() {
         />
       )}
 
-      {restorable && appState !== 'editor' && (
-        <div className="pending-banner restore-banner">
-          <span className="pending-text">
-            Restore your previous work?{' '}
-            <strong>
-              {restorable.state.pages.length} page
-              {restorable.state.pages.length === 1 ? '' : 's'}
-            </strong>{' '}
-            from your last session.
-          </span>
-          <button className="btn-go pending-btn" onClick={restoreSession}>
-            Restore
-          </button>
-          <button className="btn-secondary pending-btn" onClick={discardSession}>
-            Discard
-          </button>
-        </div>
-      )}
-
-      {pendingSource && (
-        <div className="pending-banner">
-          <span className="pending-text">
-            A PDF from <strong>{hostOf(pendingSource)}</strong> is ready to load.
-          </span>
-          <button className="btn-go pending-btn" onClick={loadPending}>
-            Load PDF
-          </button>
-          <button
-            className="btn-secondary pending-btn"
-            onClick={() => setPendingSource(null)}
-          >
-            Dismiss
-          </button>
-        </div>
-      )}
+      <Banners
+        restoreCount={
+          restorable && appState !== 'editor' ? restorable.state.pages.length : null
+        }
+        onRestore={restoreSession}
+        onDiscard={discardSession}
+        pendingHost={pendingHost}
+        onLoadPending={loadPending}
+        onDismissPending={dismissPending}
+      />
 
       <main className="main">
         {appState === 'empty' && <EmptyState onPick={pickFiles} />}
@@ -514,106 +262,18 @@ export default function App() {
         />
       )}
 
-      <Suspense fallback={null}>
-        {dialogs.isOpen('crop') && cropRefPage && cropRefDoc && (
-          <CropDialog
-            page={cropRefPage}
-            doc={cropRefDoc}
-            selectedCount={selected.size}
-            onApply={(crop, scope) => {
-              dispatch({ type: 'applyCrop', crop, scope });
-              dialogs.closeDialog();
-              showToast('Cropped your pages');
-            }}
-            onCancel={dialogs.closeDialog}
-          />
-        )}
-
-        {dialogs.isOpen('range') && (
-          <RangeDialog
-            total={pages.length}
-            onExport={(indices) => {
-              dialogs.closeDialog();
-              exportRange(indices);
-            }}
-            onCancel={dialogs.closeDialog}
-          />
-        )}
-
-        {dialogs.isOpen('mix') && (
-          <MixDialog
-            groups={pageGroups()}
-            onMix={(mixed) => {
-              dispatch({ type: 'setPages', pages: mixed });
-              dialogs.closeDialog();
-              showToast('Mixed the pages');
-            }}
-            onCancel={dialogs.closeDialog}
-          />
-        )}
-
-        {dialogs.isOpen('images') && (
-          <ImagesDialog
-            total={pages.length}
-            selectedIndices={pages
-              .map((p, i) => (selected.has(p.id) ? i : -1))
-              .filter((i) => i >= 0)}
-            onExport={(opts) => {
-              dialogs.closeDialog();
-              exportImages(opts);
-            }}
-            onCancel={dialogs.closeDialog}
-          />
-        )}
-
-        {dialogs.isOpen('splitEvery') && (
-          <SplitEveryDialog
-            total={pages.length}
-            onApply={(n) => {
-              dispatch({ type: 'splitEveryN', n });
-              dialogs.closeDialog();
-              showToast(
-                `Split every ${n} page${n === 1 ? '' : 's'} — click Save PDF to export`,
-              );
-            }}
-            onCancel={dialogs.closeDialog}
-          />
-        )}
-
-        {previewPos !== null && (
-          <Lightbox
-            page={pages[previewPos]}
-            index={previewPos}
-            total={pages.length}
-            doc={docs.get(pages[previewPos].docId)}
-            onPrev={() => setPreviewIndex((i) => (i === null ? i : Math.max(i - 1, 0)))}
-            onNext={() =>
-              setPreviewIndex((i) => (i === null ? i : Math.min(i + 1, pages.length - 1)))
-            }
-            onRotate={(delta) =>
-              dispatch({ type: 'rotateOne', id: pages[previewPos].id, delta })
-            }
-            onDelete={() => {
-              dispatch({
-                type: 'toggleSelect',
-                id: pages[previewPos].id,
-                additive: false,
-              });
-              dispatch({ type: 'deleteSelected' });
-            }}
-            onCrop={() => {
-              dispatch({
-                type: 'toggleSelect',
-                id: pages[previewPos].id,
-                additive: false,
-              });
-              setPreviewIndex(null);
-              dialogs.openDialog('crop');
-            }}
-            onClose={() => setPreviewIndex(null)}
-          />
-        )}
-      </Suspense>
+      <EditorDialogs
+        dialogs={dialogs}
+        pages={pages}
+        docs={docs}
+        selected={selected}
+        previewPos={previewPos}
+        setPreviewIndex={setPreviewIndex}
+        dispatch={dispatch}
+        showToast={showToast}
+        exportRange={exportRange}
+        exportImages={exportImages}
+      />
 
       {dragActive && <DragOverlay />}
       {toast && <Toast message={toast.message} tone={toast.tone} />}
