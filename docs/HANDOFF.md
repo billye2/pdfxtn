@@ -22,7 +22,10 @@ npm install
 npm run dev        # Vite dev server (HMR)
 npm run build      # tsc + vite build → dist/
 npm test           # unit tests (Vitest)
-npm run e2e        # end-to-end (Playwright, loads built dist/)
+npm run e2e        # end-to-end + a11y scans (Playwright, loads built dist/)
+npm run visual     # theme-matrix screenshot regression (macOS-local baselines;
+                   #   visual:update regenerates e2e/__screenshots__/ after
+                   #   intentional UI changes or a Playwright/Chromium bump)
 npm run lint       # ESLint (lint:fix to auto-fix)
 npm run format     # Prettier write (format:check to verify)
 npm run release    # cut a release: bump + build + zip + "Release vX" commit + tag vX
@@ -65,7 +68,8 @@ node scripts/promo-video.mjs   # promo video (webm) → release/video/ (upload v
 
 The item is already live. To ship a new version:
 
-1. Write the `## [next-version]` CHANGELOG.md section, then `npm run release`
+1. Run `npm run visual` (screenshot regression) if UI changed. Write the
+   `## [next-version]` CHANGELOG.md section, then `npm run release`
    (commit + tag) and `npm run release:publish` (push + GitHub release).
 2. Open the item in https://chrome.google.com/webstore/devconsole →
    **Package** → upload a new version → `release/pdf-mana-<version>.zip`.
