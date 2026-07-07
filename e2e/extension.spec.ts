@@ -512,14 +512,15 @@ test('crop: drag a box, apply to all, then Clear crop restores full size', async
   await page.locator('.toolbar').getByRole('button', { name: 'Crop' }).click();
   await expect(page.locator('.crop-canvas')).toBeVisible({ timeout: 15_000 });
 
-  // Drag a box across roughly the middle ~50% of the page.
+  // Drag a wide box (~70% × ~30%) so the cropped region is landscape — the
+  // opposite orientation of the 400×600 page, which the WYSIWYG frame must show.
   const stage = (await page.locator('.crop-stage').boundingBox())!;
   await page.mouse.move(stage.x + stage.width * 0.15, stage.y + stage.height * 0.15);
   await page.mouse.down();
-  await page.mouse.move(stage.x + stage.width * 0.4, stage.y + stage.height * 0.4, {
+  await page.mouse.move(stage.x + stage.width * 0.5, stage.y + stage.height * 0.3, {
     steps: 5,
   });
-  await page.mouse.move(stage.x + stage.width * 0.6, stage.y + stage.height * 0.6, {
+  await page.mouse.move(stage.x + stage.width * 0.85, stage.y + stage.height * 0.45, {
     steps: 5,
   });
   await page.mouse.up();
@@ -528,6 +529,14 @@ test('crop: drag a box, apply to all, then Clear crop restores full size', async
   await page.getByRole('button', { name: 'Apply to all' }).click();
   await expect(page.locator('.toolbar').getByText('Clear crop')).toBeVisible();
 
+  // The card goes WYSIWYG: a crop badge appears and the visible page frame
+  // takes the crop region's landscape aspect instead of the page's 400:600.
+  // Crop ≈ 0.7w × 0.3h of a 400×600 page → 280×180 → aspect ≈ 1.56.
+  await expect(page.locator('.card-crop-badge')).toHaveCount(1);
+  const frame = (await page.locator('.card-frame').boundingBox())!;
+  expect(frame.width / frame.height).toBeGreaterThan(1.3);
+  expect(frame.width / frame.height).toBeLessThan(1.8);
+
   // The exported CropBox is meaningfully smaller than the 400×600 MediaBox.
   let dl = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Save PDF' }).click();
@@ -535,8 +544,12 @@ test('crop: drag a box, apply to all, then Clear crop restores full size', async
   expect(cropped.w).toBeLessThan(360);
   expect(cropped.h).toBeLessThan(540);
 
-  // Clear crop puts the full page back.
+  // Clear crop puts the full page back: badge gone, frame back to 400:600.
   await page.locator('.toolbar').getByRole('button', { name: 'Clear crop' }).click();
+  await expect(page.locator('.card-crop-badge')).toHaveCount(0);
+  const full = (await page.locator('.card-frame').boundingBox())!;
+  expect(full.width / full.height).toBeGreaterThan(0.6);
+  expect(full.width / full.height).toBeLessThan(0.72);
   dl = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Save PDF' }).click();
   expect(await cropBox(await dl)).toEqual({ w: 400, h: 600 });

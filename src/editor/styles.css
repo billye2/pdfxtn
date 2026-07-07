@@ -682,10 +682,19 @@ button:disabled {
   align-items: center;
   justify-content: center;
 }
-/* Sized in JS to the letterboxed page; the crop overlay is positioned in
-   page-relative %, so it stays aligned and rotates with the page. */
-.card-page {
+/* Clipping frame sized in JS to the letterboxed cropped-then-rotated region;
+   the full-page element inside is positioned by cropFrameLayout so only the
+   crop region shows (uncropped pages fill the frame edge-to-edge). */
+.card-frame {
   position: relative;
+  overflow: hidden;
+  flex: none;
+  border-radius: 4px;
+  background: var(--page);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+}
+.card-page {
+  position: absolute;
   transition: transform 0.18s ease;
 }
 .card-canvas-host {
@@ -695,9 +704,6 @@ button:disabled {
 .card-canvas-host .page-canvas {
   width: 100%;
   height: 100%;
-  background: var(--page);
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
   display: block;
 }
 /* Dark theme: invert the rendered page content only, so white pages don't glare.
@@ -723,10 +729,19 @@ button:disabled {
   background-size: 200% 100%;
   animation: shimmer 1.3s ease-in-out infinite;
 }
-.card-crop {
+.card-crop-badge {
   position: absolute;
-  border: 2px solid var(--c-sel);
-  box-shadow: 0 0 0 9999px rgba(20, 16, 30, 0.42);
+  bottom: 10px;
+  left: 10px;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--c-sel);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
   pointer-events: none;
 }
 
@@ -1354,24 +1369,25 @@ button:disabled {
   overflow: hidden;
   border-radius: 6px;
 }
-.page-peek-stage {
+/* Clipping frame + full-page stage positioned by cropFrameLayout, same
+   WYSIWYG treatment as the grid cards. */
+.page-peek-frame {
   position: relative;
-  display: inline-flex;
+  overflow: hidden;
+  background: var(--page);
+}
+.page-peek-stage {
+  position: absolute;
 }
 .page-peek-host {
-  display: inline-flex;
+  width: 100%;
+  height: 100%;
 }
 .page-peek-canvas {
   display: block;
-  max-width: 78vw;
-  width: auto;
-  height: auto;
+  width: 100%;
+  height: 100%;
   background: var(--page);
-}
-.page-peek-crop {
-  position: absolute;
-  border: 2px solid var(--c-sel);
-  box-shadow: 0 0 0 9999px rgba(20, 16, 30, 0.55);
 }
 .page-peek-label {
   font-size: 12px;

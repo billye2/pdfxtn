@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { RotateCw, Scissors, X, Check, ZoomIn } from './icons';
+import { RotateCw, Scissors, X, Check, ZoomIn, Crop } from './icons';
 import type { PageDescriptor } from '../lib/pageModel';
 import { renderThumbnail, type LoadedDoc } from '../lib/pdfRender';
+import { cropFrameLayout, effectiveAspect } from '../lib/cropView';
 import { usePeek } from '../hooks/usePeek';
 import PagePeek from './PagePeek';
 
@@ -46,7 +47,7 @@ export default function PageThumb({
   const [visible, setVisible] = useState(false);
   const [rendered, setRendered] = useState(false);
   const [aspect, setAspect] = useState(DEFAULT_ASPECT); // page width / height
-  const [box, setBox] = useState<{ w: number; h: number } | null>(null);
+  const [innerSize, setInnerSize] = useState<{ w: number; h: number } | null>(null);
 
   // Long-press peek (touch/pen): a larger floating preview for confirming the
   // page before/while reordering on small displays. See usePeek.
@@ -72,12 +73,17 @@ export default function PageThumb({
     return () => io.disconnect();
   }, [visible]);
 
-  // Render the page (unrotated) into the canvas host once visible. Rotation is
-  // applied via CSS transform so it animates and the crop overlay rotates with it.
+  // Render the page (unrotated) into the canvas host once visible. Rotation and
+  // crop are applied via CSS (cropFrameLayout) so they never force a re-render.
+  // Cropped pages render at a higher maxEdge so the CSS zoom into the crop
+  // region doesn't blur.
+  const maxEdge = page.crop
+    ? Math.min(520, Math.ceil(260 / Math.max(page.crop.w, page.crop.h)))
+    : 260;
   useEffect(() => {
     let cancelled = false;
     if (!visible || !doc || !hostRef.current) return;
-    renderThumbnail(doc, page.pageIndex, { rotation: 0, maxEdge: 260 })
+    renderThumbnail(doc, page.pageIndex, { rotation: 0, maxEdge })
       .then((canvas) => {
         if (cancelled || !hostRef.current) return;
         canvas.className = 'page-canvas';
@@ -89,30 +95,37 @@ export default function PageThumb({
     return () => {
       cancelled = true;
     };
-  }, [visible, doc, page.pageIndex]);
+  }, [visible, doc, page.pageIndex, maxEdge]);
 
-  // Measure the available thumb area and compute the letterboxed page box, so
-  // the crop overlay can be positioned exactly over the rendered page.
+  // Track the available thumb area; the frame box is derived in render so it
+  // updates in the same commit as a crop/rotation change (no one-frame lag).
   useEffect(() => {
     const inner = innerRef.current;
     if (!inner) return;
     const measure = () => {
-      const iw = inner.clientWidth;
-      const ih = inner.clientHeight;
-      if (!iw || !ih) return;
-      let w = iw;
-      let h = iw / aspect;
-      if (h > ih) {
-        h = ih;
-        w = ih * aspect;
-      }
-      setBox({ w, h });
+      const w = inner.clientWidth;
+      const h = inner.clientHeight;
+      if (w && h) setInnerSize({ w, h });
     };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(inner);
     return () => ro.disconnect();
-  }, [aspect]);
+  }, []);
+
+  // Letterbox the frame to the displayed (cropped-then-rotated) aspect, so the
+  // card shows the page exactly as it will export.
+  const frameAspect = effectiveAspect(aspect, page.crop, page.rotation);
+  let box: { w: number; h: number } | null = null;
+  if (innerSize) {
+    let w = innerSize.w;
+    let h = w / frameAspect;
+    if (h > innerSize.h) {
+      h = innerSize.h;
+      w = h * frameAspect;
+    }
+    box = { w, h };
+  }
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -126,13 +139,18 @@ export default function PageThumb({
     peek.onPointerDown(e);
   };
 
-  // When rotated to a side, scale to fit (page aspect ≈ 0.78 → 1/0.78 overflow).
-  const rotated = page.rotation === 90 || page.rotation === 270;
-  const pageStyle: React.CSSProperties = {
-    width: box?.w,
-    height: box?.h,
-    transform: `rotate(${page.rotation}deg) scale(${rotated ? aspect : 1})`,
-  };
+  // Position the full-page element inside the clipping frame so the rotated
+  // crop region fills it exactly (uncropped pages fill it edge-to-edge).
+  const layout = box ? cropFrameLayout(box.w, box.h, page.crop, page.rotation) : null;
+  const pageStyle: React.CSSProperties | undefined = layout
+    ? {
+        width: layout.w,
+        height: layout.h,
+        left: layout.left,
+        top: layout.top,
+        transform: `rotate(${page.rotation}deg)`,
+      }
+    : undefined;
 
   return (
     <div
@@ -182,24 +200,26 @@ export default function PageThumb({
 
       <div className="card-thumb">
         <div className="card-thumb-inner" ref={innerRef}>
-          <div className="card-page" style={pageStyle}>
-            <div
-              className={`card-canvas-host${rendered ? '' : ' skeleton'}`}
-              ref={hostRef}
-            />
-            {page.crop && (
+          <div
+            className="card-frame"
+            style={box ? { width: box.w, height: box.h } : undefined}
+          >
+            <div className="card-page" style={pageStyle}>
               <div
-                className="card-crop"
-                style={{
-                  left: `${page.crop.x * 100}%`,
-                  top: `${page.crop.y * 100}%`,
-                  width: `${page.crop.w * 100}%`,
-                  height: `${page.crop.h * 100}%`,
-                }}
+                className={`card-canvas-host${rendered ? '' : ' skeleton'}`}
+                ref={hostRef}
               />
-            )}
+            </div>
           </div>
         </div>
+        {page.crop && (
+          <span
+            className="card-crop-badge"
+            title="Cropped — use “Clear crop” in the toolbar to undo"
+          >
+            <Crop size={13} />
+          </span>
+        )}
       </div>
 
       <div className="card-footer">

@@ -54,6 +54,12 @@ export default function CropDialog({
         canvas.className = 'crop-canvas';
         stageRef.current.replaceChildren(canvas);
         setSize({ w, h });
+        // Seed the reference page's existing crop so re-cropping starts from
+        // the current box instead of an empty stage.
+        const crop = page.crop;
+        if (crop) {
+          setRect({ x: crop.x * w, y: crop.y * h, w: crop.w * w, h: crop.h * h });
+        }
       },
     );
     return () => {
