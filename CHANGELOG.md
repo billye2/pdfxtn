@@ -4,6 +4,16 @@ All notable changes to PDF Mana are documented here. This project follows
 [Keep a Changelog](https://keepachangelog.com/) conventions and
 [Semantic Versioning](https://semver.org/).
 
+## [1.0.19] — 2026-07-07
+
+### Internal
+
+- The 1,429-line `styles.css` was relocated verbatim into co-located
+  per-component `.css` files plus a shared `styles/base.css` (reset, keyframes,
+  button primitives), so each component's styles live next to its code.
+  No visual change: the visual-regression suite passes against unchanged
+  baselines, and the shipped bundle still emits the same single CSS asset.
+
 ## [1.0.18] — 2026-07-07
 
 ### Fixed
