@@ -1,119 +1,31 @@
-import {
-  test,
-  expect,
-  chromium,
-  type BrowserContext,
-  type Page,
-  type Download,
-} from '@playwright/test';
-import { PDFDocument, degrees } from 'pdf-lib';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { test, expect, type BrowserContext } from '@playwright/test';
+import { PDFDocument } from 'pdf-lib';
 import { readFileSync } from 'node:fs';
-
-const here = dirname(fileURLToPath(import.meta.url));
-const distPath = join(here, '..', 'dist');
-const iconPng = readFileSync('src/icons/icon128.png');
+import {
+  launchExtension,
+  openEditor as openEditorPage,
+  makePdf,
+  imagePdf,
+  iconPng,
+  drop,
+  pdf,
+  widths,
+  cropBox,
+  makeJpeg,
+} from './helpers';
 
 let context: BrowserContext;
 let extensionId: string;
 
 test.beforeAll(async () => {
-  context = await chromium.launchPersistentContext('', {
-    headless: false,
-    args: [
-      '--headless=new',
-      '--no-sandbox',
-      `--disable-extensions-except=${distPath}`,
-      `--load-extension=${distPath}`,
-    ],
-  });
-  await context.newPage();
-  let sw = context.serviceWorkers()[0];
-  for (let i = 0; i < 40 && !sw; i += 1) {
-    await new Promise((r) => setTimeout(r, 250));
-    sw = context.serviceWorkers()[0];
-  }
-  if (!sw) throw new Error('extension service worker did not start');
-  extensionId = sw.url().split('/')[2];
+  ({ context, extensionId } = await launchExtension());
 });
 
 test.afterAll(async () => {
   await context?.close();
 });
 
-// ---- helpers ----------------------------------------------------------------
-
-async function makePdf(sizes: Array<[number, number]>, rotate = 0): Promise<number[]> {
-  const doc = await PDFDocument.create();
-  for (const [w, h] of sizes) {
-    const p = doc.addPage([w, h]);
-    if (rotate) p.setRotation(degrees(rotate));
-  }
-  return [...(await doc.save())];
-}
-
-async function imagePdf(n: number): Promise<number[]> {
-  const doc = await PDFDocument.create();
-  const img = await doc.embedPng(iconPng);
-  for (let i = 0; i < n; i += 1) {
-    const p = doc.addPage([300, 300]);
-    p.drawImage(img, { x: 20, y: 20, width: 200, height: 200 });
-  }
-  return [...(await doc.save())];
-}
-
-async function openEditor(): Promise<Page> {
-  const page = await context.newPage();
-  await page.goto(`chrome-extension://${extensionId}/src/editor/index.html`);
-  await expect(page.getByText("Let's fix up your PDF!")).toBeVisible();
-  return page;
-}
-
-async function drop(
-  page: Page,
-  files: Array<{ name: string; bytes: number[]; type: string }>,
-) {
-  const dt = await page.evaluateHandle((fs) => {
-    const d = new DataTransfer();
-    for (const f of fs)
-      d.items.add(new File([new Uint8Array(f.bytes)], f.name, { type: f.type }));
-    return d;
-  }, files);
-  await page.dispatchEvent('.app', 'dragover', { dataTransfer: dt });
-  await page.dispatchEvent('.app', 'drop', { dataTransfer: dt });
-}
-
-const pdf = (name: string, bytes: number[]) => ({ name, bytes, type: 'application/pdf' });
-
-async function widths(d: Download): Promise<number[]> {
-  const out = await PDFDocument.load(readFileSync(await d.path()));
-  return out.getPages().map((p) => Math.round(p.getWidth()));
-}
-
-// Crop is applied as the PDF CropBox (not the MediaBox), so getWidth() — which
-// reads the MediaBox — won't reflect it. Read the CropBox of page 0 directly.
-async function cropBox(d: Download): Promise<{ w: number; h: number }> {
-  const out = await PDFDocument.load(readFileSync(await d.path()));
-  const b = out.getPage(0).getCropBox();
-  return { w: Math.round(b.width), h: Math.round(b.height) };
-}
-
-// Generate a real JPEG in the page so embedJpg has valid bytes to ingest.
-async function makeJpeg(page: Page): Promise<number[]> {
-  return page.evaluate(async () => {
-    const c = document.createElement('canvas');
-    c.width = 64;
-    c.height = 48;
-    const ctx = c.getContext('2d')!;
-    ctx.fillStyle = '#c33';
-    ctx.fillRect(0, 0, c.width, c.height);
-    const blob: Blob = await new Promise((res) =>
-      c.toBlob((b) => res(b!), 'image/jpeg', 0.9),
-    );
-    return [...new Uint8Array(await blob.arrayBuffer())];
-  });
-}
+const openEditor = () => openEditorPage(context, extensionId);
 
 // ---- tests ------------------------------------------------------------------
 
