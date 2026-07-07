@@ -87,7 +87,7 @@ The item is already live. To ship a new version:
 - **Accessibility — audited.** axe-core (WCAG 2.1 AA) scans run in CI over the key screens in
   light + dark Looks (`e2e/a11y.spec.ts`); real fixes landed in v1.0.17. Two known, deliberate
   gaps: the branded bright buttons sit below 4.5:1 (documented exclusion list in a11y.spec.ts —
-  owner's call), and keyboard users can Tab to a card but have no Enter/Space path to *select*
+  owner's call), and keyboard users can Tab to a card but have no Enter/Space path to _select_
   it (selection is mouse-first; the `←`/`→` nudge works once selected).
 - **styles.css split — DONE.** (Plan doc removed after execution; see git history if
   the rationale is needed — `docs/styles-split-plan.md` at 3813e88.) Styles now live in

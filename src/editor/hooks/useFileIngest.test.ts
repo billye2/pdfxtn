@@ -25,7 +25,9 @@ function setup() {
 }
 
 beforeEach(() => {
-  vi.mocked(isImageFile).mockReset().mockImplementation((f) => f.type.startsWith('image/'));
+  vi.mocked(isImageFile)
+    .mockReset()
+    .mockImplementation((f) => f.type.startsWith('image/'));
   vi.mocked(ingestFile)
     .mockReset()
     .mockResolvedValue({
@@ -72,9 +74,7 @@ describe('useFileIngest', () => {
   it('an ingest failure toasts the error but still lands in the editor', async () => {
     vi.mocked(ingestFile).mockRejectedValue(new Error('encrypted'));
     const { view, setAppState, showToast } = setup();
-    await act(() =>
-      view.result.current.addFiles([file('a.pdf', 'application/pdf')]),
-    );
+    await act(() => view.result.current.addFiles([file('a.pdf', 'application/pdf')]));
     expect(showToast).toHaveBeenCalledWith('Could not add files: encrypted', 'error');
     expect(setAppState).toHaveBeenLastCalledWith('editor');
   });

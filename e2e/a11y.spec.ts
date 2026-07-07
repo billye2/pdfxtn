@@ -49,8 +49,7 @@ async function checkA11y(page: Page, label: string) {
   for (const sel of BRAND_BUTTON_EXCLUSIONS) builder = builder.exclude(sel);
   const results = await builder.analyze();
   const violations = results.violations.map(
-    (v) =>
-      `${v.id} [${v.impact}]: ${v.nodes.map((n) => n.target.join(' ')).join(' | ')}`,
+    (v) => `${v.id} [${v.impact}]: ${v.nodes.map((n) => n.target.join(' ')).join(' | ')}`,
   );
   expect(violations, label).toEqual([]);
 }
@@ -79,8 +78,14 @@ for (const look of ['blocks', 'midnight'] as const) {
       ]);
       await expect(page.locator('.card')).toHaveCount(7);
       await page.locator('.card').nth(0).click();
-      await page.locator('.card').nth(2).click({ modifiers: [META] });
-      await page.locator('.card').nth(4).click({ modifiers: [META] });
+      await page
+        .locator('.card')
+        .nth(2)
+        .click({ modifiers: [META] });
+      await page
+        .locator('.card')
+        .nth(4)
+        .click({ modifiers: [META] });
       await expect(page.locator('.dock')).toBeVisible();
       await checkA11y(page, `${look}: grid + dock`);
     });
@@ -127,7 +132,10 @@ for (const look of ['blocks', 'midnight'] as const) {
       await page.reload();
       await expect(page.locator('.restore-banner')).toBeVisible({ timeout: 5_000 });
       await checkA11y(page, `${look}: restore banner`);
-      await page.locator('.restore-banner').getByRole('button', { name: 'Discard' }).click();
+      await page
+        .locator('.restore-banner')
+        .getByRole('button', { name: 'Discard' })
+        .click();
       await expect(page.locator('.restore-banner')).toHaveCount(0);
     });
 

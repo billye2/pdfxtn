@@ -29,7 +29,10 @@ function changelogSection(version) {
   const changelog = readFileSync('CHANGELOG.md', 'utf8');
   const escaped = version.replaceAll('.', '\\.');
   const m = changelog.match(
-    new RegExp(`^## \\[${escaped}\\][^\\n]*\\n([\\s\\S]*?)(?=^## \\[|$(?![\\s\\S]))`, 'm'),
+    new RegExp(
+      `^## \\[${escaped}\\][^\\n]*\\n([\\s\\S]*?)(?=^## \\[|$(?![\\s\\S]))`,
+      'm',
+    ),
   );
   return m ? m[1].trim() : null;
 }
@@ -41,7 +44,8 @@ if (publish) {
   const tag = `v${version}`;
   const zip = `release/pdf-mana-${version}.zip`;
 
-  if (!git('tag', '-l', tag)) fail(`tag ${tag} does not exist — run "npm run release" first`);
+  if (!git('tag', '-l', tag))
+    fail(`tag ${tag} does not exist — run "npm run release" first`);
   if (!existsSync(zip)) fail(`${zip} not found — run "npm run release" first`);
   const notes = changelogSection(version);
   if (!notes) fail(`CHANGELOG.md has no "## [${version}]" section`);

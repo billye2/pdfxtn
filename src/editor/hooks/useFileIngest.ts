@@ -1,11 +1,6 @@
 import { useCallback, type Dispatch, type SetStateAction } from 'react';
 import type { Action, AppState } from '../store';
-import {
-  ingestFile,
-  ingestImages,
-  isImageFile,
-  type IngestResult,
-} from '../lib/ingest';
+import { ingestFile, ingestImages, isImageFile, type IngestResult } from '../lib/ingest';
 import type { LoadedDoc } from '../lib/pdfRender';
 
 interface Args {

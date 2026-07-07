@@ -2,11 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { usePendingSource } from './usePendingSource';
-import {
-  consumePendingSource,
-  ensureHostPermission,
-  ingestUrl,
-} from '../lib/ingest';
+import { consumePendingSource, ensureHostPermission, ingestUrl } from '../lib/ingest';
 
 vi.mock('../lib/ingest', () => ({
   consumePendingSource: vi.fn(),
@@ -57,16 +53,12 @@ describe('usePendingSource', () => {
   it('loadPending ingests on granted permission and supersedes the restore offer', async () => {
     vi.mocked(consumePendingSource).mockResolvedValue('https://example.com/a.pdf');
     const { view, dispatch, setAppState, showToast, clearRestorable } = setup();
-    await waitFor(() =>
-      expect(view.result.current.pendingSource).not.toBeNull(),
-    );
+    await waitFor(() => expect(view.result.current.pendingSource).not.toBeNull());
 
     await act(() => view.result.current.loadPending());
 
     expect(clearRestorable).toHaveBeenCalled();
-    expect(dispatch).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'addPages' }),
-    );
+    expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({ type: 'addPages' }));
     expect(setAppState).toHaveBeenLastCalledWith('editor');
     expect(showToast).toHaveBeenCalledWith('Loaded 1 page');
     expect(view.result.current.pendingSource).toBeNull();
@@ -76,9 +68,7 @@ describe('usePendingSource', () => {
     vi.mocked(consumePendingSource).mockResolvedValue('https://example.com/a.pdf');
     vi.mocked(ensureHostPermission).mockResolvedValue(false);
     const { view, showToast } = setup();
-    await waitFor(() =>
-      expect(view.result.current.pendingSource).not.toBeNull(),
-    );
+    await waitFor(() => expect(view.result.current.pendingSource).not.toBeNull());
 
     await act(() => view.result.current.loadPending());
 
@@ -90,9 +80,7 @@ describe('usePendingSource', () => {
     vi.mocked(consumePendingSource).mockResolvedValue('https://example.com/a.pdf');
     vi.mocked(ingestUrl).mockRejectedValue(new Error('404'));
     const { view, setAppState, showToast } = setup();
-    await waitFor(() =>
-      expect(view.result.current.pendingSource).not.toBeNull(),
-    );
+    await waitFor(() => expect(view.result.current.pendingSource).not.toBeNull());
 
     await act(() => view.result.current.loadPending());
 

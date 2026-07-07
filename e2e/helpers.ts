@@ -2,7 +2,13 @@
 // Extracted from extension.spec.ts so every spec drives the extension the
 // same way. Each spec file owns its own persistent context via
 // launchExtension() in beforeAll (workers: 1, so contexts never overlap).
-import { expect, chromium, type BrowserContext, type Page, type Download } from '@playwright/test';
+import {
+  expect,
+  chromium,
+  type BrowserContext,
+  type Page,
+  type Download,
+} from '@playwright/test';
 import { PDFDocument, StandardFonts, degrees, rgb } from 'pdf-lib';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';

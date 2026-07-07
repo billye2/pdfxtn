@@ -84,7 +84,11 @@ export default function App() {
   const { restorable, clearRestorable, restoreSession, discardSession } =
     useSessionRestore({ dispatch, setDocs, setLook, setAppState, showToast });
 
-  const { pendingHost, loadPending, dismiss: dismissPending } = usePendingSource({
+  const {
+    pendingHost,
+    loadPending,
+    dismiss: dismissPending,
+  } = usePendingSource({
     dispatch,
     setDocs,
     setAppState,

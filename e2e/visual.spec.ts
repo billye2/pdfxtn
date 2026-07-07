@@ -7,7 +7,10 @@ import { test, expect, type BrowserContext, type Page } from '@playwright/test';
 import { LOOK_ORDER, LOOKS } from '../src/editor/themes';
 import { launchExtension, openEditor, drop, pdf, samplePdf } from './helpers';
 
-test.skip(!!process.env.CI, 'visual baselines are macOS-only; run npm run visual locally');
+test.skip(
+  !!process.env.CI,
+  'visual baselines are macOS-only; run npm run visual locally',
+);
 
 let context: BrowserContext;
 let extensionId: string;
@@ -34,8 +37,14 @@ test.beforeAll(async () => {
 // look re-normalizes to the same three picks before its shots.
 async function selectThree() {
   await page.locator('.card').nth(0).click();
-  await page.locator('.card').nth(2).click({ modifiers: [META] });
-  await page.locator('.card').nth(4).click({ modifiers: [META] });
+  await page
+    .locator('.card')
+    .nth(2)
+    .click({ modifiers: [META] });
+  await page
+    .locator('.card')
+    .nth(4)
+    .click({ modifiers: [META] });
   await expect(page.locator('.dock-count')).toHaveText('3');
 }
 

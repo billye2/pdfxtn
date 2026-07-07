@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useState, type Dispatch, type SetStateAction } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from 'react';
 import type { Action, AppState } from '../store';
 import { consumePendingSource, ensureHostPermission, ingestUrl } from '../lib/ingest';
 import type { LoadedDoc } from '../lib/pdfRender';
