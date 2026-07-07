@@ -4,6 +4,23 @@ All notable changes to PDF Mana are documented here. This project follows
 [Keep a Changelog](https://keepachangelog.com/) conventions and
 [Semantic Versioning](https://semver.org/).
 
+## [1.0.16] — 2026-07-06
+
+### Added
+
+- The selected Look (theme) is now remembered across sessions — reopening the
+  editor comes back in your last-used theme, with or without a document loaded
+  and without needing the Restore banner.
+
+### Fixed
+
+- Look picker menu labels were black-on-dark (unreadable) in the Nighty Night
+  theme; they now follow each theme's ink color.
+- "Discard" on the restore banner now waits for the saved session to actually
+  be cleared before dismissing, so the restore offer can no longer reappear if
+  the tab is reloaded or closed immediately after discarding (also fixed a
+  flaky CI e2e failure caused by the same race).
+
 ## [1.0.15] — 2026-07-06
 
 ### Changed
