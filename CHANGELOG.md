@@ -4,6 +4,17 @@ All notable changes to PDF Mana are documented here. This project follows
 [Keep a Changelog](https://keepachangelog.com/) conventions and
 [Semantic Versioning](https://semver.org/).
 
+## [1.0.18] — 2026-07-07
+
+### Fixed
+
+- An editor tab left open across an extension update (or a dev rebuild) could
+  no longer open dialogs or the page preview — "Failed to fetch dynamically
+  imported module" — because the update deletes the old build's hashed chunk
+  files. Dialogs and the lightbox are now compiled into the main bundle, and
+  the PDF export engine is prefetched right after the page opens, so an
+  already-open tab keeps working entirely from what it has loaded.
+
 ## [1.0.17] — 2026-07-07
 
 ### Fixed
