@@ -28,7 +28,7 @@ import {
 } from './lib/ingest';
 import { loadDoc, type LoadedDoc } from './lib/pdfRender';
 import { clearSession, loadSession, type RestoredSession } from './lib/persist';
-import { lookStyle, type LookId } from './themes';
+import { lookStyle, loadSavedLook, saveLook, type LookId } from './themes';
 import { useToast } from './hooks/useToast';
 import { useDialogs } from './hooks/useDialogs';
 import { useExport } from './hooks/useExport';
@@ -70,7 +70,7 @@ export default function App() {
   const [history, dispatch] = useReducer(reducer, initialHistory);
   const [docs, setDocs] = useState<Map<string, LoadedDoc>>(new Map());
   const [appState, setAppState] = useState<AppState>('empty');
-  const [look, setLook] = useState<LookId>('blocks');
+  const [look, setLook] = useState<LookId>(loadSavedLook);
   const [lookMenuOpen, setLookMenuOpen] = useState(false);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const [pendingSource, setPendingSource] = useState<string | null>(null);
@@ -92,6 +92,10 @@ export default function App() {
   });
 
   useAutosave({ pages, splitMarks, docs, look, active: appState === 'editor' });
+
+  // The look is a standalone preference: remember it across sessions, with or
+  // without a document loaded (the autosave above only runs in the editor).
+  useEffect(() => saveLook(look), [look]);
 
   // Group the current pages by their source document, preserving first-seen
   // order — the unit Mix interleaves over.

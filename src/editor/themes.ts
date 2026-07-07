@@ -225,3 +225,24 @@ export function paletteDots(look: LookId): string[] {
   const v = LOOKS[look].vars;
   return [v['c-del'], v['c-rotate'], v['c-add'], v['c-go']];
 }
+
+const LOOK_STORAGE_KEY = 'pdf-mana-look';
+
+/** Last-used look from localStorage, falling back to the default. */
+export function loadSavedLook(): LookId {
+  try {
+    const v = localStorage.getItem(LOOK_STORAGE_KEY);
+    if (v && v in LOOKS) return v as LookId;
+  } catch {
+    // storage unavailable (e.g. blocked) — fall through to the default
+  }
+  return 'blocks';
+}
+
+export function saveLook(look: LookId): void {
+  try {
+    localStorage.setItem(LOOK_STORAGE_KEY, look);
+  } catch {
+    // best-effort; losing the preference is fine
+  }
+}

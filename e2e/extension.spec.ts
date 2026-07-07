@@ -406,12 +406,19 @@ test('Lightbox preview opens, pages, and closes', async () => {
   await expect(page.locator('.lightbox-backdrop')).toHaveCount(0);
 });
 
-test('switching the Look re-themes the app', async () => {
+test('switching the Look re-themes the app and survives a reload', async () => {
   const page = await openEditor();
   await drop(page, [pdf('t.pdf', await makePdf([[200, 200]]))]);
   await page.locator('.look-trigger').click();
   await page.locator('.look-option', { hasText: 'Sticker' }).click();
   await expect(page.locator('.app')).toHaveAttribute('data-look', 'sticker');
+
+  // The look is remembered on a fresh load, without clicking Restore.
+  await page.reload();
+  await expect(page.locator('.app')).toHaveAttribute('data-look', 'sticker');
+
+  // Tidy up so the saved preference doesn't leak into other tests.
+  await page.evaluate(() => localStorage.clear());
 });
 
 const META = process.platform === 'darwin' ? 'Meta' : 'Control';
