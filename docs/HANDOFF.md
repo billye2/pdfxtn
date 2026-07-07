@@ -89,7 +89,8 @@ The item is already live. To ship a new version:
   gaps: the branded bright buttons sit below 4.5:1 (documented exclusion list in a11y.spec.ts —
   owner's call), and keyboard users can Tab to a card but have no Enter/Space path to *select*
   it (selection is mouse-first; the `←`/`→` nudge works once selected).
-- **styles.css split — DONE.** Executed per `docs/styles-split-plan.md`: styles now live in
+- **styles.css split — DONE.** (Plan doc removed after execution; see git history if
+  the rationale is needed — `docs/styles-split-plan.md` at 3813e88.) Styles now live in
   `src/editor/styles/base.css` (reset, keyframes, button base/variants, app shell, the
   midnight-invert cross-component rule; imported by `main.tsx`) plus co-located
   `components/<Name>.css` files imported by their owning component. Verbatim moves, no
