@@ -365,6 +365,7 @@ button:disabled {
   justify-content: flex-start;
   height: 40px;
   background: transparent;
+  color: var(--ink);
   border: none;
   box-shadow: none;
   border-radius: 10px;
