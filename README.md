@@ -117,10 +117,12 @@ src/
     App.tsx            top-level state wiring
     store.ts           reducer + undo/redo history
     themes.ts          the five Looks (CSS-var token sets) + saved-look storage
+    styles/base.css    shared reset, keyframes, button primitives, app shell
     components/        Header, Toolbar, ThumbnailGrid, PageThumb, PagePeek, Lightbox,
                        Banners, EditorDialogs, CropDialog, RangeDialog, ImagesDialog,
                        MixDialog, SplitEveryDialog, SelectionDock, EmptyState,
-                       LoadingState, Toast, DragOverlay
+                       LoadingState, Toast, DragOverlay — each styled by a
+                       co-located <Name>.css it imports
     hooks/             useToast, useDialogs, useExport, useAutosave, usePeek,
                        useSessionRestore, usePendingSource, useFileIngest,
                        useKeyboardShortcuts
