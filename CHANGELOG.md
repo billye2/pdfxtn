@@ -4,6 +4,15 @@ All notable changes to PDF Mana are documented here. This project follows
 [Keep a Changelog](https://keepachangelog.com/) conventions and
 [Semantic Versioning](https://semver.org/).
 
+## [1.0.20] — 2026-07-07
+
+### Internal
+
+- CI is green again: ten files that had drifted from prettier style were
+  reformatted (the format gate was failing every run), `actions/checkout` and
+  `actions/setup-node` were bumped to v5 (Node 24 action runtime, clearing the
+  Node 20 deprecation warning), and CI jobs now run on Node 22 LTS.
+
 ## [1.0.19] — 2026-07-07
 
 ### Internal
