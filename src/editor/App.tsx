@@ -198,9 +198,14 @@ export default function App() {
     }
   }
 
-  function discardSession() {
-    setRestorable(null);
-    clearSession().catch(() => {});
+  // Dismiss the banner only after the IndexedDB clear commits, so the offer
+  // can't reappear if the tab is reloaded/closed right after discarding.
+  async function discardSession() {
+    try {
+      await clearSession();
+    } finally {
+      setRestorable(null);
+    }
   }
 
   // User clicked "Load PDF" in the banner — request that origin's host
