@@ -5,22 +5,15 @@ _Snapshot for picking this back up later._
 ## Status
 
 - **Product:** PDF Mana — MV3 Chrome extension, local PDF _page_ manager (Merge · Arrange · Nip · Adjust).
-- **Version:** 1.0.10 — packaged at `release/pdf-mana-1.0.10.zip`.
-- **Repo:** https://github.com/billye2/pdfxtn — **public, MIT** (© Billy Ye). `main` is the working branch; everything is committed and pushed.
-- **Chrome Web Store:** **published / live** at https://chromewebstore.google.com/detail/pdf-mana/bhkhobdaindpenllbgliigfafkkigpnk — the store currently shows **v1.0.5**. Local is **v1.0.10** with everything below, not yet uploaded; push an update by uploading `release/pdf-mana-1.0.10.zip` in the dashboard (and optionally refresh the listing copy + Homepage URL from `docs/STORE_LISTING.md`).
-- **Tests:** 109 unit (Vitest; pure logic + persistence via `fake-indexeddb` in Node, hooks via jsdom `// @vitest-environment` docblock) + 16 e2e (Playwright; 15 run, 1 pointer-drag test skipped) — all green. e2e now covers the zip bundle, keyboard reorder + undo, the Space-toggle preview, and the autosave reload→restore round-trip. (No coverage reporting wired up yet — would be `@vitest/coverage-v8` + a `test:coverage` script.)
-- **Recent work (v1.0.6 → 1.0.10):**
-  - **Page peek** (`components/PagePeek.tsx` + `hooks/usePeek.ts`) — floating read-only
-    enlargement on touch/pen **press-and-hold** (mouse hover intentionally doesn't trigger
-    it); wheel-scrolls its clipped page.
-  - **Lightbox** is width-driven (up to 84vw), clips vertical overflow, native wheel scroll;
-    preview-button icon `Maximize2` → `ZoomIn`.
-  - **Autosave + restore** (`lib/persist.ts`, `hooks/useAutosave.ts`, store `restore`) —
-    IndexedDB, no new permission. Reload offers "Restore your previous work?".
-  - **Image export → optional single `.zip`** (fflate) instead of N downloads.
-  - **Keyboard reorder** is modeless: select a page, `←`/`→` nudges it one slot (aria-live
-    announced). Replaced dnd-kit's spacebar grab-mode. **Space** now toggles the preview.
-  - **App refactored** into `hooks/` (useToast, useDialogs, useExport, useAutosave, usePeek).
+- **Version:** 1.0.16 — packaged at `release/pdf-mana-1.0.16.zip` (older zips in `release/archive/`).
+- **Repo:** https://github.com/billye2/pdfxtn — **public, MIT** (© Billy Ye). `main` is the working branch; release commits carry annotated `vX.Y.Z` tags.
+- **Chrome Web Store:** **published / live** at https://chromewebstore.google.com/detail/pdf-mana/bhkhobdaindpenllbgliigfafkkigpnk — **v1.0.16 uploaded 2026-07-06, pending review** (with refreshed listing copy).
+- **Tests:** 122 unit (Vitest; pure logic + persistence via `fake-indexeddb` in Node, hooks via jsdom `// @vitest-environment` docblock) + 28 e2e (Playwright; 1 pointer-drag test skipped) — all green, both run in CI.
+- **Recent work (v1.0.11 → 1.0.16):** "Nighty Night" dark theme (5th Look) with themed
+  page-render inversion; crop-box corner-handle resize; WYSIWYG crop previews (grid +
+  peek show the cropped framing via `lib/cropView.ts`, lightbox keeps the overlay);
+  the last-used Look persists in localStorage; dialog/lightbox code-splitting; Discard
+  awaits the IndexedDB clear (CI flake fix).
 
 ## Commands
 
@@ -32,14 +25,18 @@ npm test           # unit tests (Vitest)
 npm run e2e        # end-to-end (Playwright, loads built dist/)
 npm run lint       # ESLint (lint:fix to auto-fix)
 npm run format     # Prettier write (format:check to verify)
-npm run release    # BUMP patch version + build + zip → release/pdf-mana-<version>.zip
+npm run release    # cut a release: bump + build + zip + "Release vX" commit + tag vX
+npm run release:publish   # push main + tag, create the GitHub release with the zip
 npm run icons      # regenerate icons from src/icons/icon.svg
 node scripts/screenshots.mjs   # store screenshots (1280x800) → release/screenshots/
 node scripts/promo.mjs         # promo tiles (440x280, 1400x560) → release/promo/
+node scripts/promo-video.mjs   # promo video (webm) → release/video/ (upload via YouTube)
 ```
 
 > ⚠️ Always repackage with **`npm run release`** so the zip version increments — the Web
 > Store rejects re-uploads at an existing version. Never hand-zip `dist/` at the same version.
+> `npm run release` requires a `## [next-version]` CHANGELOG.md section up front and refuses
+> to run off `main`; use `npm run release -- --zip-only` for a git-less repackage.
 
 ## Load / test locally
 
@@ -53,7 +50,7 @@ node scripts/promo.mjs         # promo tiles (440x280, 1400x560) → release/pro
 - `src/manifest.ts` — MV3 manifest (perms: activeTab, storage, contextMenus + optional host).
 - `src/background.ts` — service worker: icon click, context menus, tab→editor handoff.
 - `src/editor/` — the app:
-  - `App.tsx` (wiring), `store.ts` (reducer + undo/redo + `restore`), `themes.ts` (4 Looks)
+  - `App.tsx` (wiring), `store.ts` (reducer + undo/redo + `restore`), `themes.ts` (5 Looks + saved-look storage)
   - `components/` — Header, Toolbar, ThumbnailGrid, PageThumb, PagePeek, Lightbox, CropDialog,
     RangeDialog, ImagesDialog, MixDialog, SplitEveryDialog, SelectionDock, EmptyState, …
   - `hooks/` — `useToast`, `useDialogs`, `useExport`, `useAutosave`, `usePeek`
@@ -64,15 +61,17 @@ node scripts/promo.mjs         # promo tiles (440x280, 1400x560) → release/pro
 - `docs/privacy-practices-copy.md` — paste-ready justification blocks for the dashboard.
 - `PRIVACY.md` — privacy policy (also the policy URL on GitHub).
 
-## To publish an update (user-only steps)
+## To publish an update
 
-The item is already live. To ship the local v1.0.8:
+The item is already live. To ship a new version:
 
-1. Open the item in https://chrome.google.com/webstore/devconsole.
-2. **Package** → upload a new version → `release/pdf-mana-1.0.8.zip`.
-3. Refresh listing copy from `docs/STORE_LISTING.md` (description now mentions the wider/scrollable preview + touch peek; repo link added). Optionally set **Homepage URL** → `https://github.com/billye2/pdfxtn` for a clickable source link.
+1. Write the `## [next-version]` CHANGELOG.md section, then `npm run release`
+   (commit + tag) and `npm run release:publish` (push + GitHub release).
+2. Open the item in https://chrome.google.com/webstore/devconsole →
+   **Package** → upload a new version → `release/pdf-mana-<version>.zip`.
+3. Refresh listing copy from `docs/STORE_LISTING.md` if it changed. Optionally set **Homepage URL** → `https://github.com/billye2/pdfxtn` for a clickable source link.
 4. **Remote code → No.** Data collected → **None** (certify the 3 boxes). Privacy policy URL → the PRIVACY.md GitHub link.
-5. Refresh screenshots (`release/screenshots/`, now five incl. crop), optional promo tiles (`release/promo/`).
+5. Refresh screenshots (`release/screenshots/`), optional promo tiles (`release/promo/`).
 6. Submit for review.
 
 ## Known gaps / next steps (none blocking)
