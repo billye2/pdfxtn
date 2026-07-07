@@ -4,6 +4,24 @@ All notable changes to PDF Mana are documented here. This project follows
 [Keep a Changelog](https://keepachangelog.com/) conventions and
 [Semantic Versioning](https://semver.org/).
 
+## [1.0.15] — 2026-07-06
+
+### Changed
+
+- Page thumbnails and the long-press peek now show cropped pages **as they will
+  export** — tightly framed to the crop region — instead of the full page with a
+  dimmed overlay. A small badge marks cropped pages (the crop stays
+  non-destructive; "Clear crop" still undoes it), and cropped thumbnails render
+  at higher resolution so the tighter framing stays sharp. The lightbox keeps
+  the full-page view with the crop highlighted, for context when re-cropping.
+- Reopening the Crop dialog on an already-cropped document starts from the
+  existing crop box instead of an empty stage.
+
+### Docs
+
+- Added a scripted promo-video recorder (`scripts/promo-video.mjs`) and Web
+  Store listing instructions for the promotional video field.
+
 ## [1.0.14] — 2026-07-01
 
 ### Added
