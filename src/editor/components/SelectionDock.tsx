@@ -1,4 +1,5 @@
 import { RotateCw, Crop, CopyCheck, X } from './icons';
+import './SelectionDock.css';
 
 interface Props {
   count: number;

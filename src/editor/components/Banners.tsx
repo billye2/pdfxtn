@@ -1,3 +1,5 @@
+import './Banners.css';
+
 interface Props {
   /** Page count of the restorable session, or null to hide the restore offer. */
   restoreCount: number | null;

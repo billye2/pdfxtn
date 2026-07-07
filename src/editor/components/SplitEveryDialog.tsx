@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Modal from './Modal';
+import './SplitEveryDialog.css';
 
 interface Props {
   total: number;

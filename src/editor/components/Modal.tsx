@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react';
+import './Modal.css';
 
 interface Props {
   /** Accessible dialog title; also rendered as the <h2> heading. */

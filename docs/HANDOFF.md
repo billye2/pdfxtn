@@ -89,13 +89,12 @@ The item is already live. To ship a new version:
   gaps: the branded bright buttons sit below 4.5:1 (documented exclusion list in a11y.spec.ts —
   owner's call), and keyboard users can Tab to a card but have no Enter/Space path to *select*
   it (selection is mouse-first; the `←`/`→` nudge works once selected).
-- **styles.css split — PLANNED, not started.** Full plan in `docs/styles-split-plan.md`:
-  relocate the 1,429-line `src/editor/styles.css` verbatim into co-located per-component
-  `.css` files + a shared `styles/base.css` (reset, button base/variants, keyframes, the
-  midnight-invert cross-component rule). No renames, no CSS Modules (class names are
-  load-bearing for e2e + the 15 visual baselines). Verification = the visual suite passing
-  WITHOUT regenerating baselines. Analysis found no dead CSS and no cascade-order traps;
-  only constraint is base.css loads before component files.
+- **styles.css split — DONE.** Executed per `docs/styles-split-plan.md`: styles now live in
+  `src/editor/styles/base.css` (reset, keyframes, button base/variants, app shell, the
+  midnight-invert cross-component rule; imported by `main.tsx`) plus co-located
+  `components/<Name>.css` files imported by their owning component. Verbatim moves, no
+  renames — verified by the visual suite passing without baseline regeneration, full
+  unit + e2e suites, and an exact 215 = 215 rule-block count against the original file.
 - **Scale/perf** — source docs still stay in memory; image export can now bundle to one `.zip`
   (`opts.zip`) instead of N downloads. Still worth profiling a 500-page / 100 MB PDF (render is
   lazy via IntersectionObserver, but parse + bytes are held in full).

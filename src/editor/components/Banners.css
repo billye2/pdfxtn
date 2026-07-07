@@ -1,0 +1,28 @@
+/* Pending tab-PDF banner */
+.pending-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: var(--accentSoft);
+  border-bottom: 2px solid var(--cardOutlineCol);
+  flex-shrink: 0;
+}
+.pending-text {
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+}
+.pending-btn {
+  height: 36px;
+}
+.pending-banner .pending-btn:nth-of-type(1) {
+  margin-left: auto;
+}
+/* Restore offer reuses the banner; the card surface sets it apart from "load
+   tab PDF". (Not var(--page) — page white stays light in the dark theme, which
+   made the banner's light-on-light text unreadable there.) */
+.restore-banner {
+  background: var(--card);
+}

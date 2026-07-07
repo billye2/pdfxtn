@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import Modal from './Modal';
 import type { CropRect, PageDescriptor } from '../lib/pageModel';
 import { renderThumbnail, type LoadedDoc } from '../lib/pdfRender';
+import './CropDialog.css';
 
 interface Props {
   page: PageDescriptor;

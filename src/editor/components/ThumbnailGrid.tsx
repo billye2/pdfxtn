@@ -10,6 +10,7 @@ import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { partNumbers, type PageDescriptor } from '../lib/pageModel';
 import type { LoadedDoc } from '../lib/pdfRender';
 import PageThumb from './PageThumb';
+import './ThumbnailGrid.css';
 
 interface Props {
   pages: PageDescriptor[];

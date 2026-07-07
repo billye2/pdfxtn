@@ -10,6 +10,7 @@ import {
   Shuffle,
   SplitSquareHorizontal,
 } from './icons';
+import './Toolbar.css';
 
 interface Props {
   selectedCount: number;

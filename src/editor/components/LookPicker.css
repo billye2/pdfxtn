@@ -1,0 +1,69 @@
+.look-picker {
+  position: relative;
+}
+.look-trigger {
+  padding: 0 13px;
+}
+.palette {
+  display: inline-flex;
+  gap: 3px;
+}
+.palette-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+.look-name {
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 13.5px;
+}
+.chev {
+  color: var(--sub);
+}
+.look-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 65;
+}
+.look-menu {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  width: 216px;
+  background: var(--card);
+  border: 2px solid var(--cardOutlineCol);
+  border-radius: 16px;
+  padding: 7px;
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.2);
+  z-index: 70;
+  animation: pop 0.15s ease;
+}
+.look-caption {
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--sub);
+  padding: 6px 8px;
+}
+.look-option {
+  width: 100%;
+  justify-content: flex-start;
+  height: 40px;
+  background: transparent;
+  color: var(--ink);
+  border: none;
+  box-shadow: none;
+  border-radius: 10px;
+  gap: 9px;
+}
+.look-option:hover:not(:disabled),
+.look-option.active {
+  background: var(--accentSoft);
+  filter: none;
+}
+.look-check {
+  margin-left: auto;
+  color: var(--c-go);
+}

@@ -1,4 +1,5 @@
 import { Download } from './icons';
+import './DragOverlay.css';
 
 export default function DragOverlay() {
   return (

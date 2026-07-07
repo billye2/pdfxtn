@@ -9,7 +9,7 @@ import '@fontsource/nunito/400.css';
 import '@fontsource/nunito/600.css';
 import '@fontsource/nunito/700.css';
 import '@fontsource/nunito/800.css';
-import './styles.css';
+import './styles/base.css';
 
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element');

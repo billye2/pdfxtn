@@ -1,0 +1,126 @@
+.lightbox-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 16, 30, 0.78);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  z-index: 100;
+  animation: fadein 0.16s ease;
+}
+.lightbox-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: 86vw;
+  max-height: 90vh;
+}
+.lightbox-stagewrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 0;
+}
+/* Clip/scroll box: lets the page grow wide (up to 84vw) while clipping vertical
+   overflow, so a portrait page reads wider instead of being height-bound. The
+   wheel scrolls down to reveal the rest of the page. */
+.lightbox-view {
+  max-width: 84vw;
+  max-height: 70vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  border-radius: 6px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+}
+.lightbox-stage {
+  position: relative;
+  display: inline-flex;
+  transition: transform 0.2s ease;
+}
+.lightbox-stage.loading {
+  min-width: 320px;
+  min-height: 420px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+.lightbox-host {
+  display: inline-flex;
+}
+.lightbox-canvas {
+  display: block;
+  max-width: 84vw;
+  width: auto;
+  height: auto;
+  background: #fff;
+}
+.lightbox-crop {
+  position: absolute;
+  border: 2px solid var(--c-sel);
+  box-shadow: 0 0 0 9999px rgba(20, 16, 30, 0.55);
+  pointer-events: none;
+}
+.lightbox-bar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 10px 16px;
+  background: var(--card);
+  border: var(--cardOutline);
+  border-radius: 16px;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.3);
+}
+.lightbox-counter {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+}
+.lightbox-pos {
+  font-size: 12px;
+  color: var(--sub);
+}
+.lightbox-actions {
+  display: flex;
+  gap: 8px;
+}
+.lightbox-nav {
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  box-shadow: none;
+  flex-shrink: 0;
+}
+.lightbox-nav:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.26);
+  filter: none;
+}
+.lightbox-close {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  box-shadow: none;
+}
+.lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.26);
+  filter: none;
+}

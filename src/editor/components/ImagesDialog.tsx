@@ -3,6 +3,7 @@ import Modal from './Modal';
 import SegmentedControl from './SegmentedControl';
 import type { ImageFormat } from '../lib/pdfImages';
 import { parsePageRange } from '../lib/pageRange';
+import './ImagesDialog.css';
 
 type Scope = 'all' | 'selected' | 'custom';
 

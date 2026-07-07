@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { ChevronDown, Check } from './icons';
 import { LOOKS, LOOK_ORDER, paletteDots, type LookId } from '../themes';
+import './LookPicker.css';
 
 interface Props {
   look: LookId;

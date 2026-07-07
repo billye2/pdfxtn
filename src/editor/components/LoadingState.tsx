@@ -1,3 +1,5 @@
+import './LoadingState.css';
+
 export default function LoadingState() {
   return (
     <div className="loading">

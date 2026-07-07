@@ -1,4 +1,5 @@
 import { CircleCheck } from './icons';
+import './Toast.css';
 
 interface Props {
   message: string;

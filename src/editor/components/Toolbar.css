@@ -1,0 +1,23 @@
+.toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 20px;
+  border-bottom: 2px solid var(--cardOutlineCol);
+  background: var(--card);
+  flex-shrink: 0;
+}
+.tgroup {
+  display: flex;
+  gap: 8px;
+}
+.tdivider {
+  width: 2px;
+  align-self: stretch;
+  background: var(--cardOutlineCol);
+  margin: 2px 2px;
+}
+.tspacer {
+  margin-left: auto;
+}

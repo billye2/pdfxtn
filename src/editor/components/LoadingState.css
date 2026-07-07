@@ -1,0 +1,24 @@
+.loading {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+}
+.loading-dots {
+  display: flex;
+  gap: 12px;
+}
+.loading-dots span {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  animation: bnc 1.1s ease-in-out infinite;
+}
+.loading-label {
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+  color: var(--ink);
+}

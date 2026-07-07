@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Modal from './Modal';
 import { ChevronDown } from './icons';
 import { interleave, type PageDescriptor } from '../lib/pageModel';
+import './MixDialog.css';
 
 export interface MixGroup {
   docId: string;

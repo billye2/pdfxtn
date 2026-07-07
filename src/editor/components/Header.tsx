@@ -2,6 +2,7 @@ import { Download, HelpCircle, Loader2 } from './icons';
 import LookPicker from './LookPicker';
 import type { LookId } from '../themes';
 import type { AppState } from '../store';
+import './Header.css';
 
 interface Props {
   appState: AppState;

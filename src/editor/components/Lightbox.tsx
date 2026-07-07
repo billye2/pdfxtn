@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { RotateCw, Crop, X, ChevronLeft, ChevronRight } from './icons';
 import type { PageDescriptor } from '../lib/pageModel';
 import { renderThumbnail, type LoadedDoc } from '../lib/pdfRender';
+import './Lightbox.css';
 
 interface Props {
   page: PageDescriptor;

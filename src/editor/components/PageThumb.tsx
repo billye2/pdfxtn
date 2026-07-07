@@ -7,6 +7,7 @@ import { renderThumbnail, type LoadedDoc } from '../lib/pdfRender';
 import { cropFrameLayout, effectiveAspect } from '../lib/cropView';
 import { usePeek } from '../hooks/usePeek';
 import PagePeek from './PagePeek';
+import './PageThumb.css';
 
 interface Props {
   page: PageDescriptor;

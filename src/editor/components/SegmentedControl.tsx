@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import './SegmentedControl.css';
 
 export interface SegOption<T> {
   value: T;

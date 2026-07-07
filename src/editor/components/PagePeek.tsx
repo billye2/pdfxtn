@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import type { PageDescriptor } from '../lib/pageModel';
 import { renderThumbnail, type LoadedDoc } from '../lib/pdfRender';
 import { cropFrameLayout } from '../lib/cropView';
+import './PagePeek.css';
 
 interface Props {
   page: PageDescriptor;

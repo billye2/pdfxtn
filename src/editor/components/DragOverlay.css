@@ -1,0 +1,28 @@
+.drag-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(40, 30, 20, 0.35);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 95;
+  animation: fadein 0.14s ease;
+}
+.drag-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 60px 80px;
+  border: 4px dashed var(--c-add);
+  border-radius: 28px;
+  color: var(--card);
+}
+.drag-panel p {
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 700;
+  font-size: 21px;
+  color: #fff;
+  margin: 0;
+}

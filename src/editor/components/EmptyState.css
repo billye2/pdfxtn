@@ -1,0 +1,160 @@
+.empty {
+  position: relative;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 24px;
+  padding: 40px 20px;
+  width: min(580px, 92vw);
+  margin: 0 auto;
+}
+.empty-title {
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 700;
+  font-size: 30px;
+  color: var(--ink);
+  margin: 0;
+}
+.empty-body {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--sub);
+  margin: 0;
+}
+.empty-buttons {
+  display: flex;
+  gap: 12px;
+}
+.privacy-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 15px;
+  border: 2px solid var(--cardOutlineCol);
+  border-radius: 999px;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--sub);
+  background: var(--card);
+}
+
+/* Mascot + decor (CSS shapes only) */
+.mascot {
+  position: relative;
+  width: 104px;
+  height: 128px;
+  padding: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--card);
+  border: 3.5px solid var(--ink);
+  border-radius: 16px;
+  box-shadow: 0 7px 0 rgba(0, 0, 0, 0.13);
+  animation: bob 3s ease-in-out infinite;
+  cursor: pointer;
+}
+.mascot:hover {
+  filter: brightness(0.98);
+}
+.mascot:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 4px;
+}
+.mascot::after {
+  content: '';
+  position: absolute;
+  top: -3.5px;
+  right: -3.5px;
+  width: 26px;
+  height: 26px;
+  background: var(--bg);
+  border-left: 3.5px solid var(--ink);
+  border-bottom: 3.5px solid var(--ink);
+  border-bottom-left-radius: 8px;
+}
+.mascot-eye {
+  position: absolute;
+  top: 46px;
+  width: 11px;
+  height: 14px;
+  background: var(--ink);
+  border-radius: 6px;
+}
+.mascot-eye.left {
+  left: 30px;
+}
+.mascot-eye.right {
+  right: 30px;
+}
+.mascot-cheek {
+  position: absolute;
+  top: 62px;
+  width: 13px;
+  height: 8px;
+  background: #ffb3c1;
+  border-radius: 50%;
+}
+.mascot-cheek.left {
+  left: 20px;
+}
+.mascot-cheek.right {
+  right: 20px;
+}
+.mascot-smile {
+  position: absolute;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 3px solid var(--ink);
+  border-top-color: transparent;
+  border-left-color: transparent;
+  border-right-color: transparent;
+}
+.decor {
+  position: absolute;
+  border-radius: 50%;
+  animation: bob 4s ease-in-out infinite;
+  z-index: 0;
+}
+.decor.coin {
+  width: 40px;
+  height: 40px;
+  background: var(--coin);
+  top: 14%;
+  left: 14%;
+}
+.decor.star {
+  width: 28px;
+  height: 28px;
+  background: var(--star);
+  top: 22%;
+  right: 16%;
+  animation-duration: 5s;
+  border-radius: 8px;
+  transform: rotate(12deg);
+}
+.decor.dot1 {
+  width: 16px;
+  height: 16px;
+  background: var(--c-add);
+  bottom: 24%;
+  left: 22%;
+  animation-duration: 3.4s;
+}
+.decor.dot2 {
+  width: 12px;
+  height: 12px;
+  background: var(--c-crop);
+  bottom: 18%;
+  right: 24%;
+  animation-duration: 4.6s;
+}

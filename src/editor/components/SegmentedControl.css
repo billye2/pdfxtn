@@ -1,0 +1,18 @@
+.seg {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.seg-btn {
+  height: 38px;
+  background: var(--bg);
+  color: var(--ink);
+  border: 2px solid var(--cardOutlineCol);
+  box-shadow: none;
+}
+.seg-btn.active {
+  background: var(--c-sel);
+  color: var(--onColor);
+  border-color: var(--c-sel);
+  filter: none;
+}

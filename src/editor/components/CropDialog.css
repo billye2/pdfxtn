@@ -1,0 +1,52 @@
+.crop-modal {
+  width: auto;
+  max-width: 94vw;
+}
+.crop-stage {
+  position: relative;
+  margin: 0 auto;
+  background: var(--page);
+  border-radius: 6px;
+  touch-action: none;
+  cursor: crosshair;
+  overflow: hidden;
+}
+.crop-stage .crop-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.crop-rect {
+  position: absolute;
+  border: 2px solid var(--c-sel);
+  box-shadow: 0 0 0 9999px rgba(20, 16, 30, 0.42);
+}
+.crop-handle {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  border: 2px solid var(--c-sel);
+  border-radius: 3px;
+  touch-action: none;
+}
+.crop-handle.tl {
+  top: -8px;
+  left: -8px;
+  cursor: nwse-resize;
+}
+.crop-handle.tr {
+  top: -8px;
+  right: -8px;
+  cursor: nesw-resize;
+}
+.crop-handle.bl {
+  bottom: -8px;
+  left: -8px;
+  cursor: nesw-resize;
+}
+.crop-handle.br {
+  bottom: -8px;
+  right: -8px;
+  cursor: nwse-resize;
+}
