@@ -5,16 +5,18 @@ _Snapshot for picking this back up later._
 ## Status
 
 - **Product:** PDF Mana — MV3 Chrome extension, local PDF _page_ manager (Merge · Arrange · Nip · Adjust).
-- **Version:** 1.0.18 — packaged at `release/pdf-mana-1.0.18.zip` (older zips in `release/archive/`); tagged + on GitHub Releases.
+- **Version:** 1.0.20 — packaged at `release/pdf-mana-1.0.20.zip` (older zips in `release/archive/`). GitHub Releases exist through v1.0.18; the v1.0.19/v1.0.20 tags are pushed but their GitHub releases await `npm run release:publish` (agent sessions can't run it — it creates a public release).
 - **Repo:** https://github.com/billye2/pdfxtn — **public, MIT** (© Billy Ye). `main` is the working branch; release commits carry annotated `vX.Y.Z` tags and `npm run release:publish` creates the GitHub release.
-- **Chrome Web Store:** **published / live** at https://chromewebstore.google.com/detail/pdf-mana/bhkhobdaindpenllbgliigfafkkigpnk — **v1.0.16 uploaded 2026-07-06, pending review** (with refreshed listing copy). Once it clears, upload `release/pdf-mana-1.0.18.zip` (contains the a11y fixes + stale-chunk fix; v1.0.17 was never uploaded).
+- **Chrome Web Store:** **published / live** at https://chromewebstore.google.com/detail/pdf-mana/bhkhobdaindpenllbgliigfafkkigpnk — **v1.0.16 uploaded 2026-07-06, pending review** (with refreshed listing copy). Once it clears, upload `release/pdf-mana-1.0.20.zip` — it carries the a11y fixes + stale-chunk fix from v1.0.17/18 (v1.0.17–1.0.19 were never uploaded; 1.0.19/1.0.20 are internal-only on top of 1.0.18).
 - **Tests:** 140 unit (Vitest; pure logic + persistence via `fake-indexeddb` in Node, hooks via jsdom `// @vitest-environment` docblock), 30 e2e incl. axe a11y scans (Playwright; 1 pointer-drag test skipped) — all in CI — plus 15 visual-regression baselines (`npm run visual`, macOS-local, NOT in CI).
-- **Recent work (v1.0.11 → 1.0.18):** "Nighty Night" dark theme (5th Look) with themed
+- **Recent work (v1.0.11 → 1.0.20):** "Nighty Night" dark theme (5th Look) with themed
   page-render inversion; crop-box corner-handle resize; WYSIWYG crop previews
   (`lib/cropView.ts`); last-used Look persists in localStorage; dark-theme contrast
   fixes (look menu, restore banner) found by the new axe audit; App.tsx split into
   hooks/components; release automation (tags + GitHub releases); dialogs/lightbox
-  un-code-split + pdf-lib warmed at mount so tabs survive extension updates.
+  un-code-split + pdf-lib warmed at mount so tabs survive extension updates;
+  styles.css relocated into co-located per-component files + `styles/base.css`
+  (v1.0.19); CI hygiene — prettier gate satisfied, actions@v5, Node 22 (v1.0.20).
 
 ## Commands
 
