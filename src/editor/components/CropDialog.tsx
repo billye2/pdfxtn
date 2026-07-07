@@ -65,7 +65,7 @@ export default function CropDialog({
     return () => {
       cancelled = true;
     };
-  }, [doc, page.pageIndex]);
+  }, [doc, page.pageIndex, page.crop]);
 
   function rel(e: React.PointerEvent) {
     const r = stageRef.current!.getBoundingClientRect();
