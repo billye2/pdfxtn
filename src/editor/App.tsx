@@ -12,6 +12,7 @@ import EditorDialogs from './components/EditorDialogs';
 import { initialHistory, reducer, type AppState } from './store';
 import type { LoadedDoc } from './lib/pdfRender';
 import { lookStyle, loadSavedLook, saveLook, type LookId } from './themes';
+import { loadPdfLib } from './lib/pdfLib';
 import { useToast } from './hooks/useToast';
 import { useDialogs } from './hooks/useDialogs';
 import { useExport } from './hooks/useExport';
@@ -71,6 +72,14 @@ export default function App() {
   // The look is a standalone preference: remember it across sessions, with or
   // without a document loaded (the autosave above only runs in the editor).
   useEffect(() => saveLook(look), [look]);
+
+  // Warm the pdf-lib chunk right after mount. It stays a separate chunk so it
+  // doesn't slow first paint, but fetching it up front means a Chrome
+  // extension update mid-session can't strand the tab unable to export (the
+  // updated extension deletes the old content-hashed chunk files).
+  useEffect(() => {
+    loadPdfLib().catch(() => {});
+  }, []);
 
   const { restorable, clearRestorable, restoreSession, discardSession } =
     useSessionRestore({ dispatch, setDocs, setLook, setAppState, showToast });

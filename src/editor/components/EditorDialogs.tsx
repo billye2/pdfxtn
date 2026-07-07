@@ -1,20 +1,20 @@
-import { lazy, Suspense, type Dispatch, type SetStateAction } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import type { Action } from '../store';
 import type { PageDescriptor } from '../lib/pageModel';
 import type { LoadedDoc } from '../lib/pdfRender';
 import type { useDialogs } from '../hooks/useDialogs';
 import type { useExport } from '../hooks/useExport';
-import type { MixGroup } from './MixDialog';
-
-// Modals and the lightbox are only ever shown on demand, so they load in their
-// own chunks — this keeps the initial editor bundle lean (see the Suspense wrap
-// around their render below).
-const CropDialog = lazy(() => import('./CropDialog'));
-const RangeDialog = lazy(() => import('./RangeDialog'));
-const MixDialog = lazy(() => import('./MixDialog'));
-const SplitEveryDialog = lazy(() => import('./SplitEveryDialog'));
-const ImagesDialog = lazy(() => import('./ImagesDialog'));
-const Lightbox = lazy(() => import('./Lightbox'));
+// Static imports on purpose — these were lazy() chunks once, but a Chrome
+// extension auto-updates in place: an editor tab opened before the update can
+// no longer fetch the old content-hashed chunk files, so the first dialog/
+// preview open after an update threw "Failed to fetch dynamically imported
+// module". The ~14 KB these add to the main bundle is read from disk anyway.
+import CropDialog from './CropDialog';
+import RangeDialog from './RangeDialog';
+import MixDialog, { type MixGroup } from './MixDialog';
+import SplitEveryDialog from './SplitEveryDialog';
+import ImagesDialog from './ImagesDialog';
+import Lightbox from './Lightbox';
 
 interface Props {
   dialogs: ReturnType<typeof useDialogs>;
@@ -67,7 +67,7 @@ export default function EditorDialogs({
   const cropRefDoc = cropRefPage ? docs.get(cropRefPage.docId) : undefined;
 
   return (
-    <Suspense fallback={null}>
+    <>
       {dialogs.isOpen('crop') && cropRefPage && cropRefDoc && (
         <CropDialog
           page={cropRefPage}
@@ -166,6 +166,6 @@ export default function EditorDialogs({
           onClose={() => setPreviewIndex(null)}
         />
       )}
-    </Suspense>
+    </>
   );
 }
