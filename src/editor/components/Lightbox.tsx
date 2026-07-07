@@ -71,7 +71,7 @@ export default function Lightbox({
 
       <div className="lightbox-body" onClick={(e) => e.stopPropagation()}>
         <div className="lightbox-stagewrap">
-          <div className="lightbox-view" ref={viewRef}>
+          <div className="lightbox-view" ref={viewRef} tabIndex={0}>
             <div
               className={`lightbox-stage${loading ? ' loading' : ''}`}
               style={{

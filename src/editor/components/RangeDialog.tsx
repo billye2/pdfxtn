@@ -34,6 +34,7 @@ export default function RangeDialog({ total, onExport, onCancel }: Props) {
 
       <input
         className="range-input"
+        aria-label="Page range"
         autoFocus
         placeholder="e.g. 1-3, 5, 8-10"
         value={value}

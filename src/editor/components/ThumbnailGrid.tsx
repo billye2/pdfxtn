@@ -62,6 +62,8 @@ export default function ThumbnailGrid({
       <SortableContext items={pages.map((p) => p.id)} strategy={rectSortingStrategy}>
         <div
           className="grid"
+          role="list"
+          aria-label="Pages"
           onClick={(e) => {
             // Clicking the grid background (not a card) clears the selection.
             if (e.target === e.currentTarget) onClearSelection();

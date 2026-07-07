@@ -20,7 +20,7 @@ export const LOOKS: Record<LookId, Look> = {
       bgImage: 'radial-gradient(rgba(54,50,79,0.06) 1.6px, transparent 1.6px)',
       bgSize: '22px 22px',
       ink: '#36324f',
-      sub: '#9a8d86',
+      sub: '#7a6d66',
       barBg: '#fdf3e2',
       card: '#ffffff',
       cardOutline: '2.5px solid #f0e1c5',

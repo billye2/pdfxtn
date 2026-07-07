@@ -30,6 +30,7 @@ export default function SplitEveryDialog({ total, onApply, onCancel }: Props) {
         <input
           className="range-input split-n"
           type="number"
+          aria-label="Pages per part"
           min={1}
           max={total - 1}
           autoFocus

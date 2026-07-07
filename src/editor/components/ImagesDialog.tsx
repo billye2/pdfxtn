@@ -87,6 +87,7 @@ export default function ImagesDialog({
         <>
           <input
             className="range-input"
+            aria-label="Custom page range"
             autoFocus
             placeholder="e.g. 1-3, 5, 8-10"
             value={range}

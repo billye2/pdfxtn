@@ -34,6 +34,7 @@
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
     "@crxjs/vite-plugin": "^2.0.0-beta.34",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.0",

@@ -152,6 +152,11 @@ export default function PageThumb({
       }
     : undefined;
 
+  // dnd-kit's sortable attributes default to role="button", but the card
+  // contains real buttons (rotate/split/delete/expand) — an interactive role
+  // with focusable descendants is invalid (axe: nested-interactive). listitem
+  // keeps the card focusable via dnd-kit's tabIndex without promising
+  // Enter/Space activation it doesn't have.
   return (
     <div
       ref={setRefs}
@@ -170,6 +175,7 @@ export default function PageThumb({
       onPointerUp={peek.onPointerUp}
       onPointerCancel={peek.onPointerCancel}
       {...attributes}
+      role="listitem"
       {...listeners}
       onPointerDown={onPointerDown}
     >
