@@ -66,7 +66,8 @@ Everything you need to paste into the Developer Dashboard for PDF Mana.
 > ⌨️ **Accessible** — reorder and edit pages entirely from the keyboard, with screen-reader
 > announcements as you go.
 >
-> 🎨 **Make it yours** — four playful themes, undo/redo, and handy keyboard shortcuts.
+> 🎨 **Make it yours** — five playful themes (including a dark mode) that remember
+> your pick, undo/redo, and handy keyboard shortcuts.
 >
 > **Private by design**
 >

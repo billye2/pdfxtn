@@ -26,7 +26,8 @@ Nothing is uploaded; all parsing and writing happens locally.
 - **Peek** — on a touch screen, press and hold a page for a quick enlarged look (handy for
   confirming the right page before reordering on a small display)
 - **Page labels stay original** — a page keeps its source page number after reordering
-- **Four themes** — switchable "Looks" (Blocks, Bubble, Sticker, Sunny)
+- **Five themes** — switchable "Looks" (Blocks, Bubble, Sticker, Sunny, and the
+  Nighty Night dark theme); your last pick is remembered across sessions
 - **Undo / redo** (Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z), select-all, Esc to clear
 - **Autosave & restore** — your session is saved locally (IndexedDB) as you work, so an
   accidental reload offers a one-click "Restore your previous work?"
@@ -112,7 +113,7 @@ src/
   editor/
     App.tsx            top-level state wiring
     store.ts           reducer + undo/redo history
-    themes.ts          the four Looks (CSS-var token sets)
+    themes.ts          the five Looks (CSS-var token sets) + saved-look storage
     components/        Header, Toolbar, ThumbnailGrid, PageThumb, PagePeek, Lightbox,
                        CropDialog, RangeDialog, ImagesDialog, MixDialog, SplitEveryDialog,
                        SelectionDock, EmptyState, LoadingState, Toast, DragOverlay
