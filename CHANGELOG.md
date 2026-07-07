@@ -4,6 +4,30 @@ All notable changes to PDF Mana are documented here. This project follows
 [Keep a Changelog](https://keepachangelog.com/) conventions and
 [Semantic Versioning](https://semver.org/).
 
+## [1.0.17] — 2026-07-07
+
+### Fixed
+
+- The "Restore your previous work?" banner was unreadable (light-on-light) in
+  the Nighty Night theme; it now uses the themed card surface.
+- Muted labels in the Blocks theme (header subtitle, status, captions) were
+  below the WCAG AA contrast ratio; darkened from 3.2:1 to 5.0:1.
+- Screen readers: page cards no longer announce as buttons nested inside a
+  button (they're a proper list now), the Split-every/Range/Images inputs have
+  labels, and the preview's scroll area is keyboard-focusable.
+
+### Internal
+
+- Accessibility is now audited automatically: axe-core (WCAG 2.1 AA) scans of
+  every key screen, in light and dark Looks, run with the e2e suite in CI.
+- New theme-matrix visual regression suite (`npm run visual`) screenshots the
+  grid, crop dialog, and lightbox in all five Looks against committed
+  baselines — the class of bug behind the two dark-theme contrast fixes.
+- Releases are now tagged and published to GitHub Releases by
+  `npm run release` / `npm run release:publish`.
+- `App.tsx` refactored (627 → 286 lines) into focused, unit-tested hooks and
+  components; behavior verified pixel-identical by the visual suite.
+
 ## [1.0.16] — 2026-07-06
 
 ### Added
