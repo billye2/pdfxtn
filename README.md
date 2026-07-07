@@ -93,15 +93,18 @@ pure transform over that list, which keeps edits non-destructive and undoable.
 - **Unit** (`npm test`) — pure logic: `pageModel` transforms, `pageRange` parsing, and the
   `pdfExport` pipeline (page count/order, rotation, crop box, merge, and a resource
   de-duplication regression test) plus IndexedDB persistence via `fake-indexeddb`. The editor
-  hooks (`useToast`, `useDialogs`, `useExport`, `usePeek`) are tested via
-  `@testing-library/react`'s `renderHook` — those files opt into a jsdom environment with a
-  `// @vitest-environment jsdom` docblock; everything else runs in Node.
+  hooks are tested via `@testing-library/react`'s `renderHook` — those files opt into a jsdom
+  environment with a `// @vitest-environment jsdom` docblock; everything else runs in Node.
 - **E2E** (`npm run e2e`) — loads the built extension in headless Chromium and exercises
   load/render, delete, rotate, extract, Mix, split-every-N, range export, images↔PDF
   (incl. the single-`.zip` bundle), the lightbox, theme switching, keyboard reorder + undo,
   the Space-toggle preview, and the autosave reload→restore round-trip. (Pointer drag-reorder
   is the one skipped case — dnd-kit's pointer sensor doesn't engage with synthetic events;
-  it's covered by `pageModel` unit tests and the keyboard-reorder e2e.)
+  it's covered by `pageModel` unit tests and the keyboard-reorder e2e.) The same run scans
+  key screens with **axe-core** (WCAG 2.1 AA) in the default and dark Looks.
+- **Visual regression** (`npm run visual`) — screenshots the grid, crop dialog, and lightbox
+  in all five Looks against committed baselines (macOS-local; `visual:update` regenerates
+  them after intentional UI changes).
 
 ## Project layout
 
@@ -115,9 +118,12 @@ src/
     store.ts           reducer + undo/redo history
     themes.ts          the five Looks (CSS-var token sets) + saved-look storage
     components/        Header, Toolbar, ThumbnailGrid, PageThumb, PagePeek, Lightbox,
-                       CropDialog, RangeDialog, ImagesDialog, MixDialog, SplitEveryDialog,
-                       SelectionDock, EmptyState, LoadingState, Toast, DragOverlay
-    hooks/             useToast, useDialogs, useExport, useAutosave, usePeek
+                       Banners, EditorDialogs, CropDialog, RangeDialog, ImagesDialog,
+                       MixDialog, SplitEveryDialog, SelectionDock, EmptyState,
+                       LoadingState, Toast, DragOverlay
+    hooks/             useToast, useDialogs, useExport, useAutosave, usePeek,
+                       useSessionRestore, usePendingSource, useFileIngest,
+                       useKeyboardShortcuts
     lib/
       pageModel.ts     PageDescriptor type + pure operations
       ingest.ts        load PDFs / images from file, URL, or tab
