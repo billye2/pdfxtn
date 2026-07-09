@@ -2,6 +2,8 @@
 export {
   ArrowLeftRight,
   Copy,
+  FileOutput,
+  Images,
   RotateCcw,
   RotateCw,
   Scissors,

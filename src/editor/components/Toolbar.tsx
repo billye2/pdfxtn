@@ -1,6 +1,8 @@
 import { useRef } from 'react';
 import {
   ArrowLeftRight,
+  FileOutput,
+  Images,
   Plus,
   RotateCw,
   Crop,
@@ -44,7 +46,11 @@ export default function Toolbar(props: Props) {
   return (
     <div className="toolbar">
       <div className="tgroup">
-        <button className="btn-add" onClick={() => fileRef.current?.click()}>
+        <button
+          className="btn-add"
+          title="Add PDFs or JPG/PNG images — pages append to the document"
+          onClick={() => fileRef.current?.click()}
+        >
           <Plus size={16} /> Add PDF
         </button>
         <input
@@ -61,11 +67,16 @@ export default function Toolbar(props: Props) {
       </div>
 
       <div className="tgroup">
-        <button className="btn-secondary" onClick={props.onSelectAll}>
+        <button
+          className="btn-secondary"
+          title="Select every page (Cmd/Ctrl+A)"
+          onClick={props.onSelectAll}
+        >
           Select all
         </button>
         <button
           className="btn-secondary"
+          title="Clear the selection (Esc)"
           onClick={props.onClearSelection}
           disabled={!hasSel}
         >
@@ -78,18 +89,33 @@ export default function Toolbar(props: Props) {
       <div className="tgroup">
         <button
           className="btn-rotate"
+          title="Rotate the picked pages 90° clockwise"
           onClick={() => props.onRotateSelected(90)}
           disabled={!hasSel}
         >
           <RotateCw size={16} /> Rotate
         </button>
-        <button className="btn-crop" onClick={props.onOpenCrop}>
+        <button
+          className="btn-crop"
+          title="Draw one crop and apply it to all or just the picked pages"
+          onClick={props.onOpenCrop}
+        >
           <Crop size={16} /> Crop
         </button>
-        <button className="btn-split" onClick={props.onSplit} disabled={!hasSel}>
+        <button
+          className="btn-split"
+          title="Mark a split after each picked page — Save then makes one file per part"
+          onClick={props.onSplit}
+          disabled={!hasSel}
+        >
           <Scissors size={16} /> Split
         </button>
-        <button className="btn-del" onClick={props.onDeleteSelected} disabled={!hasSel}>
+        <button
+          className="btn-del"
+          title="Delete the picked pages (Delete)"
+          onClick={props.onDeleteSelected}
+          disabled={!hasSel}
+        >
           <X size={16} /> Delete
         </button>
       </div>
@@ -105,7 +131,11 @@ export default function Toolbar(props: Props) {
         >
           <Shuffle size={16} /> Mix
         </button>
-        <button className="btn-secondary" onClick={props.onOpenSplitEvery}>
+        <button
+          className="btn-secondary"
+          title="Add a split mark every N pages"
+          onClick={props.onOpenSplitEvery}
+        >
           <SplitSquareHorizontal size={16} /> Split every…
         </button>
         <button
@@ -118,14 +148,28 @@ export default function Toolbar(props: Props) {
         </button>
       </div>
 
-      <button className="btn-secondary" onClick={props.onOpenRange}>
-        Export range…
+      <button
+        className="btn-secondary icon-btn"
+        aria-label="Export range…"
+        title="Export range… — save pages by position (e.g. 1-3, 5)"
+        onClick={props.onOpenRange}
+      >
+        <FileOutput size={18} />
       </button>
-      <button className="btn-secondary" onClick={props.onOpenImages}>
-        Export images…
+      <button
+        className="btn-secondary icon-btn"
+        aria-label="Export images…"
+        title="Export images… — save pages as PNG or JPG"
+        onClick={props.onOpenImages}
+      >
+        <Images size={18} />
       </button>
       {props.hasCrop && (
-        <button className="btn-secondary" onClick={props.onClearCrop}>
+        <button
+          className="btn-secondary"
+          title="Remove the crop from every page"
+          onClick={props.onClearCrop}
+        >
           Clear crop
         </button>
       )}
