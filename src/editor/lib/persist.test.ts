@@ -85,11 +85,11 @@ describe('persist', () => {
       savedAt: 2,
       pages: mkPages(1, 'd1'),
       splitMarks: [],
-      look: 'sunny',
+      look: 'sticker',
     });
     const s = await loadSession();
     expect(s!.state.pages).toHaveLength(1);
-    expect(s!.state.look).toBe('sunny');
+    expect(s!.state.look).toBe('sticker');
   });
 
   it('clearSession wipes both stores', async () => {

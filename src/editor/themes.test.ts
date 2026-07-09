@@ -37,6 +37,6 @@ describe('look persistence', () => {
   it('degrades to the default when storage is unavailable', () => {
     delete (globalThis as { localStorage?: unknown }).localStorage;
     expect(loadSavedLook()).toBe('blocks');
-    expect(() => saveLook('sunny')).not.toThrow();
+    expect(() => saveLook('sticker')).not.toThrow();
   });
 });

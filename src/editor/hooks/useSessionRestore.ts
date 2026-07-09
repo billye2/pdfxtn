@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, type Dispatch } from 'react';
 import type { Action, AppState } from '../store';
 import { clearSession, loadSession, type RestoredSession } from '../lib/persist';
 import { loadDoc, type LoadedDoc } from '../lib/pdfRender';
-import type { LookId } from '../themes';
+import { LOOKS, type LookId } from '../themes';
 
 interface Args {
   dispatch: Dispatch<Action>;
@@ -56,7 +56,8 @@ export function useSessionRestore({
         pages: session.state.pages,
         splitMarks: session.state.splitMarks,
       });
-      setLook(session.state.look as LookId);
+      // Sessions may hold a look that no longer exists (e.g. removed 'sunny').
+      if (session.state.look in LOOKS) setLook(session.state.look as LookId);
       setAppState('editor');
       showToast(`Restored ${session.state.pages.length} pages`);
     } catch (e) {
