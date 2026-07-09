@@ -790,3 +790,156 @@ test('persistence: Discard dismisses the offer and clears the session', async ()
       }),
   );
 });
+
+test('duplicate: dock button and Cmd/Ctrl+D copy the picked pages', async () => {
+  const page = await openEditor();
+  await drop(page, [
+    pdf(
+      'dup.pdf',
+      await makePdf([
+        [100, 1],
+        [200, 1],
+      ]),
+    ),
+  ]);
+  await expect(page.locator('.card')).toHaveCount(2);
+
+  await page.locator('.card').nth(0).click();
+  await page.getByRole('button', { name: 'Duplicate' }).click();
+  await expect(page.locator('.card')).toHaveCount(3);
+
+  // The copy is selected — rotate it via the dock to prove the copy is
+  // independent of its original in the export.
+  await page.locator('.dock').getByRole('button', { name: 'Rotate' }).click();
+
+  // Cmd/Ctrl+D duplicates the (still selected) copy; undo removes it again.
+  await page.keyboard.press('ControlOrMeta+d');
+  await expect(page.locator('.card')).toHaveCount(4);
+  await page.keyboard.press('ControlOrMeta+z');
+  await expect(page.locator('.card')).toHaveCount(3);
+
+  const dl = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save PDF' }).click();
+  const out = await PDFDocument.load(readFileSync(await (await dl).path()));
+  expect(out.getPages().map((p) => Math.round(p.getWidth()))).toEqual([100, 100, 200]);
+  expect(out.getPages().map((p) => p.getRotation().angle)).toEqual([0, 90, 0]);
+});
+
+test('reverse: flips all pages, or just the picked ones', async () => {
+  const page = await openEditor();
+  await drop(page, [
+    pdf(
+      'rev.pdf',
+      await makePdf([
+        [100, 1],
+        [200, 1],
+        [300, 1],
+      ]),
+    ),
+  ]);
+  await expect(page.locator('.card')).toHaveCount(3);
+
+  // No selection → the whole document reverses.
+  await page.getByRole('button', { name: 'Reverse page order' }).click();
+  const dl1 = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save PDF' }).click();
+  expect(await widths(await dl1)).toEqual([300, 200, 100]);
+
+  // Pick the first two pages (300, 200) → only they swap.
+  await page.locator('.card').nth(0).click();
+  await page
+    .locator('.card')
+    .nth(1)
+    .click({ modifiers: ['ControlOrMeta'] });
+  await page.getByRole('button', { name: 'Reverse picked pages' }).click();
+  const dl2 = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save PDF' }).click();
+  expect(await widths(await dl2)).toEqual([200, 300, 100]);
+});
+
+test('Un-mix pulls an interleaved document apart into two files', async () => {
+  const page = await openEditor();
+  // One interleaved doc: front, back, front, back.
+  await drop(page, [
+    pdf(
+      'inter.pdf',
+      await makePdf([
+        [100, 1],
+        [200, 1],
+        [101, 1],
+        [201, 1],
+      ]),
+    ),
+  ]);
+  await expect(page.locator('.card')).toHaveCount(4);
+
+  // Mix is enabled for a single doc now, and the dialog opens in Un-mix mode.
+  await page.locator('.toolbar').getByRole('button', { name: 'Mix' }).click();
+  await expect(page.getByRole('button', { name: 'Un-mix pages' })).toBeVisible();
+  // "Split into two files" is on by default — apply as-is.
+  await page.getByRole('button', { name: 'Un-mix pages' }).click();
+
+  const downloads: Download[] = [];
+  page.on('download', (d) => downloads.push(d));
+  await page.getByRole('button', { name: 'Save PDF' }).click();
+  await expect.poll(() => downloads.length, { timeout: 10_000 }).toBe(2);
+  expect(await widths(downloads[0])).toEqual([100, 101]); // fronts
+  expect(await widths(downloads[1])).toEqual([200, 201]); // backs
+});
+
+test('insert blank: follows a rotated neighbor page orientation', async () => {
+  const page = await openEditor();
+  await drop(page, [pdf('rotblank.pdf', await makePdf([[300, 500]]))]);
+  await expect(page.locator('.card')).toHaveCount(1);
+
+  // Rotate the page to landscape, then insert a blank after it — the blank
+  // should match the page as displayed (500×300), not its stored size.
+  await page.locator('.card').first().getByRole('button', { name: 'Rotate' }).click();
+  await page.locator('.card').nth(0).click();
+  await page.getByRole('button', { name: 'Blank page' }).click();
+  await expect(page.locator('.card')).toHaveCount(2);
+
+  const dl = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save PDF' }).click();
+  const out = await PDFDocument.load(readFileSync(await (await dl).path()));
+  expect(Math.round(out.getPage(1).getWidth())).toBe(500);
+  expect(Math.round(out.getPage(1).getHeight())).toBe(300);
+});
+
+test('insert blank: matches the neighbor page size and survives a reload', async () => {
+  const page = await openEditor();
+  await drop(page, [pdf('blank.pdf', await makePdf([[300, 500]]))]);
+  await expect(page.locator('.card')).toHaveCount(1);
+
+  await page.locator('.card').nth(0).click();
+  await page.getByRole('button', { name: 'Blank page' }).click();
+  await expect(page.locator('.card')).toHaveCount(2);
+
+  const dl = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save PDF' }).click();
+  const out = await PDFDocument.load(readFileSync(await (await dl).path()));
+  expect(out.getPageCount()).toBe(2);
+  expect(Math.round(out.getPage(1).getWidth())).toBe(300);
+  expect(Math.round(out.getPage(1).getHeight())).toBe(500);
+
+  // The synthetic blank doc must round-trip through autosave/restore.
+  await page.waitForTimeout(1200);
+  await page.reload();
+  const banner = page.locator('.restore-banner');
+  await expect(banner).toBeVisible({ timeout: 5_000 });
+  await banner.getByRole('button', { name: 'Restore' }).click();
+  await expect(page.locator('.card')).toHaveCount(2);
+
+  const dl2 = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save PDF' }).click();
+  expect(await widths(await dl2)).toEqual([300, 300]);
+
+  // Tidy up so the saved session doesn't leak into other runs.
+  await page.evaluate(
+    () =>
+      new Promise<void>((res) => {
+        const r = indexedDB.deleteDatabase('pdf-mana');
+        r.onsuccess = r.onerror = r.onblocked = () => res();
+      }),
+  );
+});

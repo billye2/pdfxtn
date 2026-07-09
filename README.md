@@ -10,10 +10,15 @@ Nothing is uploaded; all parsing and writing happens locally.
 - **Reorder** pages — drag a whole card anywhere to move it, or select a page and
   nudge it with the ← / → arrow keys
 - **Delete / extract** — remove pages, or "Keep these" to extract only the selected ones
+- **Duplicate** pages (Cmd/Ctrl+D) — copies land right after their originals
 - **Rotate** pages (per page or across a selection)
+- **Reverse** the page order — the whole document, or just the selected pages
 - **Merge** — add multiple PDFs and they append into one document
 - **Mix / interleave** — combine documents alternately; one-click preset for
   double-sided scans done on a single-sided feeder
+- **Un-mix** — the inverse: pull an interleaved document back apart into fronts and
+  backs, optionally straight into two files
+- **Insert a blank page** — sized and oriented to match its neighbor
 - **Split** — mark boundaries by hand, or **Split every N pages**; export one file per part
 - **Crop** — draw one region and apply it to all or just the selected pages
 - **Images → PDF** — drop JPG/PNG files in and they become pages

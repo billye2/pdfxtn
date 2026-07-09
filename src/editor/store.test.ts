@@ -148,6 +148,141 @@ describe('deleteSelected / extractSelected', () => {
   });
 });
 
+describe('duplicateSelected', () => {
+  it('inserts copies after the originals and selects the copies', () => {
+    let h = historyWith(3);
+    h = reducer(h, { type: 'toggleSelect', id: 'p1', additive: false });
+    h = reducer(h, { type: 'duplicateSelected' });
+    expect(ids(h)).toEqual(['p0', 'p1', h.present.pages[2].id, 'p2']);
+    expect(h.present.selected).toEqual(new Set([h.present.pages[2].id]));
+    expect(h.past).toHaveLength(2); // addPages + duplicate
+  });
+
+  it('preserves split marks', () => {
+    let h = reducer(historyWith(3), { type: 'toggleSplitMark', id: 'p0' });
+    h = reducer(h, { type: 'toggleSelect', id: 'p2', additive: false });
+    h = reducer(h, { type: 'duplicateSelected' });
+    expect(h.present.splitMarks).toEqual(new Set(['p0']));
+  });
+
+  it('is a no-op with nothing selected', () => {
+    const start = historyWith(3);
+    expect(reducer(start, { type: 'duplicateSelected' })).toBe(start);
+  });
+
+  it('undo removes the copies and restores the selection state', () => {
+    let h = historyWith(2);
+    h = reducer(h, { type: 'toggleSelect', id: 'p0', additive: false });
+    h = reducer(h, { type: 'duplicateSelected' });
+    h = reducer(h, { type: 'undo' });
+    expect(ids(h)).toEqual(['p0', 'p1']);
+  });
+});
+
+describe('reverse', () => {
+  it('reverses all pages when fewer than 2 are selected', () => {
+    const h = reducer(historyWith(3), { type: 'reverse' });
+    expect(ids(h)).toEqual(['p2', 'p1', 'p0']);
+    expect(h.past).toHaveLength(2);
+  });
+
+  it('reverses only the selected pages within their slots', () => {
+    let h = historyWith(4);
+    h = reducer(h, { type: 'toggleSelect', id: 'p0', additive: true });
+    h = reducer(h, { type: 'toggleSelect', id: 'p3', additive: true });
+    h = reducer(h, { type: 'reverse' });
+    expect(ids(h)).toEqual(['p3', 'p1', 'p2', 'p0']);
+  });
+
+  it('is a history no-op on a single page', () => {
+    const start = historyWith(1);
+    expect(reducer(start, { type: 'reverse' })).toBe(start);
+  });
+});
+
+describe('unmix', () => {
+  it('reorders to fronts-then-backs and marks the split between halves', () => {
+    const h = reducer(historyWith(5), {
+      type: 'unmix',
+      reverseSecond: false,
+      markSplit: true,
+    });
+    expect(ids(h)).toEqual(['p0', 'p2', 'p4', 'p1', 'p3']);
+    expect(h.present.splitMarks).toEqual(new Set(['p4'])); // last front
+    expect(h.present.selected.size).toBe(0);
+  });
+
+  it('reverses the second half when asked', () => {
+    const h = reducer(historyWith(4), {
+      type: 'unmix',
+      reverseSecond: true,
+      markSplit: false,
+    });
+    expect(ids(h)).toEqual(['p0', 'p2', 'p3', 'p1']);
+    expect(h.present.splitMarks.size).toBe(0);
+  });
+
+  it('clears pre-existing split marks when markSplit is false', () => {
+    let h = reducer(historyWith(4), { type: 'toggleSplitMark', id: 'p1' });
+    h = reducer(h, { type: 'unmix', reverseSecond: false, markSplit: false });
+    expect(h.present.splitMarks.size).toBe(0);
+  });
+
+  it('a single undo restores both the order and the marks', () => {
+    let h = reducer(historyWith(4), { type: 'toggleSplitMark', id: 'p1' });
+    h = reducer(h, { type: 'unmix', reverseSecond: false, markSplit: true });
+    h = reducer(h, { type: 'undo' });
+    expect(ids(h)).toEqual(['p0', 'p1', 'p2', 'p3']);
+    expect(h.present.splitMarks).toEqual(new Set(['p1']));
+  });
+
+  it('is a no-op on fewer than 2 pages', () => {
+    const start = historyWith(1);
+    expect(reducer(start, { type: 'unmix', reverseSecond: false, markSplit: true })).toBe(
+      start,
+    );
+  });
+});
+
+describe('insertPages', () => {
+  const blank = (id: string): PageDescriptor => ({
+    id,
+    docId: 'blank1',
+    pageIndex: 0,
+    rotation: 0,
+  });
+
+  it('splices pages in at the index and selects them', () => {
+    const h = reducer(historyWith(3), {
+      type: 'insertPages',
+      pages: [blank('b0')],
+      at: 1,
+    });
+    expect(ids(h)).toEqual(['p0', 'b0', 'p1', 'p2']);
+    expect(h.present.selected).toEqual(new Set(['b0']));
+  });
+
+  it('clamps an out-of-range index', () => {
+    const h = reducer(historyWith(2), {
+      type: 'insertPages',
+      pages: [blank('b0')],
+      at: 99,
+    });
+    expect(ids(h)).toEqual(['p0', 'p1', 'b0']);
+  });
+
+  it('preserves split marks', () => {
+    let h = reducer(historyWith(3), { type: 'toggleSplitMark', id: 'p1' });
+    h = reducer(h, { type: 'insertPages', pages: [blank('b0')], at: 0 });
+    expect(h.present.splitMarks).toEqual(new Set(['p1']));
+  });
+
+  it('is a no-op with an empty page list', () => {
+    const start = historyWith(2);
+    expect(reducer(start, { type: 'insertPages', pages: [], at: 1 })).toBe(start);
+  });
+});
+
 describe('rotation', () => {
   it('rotateSelected turns only selected pages', () => {
     let h = historyWith(3);

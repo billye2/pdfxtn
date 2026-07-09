@@ -1,10 +1,12 @@
-import { RotateCw, Crop, CopyCheck, X } from './icons';
+import { RotateCw, Crop, Copy, Plus, CopyCheck, X } from './icons';
 import './SelectionDock.css';
 
 interface Props {
   count: number;
   onRotate: (delta: 90 | -90) => void;
   onCrop: () => void;
+  onDuplicate: () => void;
+  onInsertBlank: () => void;
   onExtract: () => void;
   onDelete: () => void;
   onClear: () => void;
@@ -14,6 +16,8 @@ export default function SelectionDock({
   count,
   onRotate,
   onCrop,
+  onDuplicate,
+  onInsertBlank,
   onExtract,
   onDelete,
   onClear,
@@ -31,6 +35,22 @@ export default function SelectionDock({
       <button className="btn-crop dock-btn" onClick={onCrop}>
         <Crop size={16} />
         Crop
+      </button>
+      <button
+        className="btn-go dock-btn"
+        title="Duplicate the picked pages (Cmd/Ctrl+D)"
+        onClick={onDuplicate}
+      >
+        <Copy size={16} />
+        Duplicate
+      </button>
+      <button
+        className="btn-secondary dock-btn"
+        title="Insert a blank page after the last picked page"
+        onClick={onInsertBlank}
+      >
+        <Plus size={16} />
+        Blank page
       </button>
       <button className="btn-add dock-btn" onClick={onExtract}>
         <CopyCheck size={16} />

@@ -60,6 +60,22 @@ export async function ingestImages(files: File[]): Promise<IngestResult> {
 }
 
 /**
+ * Create a one-page blank PDF of the given point size and load it as a normal
+ * source doc, so descriptors, thumbnails, export, and persistence need no
+ * special cases for blank pages.
+ */
+export async function createBlankDoc(
+  width: number,
+  height: number,
+): Promise<IngestResult> {
+  const { PDFDocument } = await loadPdfLib();
+  const pdf = await PDFDocument.create();
+  pdf.addPage([width, height]);
+  const out = await pdf.save();
+  return ingestBytes('Blank page.pdf', out);
+}
+
+/**
  * Ensure we have host access to fetch `url`. Requests only that PDF's origin
  * (not all sites) at runtime; must be called from a user gesture. Non-http(s)
  * URLs (file://, etc.) aren't origin-gated — they rely on the browser's

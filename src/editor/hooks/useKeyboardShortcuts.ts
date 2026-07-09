@@ -76,6 +76,12 @@ export function useKeyboardShortcuts({
       } else if (mod && e.key.toLowerCase() === 'y') {
         e.preventDefault();
         dispatch({ type: 'redo' });
+      } else if (mod && e.key.toLowerCase() === 'd' && !typing && selected.size > 0) {
+        // Only intercept Cmd/Ctrl+D when it duplicates something, so the
+        // browser's bookmark shortcut still works otherwise.
+        e.preventDefault();
+        dispatch({ type: 'duplicateSelected' });
+        setLiveMsg(`Duplicated ${selected.size} page${selected.size === 1 ? '' : 's'}.`);
       } else if (mod && e.key.toLowerCase() === 'a' && !typing) {
         e.preventDefault();
         dispatch({ type: 'selectAll' });

@@ -30,6 +30,9 @@ const HELP_TIPS = [
   'Tip: double-click a page, tap the magnifier, or press Space to preview it large — scroll to see the rest.',
   'Tip: on a touch screen, press and hold a page to peek at it while you reorder.',
   'Tip: use Mix to interleave two PDFs — perfect for double-sided scans.',
+  'Tip: Un-mix (inside Mix) pulls an interleaved scan back apart into fronts and backs.',
+  'Tip: Cmd/Ctrl+D duplicates the picked pages; the reverse button flips the page order.',
+  'Tip: pick a page, then "Blank page" to slip in an empty page right after it.',
   'Tip: Split every N pages, then Save to get one file per chunk.',
   'Tip: drop JPG or PNG files right in — they become PDF pages instantly.',
   'Tip: Export images as PNG or JPG (up to 3×) — bundle them into one .zip in a click.',
@@ -56,7 +59,6 @@ export default function App() {
 
   const { pages, selected, splitMarks } = history.present;
   const hasCrop = pages.some((p) => p.crop);
-  const canMix = new Set(pages.map((p) => p.docId)).size >= 2;
 
   const { toast, showToast } = useToast();
   const dialogs = useDialogs();
@@ -96,7 +98,7 @@ export default function App() {
     clearRestorable,
   });
 
-  const { addFiles, pickFiles } = useFileIngest({
+  const { addFiles, pickFiles, insertBlank } = useFileIngest({
     dispatch,
     setDocs,
     setAppState,
@@ -202,7 +204,8 @@ export default function App() {
         <Toolbar
           selectedCount={selected.size}
           hasCrop={hasCrop}
-          canMix={canMix}
+          canOpenMix={pages.length >= 2}
+          canReverse={pages.length >= 2}
           canUndo={history.past.length > 0}
           canRedo={history.future.length > 0}
           onAddFiles={addFiles}
@@ -214,6 +217,14 @@ export default function App() {
           onSplit={applySplitToSelection}
           onOpenSplitEvery={() => dialogs.openDialog('splitEvery')}
           onOpenMix={() => dialogs.openDialog('mix')}
+          onReverse={() => {
+            dispatch({ type: 'reverse' });
+            showToast(
+              selected.size >= 2
+                ? 'Reversed the picked pages'
+                : 'Reversed the page order',
+            );
+          }}
           onClearCrop={() =>
             dispatch({ type: 'applyCrop', crop: undefined, scope: 'all' })
           }
@@ -266,6 +277,19 @@ export default function App() {
           count={selected.size}
           onRotate={(delta) => dispatch({ type: 'rotateSelected', delta })}
           onCrop={() => dialogs.openDialog('crop')}
+          onDuplicate={() => {
+            const n = selected.size;
+            dispatch({ type: 'duplicateSelected' });
+            showToast(`Duplicated ${n} page${n === 1 ? '' : 's'}`);
+          }}
+          onInsertBlank={() => {
+            // Insert after the highest-position selected page.
+            let last = -1;
+            pages.forEach((p, i) => {
+              if (selected.has(p.id)) last = i;
+            });
+            insertBlank(pages, docs, last);
+          }}
           onExtract={() => {
             dispatch({ type: 'extractSelected' });
             showToast('Kept the picked pages');

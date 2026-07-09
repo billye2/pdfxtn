@@ -3,11 +3,14 @@ import {
   applyCrop,
   clampCrop,
   boundariesFromMarks,
+  deinterleave,
   deleteSelected,
+  duplicateSelected,
   everyNMarks,
   interleave,
   partNumbers,
   reorder,
+  reversePages,
   rotateOne,
   rotateSelected,
   splitAt,
@@ -249,5 +252,121 @@ describe('partNumbers', () => {
     const pages = makePages(3);
     const parts = partNumbers(pages, new Set());
     expect(pages.map((p) => parts.get(p.id))).toEqual([1, 1, 1]);
+  });
+});
+
+describe('duplicateSelected', () => {
+  // Deterministic ids for assertions.
+  const makeIds = () => {
+    let n = 0;
+    return () => `c${n++}`;
+  };
+
+  it('inserts a copy immediately after each selected page', () => {
+    const { pages, newIds } = duplicateSelected(
+      makePages(3),
+      new Set(['p0', 'p2']),
+      makeIds(),
+    );
+    expect(ids(pages)).toEqual(['p0', 'c0', 'p1', 'p2', 'c1']);
+    expect(newIds).toEqual(['c0', 'c1']);
+  });
+
+  it('handles adjacent selected pages', () => {
+    const { pages } = duplicateSelected(makePages(3), new Set(['p0', 'p1']), makeIds());
+    expect(ids(pages)).toEqual(['p0', 'c0', 'p1', 'c1', 'p2']);
+  });
+
+  it('copies carry rotation and crop but keep the same source page', () => {
+    const crop: CropRect = { x: 0.1, y: 0.1, w: 0.5, h: 0.5 };
+    const source: PageDescriptor[] = [
+      { id: 'p0', docId: 'd1', pageIndex: 4, rotation: 90, crop },
+    ];
+    const { pages } = duplicateSelected(source, new Set(['p0']), makeIds());
+    expect(pages[1]).toEqual({
+      id: 'c0',
+      docId: 'd1',
+      pageIndex: 4,
+      rotation: 90,
+      crop,
+    });
+  });
+
+  it('returns the same array instance for an empty selection', () => {
+    const pages = makePages(3);
+    expect(duplicateSelected(pages, new Set()).pages).toBe(pages);
+  });
+
+  it('does not mutate the input', () => {
+    const pages = makePages(2);
+    duplicateSelected(pages, new Set(['p0']), makeIds());
+    expect(ids(pages)).toEqual(['p0', 'p1']);
+  });
+
+  it('generates unique real ids by default', () => {
+    const { pages, newIds } = duplicateSelected(makePages(2), new Set(['p0', 'p1']));
+    expect(new Set(ids(pages)).size).toBe(4);
+    expect(newIds.every((id) => id.startsWith('p_'))).toBe(true);
+  });
+});
+
+describe('reversePages', () => {
+  it('reverses the whole list when nothing is selected', () => {
+    expect(ids(reversePages(makePages(4), new Set()))).toEqual(['p3', 'p2', 'p1', 'p0']);
+  });
+
+  it('reverses the whole list when only one page is selected', () => {
+    expect(ids(reversePages(makePages(3), new Set(['p1'])))).toEqual(['p2', 'p1', 'p0']);
+  });
+
+  it('reverses only the selected pages, within their slots', () => {
+    // Select p0, p2, p3 of 5 — p1 and p4 must not move.
+    const result = reversePages(makePages(5), new Set(['p0', 'p2', 'p3']));
+    expect(ids(result)).toEqual(['p3', 'p1', 'p2', 'p0', 'p4']);
+  });
+
+  it('ignores selected ids that are not in the list', () => {
+    const result = reversePages(makePages(3), new Set(['ghost', 'p0', 'p2']));
+    expect(ids(result)).toEqual(['p2', 'p1', 'p0']);
+  });
+
+  it('returns the same array instance for lists of ≤1 page', () => {
+    const one = makePages(1);
+    expect(reversePages(one, new Set())).toBe(one);
+    const none = makePages(0);
+    expect(reversePages(none, new Set())).toBe(none);
+  });
+
+  it('does not mutate the input', () => {
+    const pages = makePages(3);
+    reversePages(pages, new Set());
+    reversePages(pages, new Set(['p0', 'p2']));
+    expect(ids(pages)).toEqual(['p0', 'p1', 'p2']);
+  });
+});
+
+describe('deinterleave', () => {
+  it('splits even counts into equal halves', () => {
+    const [fronts, backs] = deinterleave(makePages(4));
+    expect(ids(fronts)).toEqual(['p0', 'p2']);
+    expect(ids(backs)).toEqual(['p1', 'p3']);
+  });
+
+  it('gives the first half the extra page for odd counts', () => {
+    const [fronts, backs] = deinterleave(makePages(5));
+    expect(ids(fronts)).toEqual(['p0', 'p2', 'p4']);
+    expect(ids(backs)).toEqual(['p1', 'p3']);
+  });
+
+  it('handles empty and single-page lists', () => {
+    expect(deinterleave([])).toEqual([[], []]);
+    const [fronts, backs] = deinterleave(makePages(1));
+    expect(ids(fronts)).toEqual(['p0']);
+    expect(backs).toEqual([]);
+  });
+
+  it('is the inverse of interleave', () => {
+    const pages = makePages(7);
+    expect(ids(interleave([...deinterleave(pages)]))).toEqual(ids(pages));
   });
 });

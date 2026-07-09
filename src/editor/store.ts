@@ -1,8 +1,11 @@
 import {
   applyCrop,
+  deinterleave,
   deleteSelected,
+  duplicateSelected,
   everyNMarks,
   reorder,
+  reversePages,
   rotateSelected,
   type CropRect,
   type PageDescriptor,
@@ -46,6 +49,10 @@ export type Action =
   | { type: 'clearSelection' }
   | { type: 'deleteSelected' }
   | { type: 'extractSelected' }
+  | { type: 'duplicateSelected' }
+  | { type: 'reverse' }
+  | { type: 'unmix'; reverseSecond: boolean; markSplit: boolean }
+  | { type: 'insertPages'; pages: PageDescriptor[]; at: number }
   | { type: 'rotateSelected'; delta: 90 | -90 | 180 }
   | { type: 'rotateOne'; id: string; delta: 90 | -90 | 180 }
   | { type: 'applyCrop'; crop: CropRect | undefined; scope: 'all' | 'selected' }
@@ -116,6 +123,43 @@ function applyEdit(state: EditState, action: Action): EditState {
       return {
         pages: state.pages.filter((p) => state.selected.has(p.id)),
         selected: new Set(),
+        splitMarks: state.splitMarks,
+      };
+    }
+
+    case 'duplicateSelected': {
+      if (state.selected.size === 0) return state;
+      const { pages, newIds } = duplicateSelected(state.pages, state.selected);
+      // Select the copies so they can be dragged/rotated right away.
+      return { pages, selected: new Set(newIds), splitMarks: state.splitMarks };
+    }
+
+    case 'reverse': {
+      const pages = reversePages(state.pages, state.selected);
+      if (pages === state.pages) return state;
+      return { ...state, pages };
+    }
+
+    case 'unmix': {
+      if (state.pages.length < 2) return state;
+      const [fronts, backs] = deinterleave(state.pages);
+      const second = action.reverseSecond ? backs.slice().reverse() : backs;
+      return {
+        pages: [...fronts, ...second],
+        selected: new Set(),
+        // One atomic edit: the reorder and the between-halves split mark undo together.
+        splitMarks: action.markSplit
+          ? new Set([fronts[fronts.length - 1].id])
+          : new Set(),
+      };
+    }
+
+    case 'insertPages': {
+      if (action.pages.length === 0) return state;
+      const at = Math.max(0, Math.min(action.at, state.pages.length));
+      return {
+        pages: [...state.pages.slice(0, at), ...action.pages, ...state.pages.slice(at)],
+        selected: new Set(action.pages.map((p) => p.id)),
         splitMarks: state.splitMarks,
       };
     }

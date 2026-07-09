@@ -1,7 +1,14 @@
 import { useCallback, type Dispatch, type SetStateAction } from 'react';
 import type { Action, AppState } from '../store';
-import { ingestFile, ingestImages, isImageFile, type IngestResult } from '../lib/ingest';
-import type { LoadedDoc } from '../lib/pdfRender';
+import {
+  createBlankDoc,
+  ingestFile,
+  ingestImages,
+  isImageFile,
+  type IngestResult,
+} from '../lib/ingest';
+import { getPagePointSize, type LoadedDoc } from '../lib/pdfRender';
+import type { PageDescriptor } from '../lib/pageModel';
 
 interface Args {
   dispatch: Dispatch<Action>;
@@ -54,6 +61,37 @@ export function useFileIngest({
     [dispatch, setDocs, setAppState, showToast, clearRestorable],
   );
 
+  const insertBlank = useCallback(
+    async (pages: PageDescriptor[], docs: Map<string, LoadedDoc>, afterIndex: number) => {
+      // Match the neighbor page's size (as displayed, so swap for 90/270
+      // rotation); fall back to US Letter if there's no neighbor to measure.
+      let size: [number, number] = [612, 792];
+      const neighbor = pages[afterIndex] ?? pages[pages.length - 1];
+      const neighborDoc = neighbor && docs.get(neighbor.docId);
+      if (neighbor && neighborDoc) {
+        try {
+          const { width, height } = await getPagePointSize(
+            neighborDoc,
+            neighbor.pageIndex,
+          );
+          const swap = neighbor.rotation === 90 || neighbor.rotation === 270;
+          size = swap ? [height, width] : [width, height];
+        } catch {
+          // unmeasurable page — keep the fallback size
+        }
+      }
+      try {
+        const result = await createBlankDoc(size[0], size[1]);
+        setDocs((prev) => new Map(prev).set(result.doc.id, result.doc));
+        dispatch({ type: 'insertPages', pages: result.pages, at: afterIndex + 1 });
+        showToast('Added a blank page');
+      } catch (e) {
+        showToast(`Could not add a blank page: ${(e as Error).message}`, 'error');
+      }
+    },
+    [dispatch, setDocs, showToast],
+  );
+
   const pickFiles = useCallback(() => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -65,5 +103,5 @@ export function useFileIngest({
     input.click();
   }, [addFiles]);
 
-  return { addFiles, pickFiles };
+  return { addFiles, pickFiles, insertBlank };
 }

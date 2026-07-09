@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import {
+  ArrowLeftRight,
   Plus,
   RotateCw,
   Crop,
@@ -15,7 +16,8 @@ import './Toolbar.css';
 interface Props {
   selectedCount: number;
   hasCrop: boolean;
-  canMix: boolean;
+  canOpenMix: boolean;
+  canReverse: boolean;
   canUndo: boolean;
   canRedo: boolean;
   onAddFiles: (files: FileList) => void;
@@ -27,6 +29,7 @@ interface Props {
   onSplit: () => void;
   onOpenSplitEvery: () => void;
   onOpenMix: () => void;
+  onReverse: () => void;
   onClearCrop: () => void;
   onOpenRange: () => void;
   onOpenImages: () => void;
@@ -97,13 +100,21 @@ export default function Toolbar(props: Props) {
         <button
           className="btn-secondary"
           onClick={props.onOpenMix}
-          disabled={!props.canMix}
-          title="Interleave two documents (e.g. double-sided scans)"
+          disabled={!props.canOpenMix}
+          title="Interleave documents, or un-mix a double-sided scan"
         >
           <Shuffle size={16} /> Mix
         </button>
         <button className="btn-secondary" onClick={props.onOpenSplitEvery}>
           <SplitSquareHorizontal size={16} /> Split every…
+        </button>
+        <button
+          className="btn-secondary icon-btn"
+          title={props.selectedCount >= 2 ? 'Reverse picked pages' : 'Reverse page order'}
+          onClick={props.onReverse}
+          disabled={!props.canReverse}
+        >
+          <ArrowLeftRight size={18} />
         </button>
       </div>
 

@@ -64,3 +64,9 @@
 .mix-preset {
   margin-top: 14px;
 }
+.unmix-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 14px 0 4px;
+}

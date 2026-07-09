@@ -66,6 +66,70 @@ export function rotateSelected(
 }
 
 /**
+ * Insert a copy of each selected page immediately after its original. Copies
+ * carry the original's rotation and crop but get fresh ids. Returns the ids of
+ * the copies (in page order) so the caller can select them. An empty selection
+ * returns `pages` unchanged (same reference).
+ */
+export function duplicateSelected(
+  pages: PageDescriptor[],
+  selected: ReadonlySet<string>,
+  makeId: () => string = nextPageId,
+): { pages: PageDescriptor[]; newIds: string[] } {
+  if (selected.size === 0) return { pages, newIds: [] };
+  const next: PageDescriptor[] = [];
+  const newIds: string[] = [];
+  for (const p of pages) {
+    next.push(p);
+    if (selected.has(p.id)) {
+      const copy = { ...p, id: makeId() };
+      next.push(copy);
+      newIds.push(copy.id);
+    }
+  }
+  return { pages: next, newIds };
+}
+
+/**
+ * Reverse pages. With ≥2 pages selected, reverse only the selected pages within
+ * the slots they occupy (unselected pages keep their positions); otherwise
+ * reverse the whole list. Lists of ≤1 page return `pages` unchanged (same
+ * reference) so the reducer can skip a no-op history entry.
+ */
+export function reversePages(
+  pages: PageDescriptor[],
+  selected: ReadonlySet<string>,
+): PageDescriptor[] {
+  if (pages.length <= 1) return pages;
+  const picked: number[] = [];
+  pages.forEach((p, i) => {
+    if (selected.has(p.id)) picked.push(i);
+  });
+  if (picked.length < 2) return pages.slice().reverse();
+  const next = pages.slice();
+  picked.forEach((slot, k) => {
+    next[slot] = pages[picked[picked.length - 1 - k]];
+  });
+  return next;
+}
+
+/**
+ * Inverse of a 2-group interleave: split the list into the pages at even
+ * positions (0,2,4… — the "fronts") and odd positions (1,3,5… — the "backs").
+ * `interleave(deinterleave(pages))` restores the original order.
+ */
+export function deinterleave(
+  pages: PageDescriptor[],
+): [PageDescriptor[], PageDescriptor[]] {
+  const fronts: PageDescriptor[] = [];
+  const backs: PageDescriptor[] = [];
+  pages.forEach((p, i) => {
+    (i % 2 === 0 ? fronts : backs).push(p);
+  });
+  return [fronts, backs];
+}
+
+/**
  * Clamp a crop rectangle into the unit square so x/y stay in [0,1] and the box
  * never extends past the page edge. Guards against bad input from the UI or a
  * future deserialized state; the normal CropDialog path is already in-bounds.

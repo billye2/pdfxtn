@@ -96,10 +96,20 @@ export default function EditorDialogs({
       {dialogs.isOpen('mix') && (
         <MixDialog
           groups={pageGroups()}
+          pageCount={pages.length}
           onMix={(mixed) => {
             dispatch({ type: 'setPages', pages: mixed });
             dialogs.closeDialog();
             showToast('Mixed the pages');
+          }}
+          onUnmix={({ reverseSecond, markSplit }) => {
+            dispatch({ type: 'unmix', reverseSecond, markSplit });
+            dialogs.closeDialog();
+            showToast(
+              markSplit
+                ? 'Un-mixed — click Save PDF to get two files'
+                : 'Un-mixed the pages',
+            );
           }}
           onCancel={dialogs.closeDialog}
         />

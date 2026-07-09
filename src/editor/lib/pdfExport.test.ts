@@ -146,6 +146,21 @@ describe('buildDocument', () => {
     expect(out12.length).toBeLessThan(out1.length * 3);
   });
 
+  it('exports duplicated descriptors as independent pages', async () => {
+    // Two descriptors for the SAME source page, one rotated — the copies must
+    // be distinct page objects so the rotation applies to only one of them.
+    // (Locks in pdf-lib's copyPages clone-per-index behavior across upgrades.)
+    const bytes = await makeSourceBytes([[100, 200]]);
+    const docs = new Map([['d1', fakeDoc('d1', bytes)]]);
+
+    const out = await loadOutput(
+      await buildDocument([desc('d1', 0), desc('d1', 0, { rotation: 90 })], docs),
+    );
+    expect(out.getPageCount()).toBe(2);
+    expect(out.getPages().map((p) => p.getRotation().angle)).toEqual([0, 90]);
+    expect(out.getPages().map((p) => Math.round(p.getWidth()))).toEqual([100, 100]);
+  });
+
   it('throws for an unknown source document', async () => {
     await expect(buildDocument([desc('missing', 0)], new Map())).rejects.toThrow(
       /Unknown source document/,

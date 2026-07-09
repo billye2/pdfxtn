@@ -1,5 +1,7 @@
 // Centralized Lucide icons (crisper than Unicode glyphs, no emoji rendering).
 export {
+  ArrowLeftRight,
+  Copy,
   RotateCcw,
   RotateCw,
   Scissors,
