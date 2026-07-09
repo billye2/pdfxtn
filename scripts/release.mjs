@@ -1,8 +1,12 @@
 // Cut a Web Store release in two phases.
 //
-//   npm run release            bump patch → build → zip → "Release vX" commit → tag vX
+//   npm run release            bump version → build → zip → "Release vX" commit → tag vX
 //   npm run release:publish    push main + tag → GitHub release with the zip attached
 //   npm run release -- --zip-only   just bump/build/zip (no git), the legacy behavior
+//
+// Versioning (since v1.2.1): each component counts 0–9 and carries into the
+// next — 1.2.8 → 1.2.9 → 1.3.0 → 1.3.1 … 1.9.9 → 2.0.0. Not semver; the
+// version is a simple odometer so the Web Store number stays short.
 //
 // The split keeps the remote, irreversible steps (push, gh release) behind an
 // explicit second command so the release commit can be reviewed first. Always
@@ -21,6 +25,21 @@ const readVersion = () => JSON.parse(readFileSync('package.json', 'utf8')).versi
 function fail(msg) {
   console.error(`\n✗ ${msg}`);
   process.exit(1);
+}
+
+// Odometer bump: every component counts 0–9, carrying into the next.
+function bumpVersion(version) {
+  let [maj, min, pat] = version.split('.').map(Number);
+  pat += 1;
+  if (pat > 9) {
+    pat = 0;
+    min += 1;
+  }
+  if (min > 9) {
+    min = 0;
+    maj += 1;
+  }
+  return `${maj}.${min}.${pat}`;
 }
 
 // The given version's section: everything between its "## [X.Y.Z]" heading and
@@ -84,8 +103,7 @@ if (!zipOnly) {
   const branch = git('rev-parse', '--abbrev-ref', 'HEAD');
   if (branch !== 'main') fail(`releases are cut from main (currently on "${branch}")`);
 
-  const [maj, min, pat] = readVersion().split('.').map(Number);
-  const next = `${maj}.${min}.${pat + 1}`;
+  const next = bumpVersion(readVersion());
   if (!changelogSection(next)) {
     fail(`CHANGELOG.md has no "## [${next}]" section — write the changelog entry first`);
   }
@@ -103,7 +121,9 @@ if (!zipOnly) {
   console.log('ℹ if UI changed since the last release, run "npm run visual" first');
 }
 
-execSync('npm version patch --no-git-tag-version', { stdio: 'inherit' });
+execSync(`npm version ${bumpVersion(readVersion())} --no-git-tag-version`, {
+  stdio: 'inherit',
+});
 const version = readVersion();
 
 console.log(`\n→ building v${version}`);

@@ -5,11 +5,11 @@ _Snapshot for picking this back up later._
 ## Status
 
 - **Product:** PDF Mana — MV3 Chrome extension, local PDF _page_ manager (Merge · Arrange · Nip · Adjust).
-- **Version:** 1.0.20 — packaged at `release/pdf-mana-1.0.20.zip` (older zips in `release/archive/`). GitHub Releases exist through v1.0.18; the v1.0.19/v1.0.20 tags are pushed but their GitHub releases await `npm run release:publish` (agent sessions can't run it — it creates a public release).
+- **Version:** 1.2.1 — packaged at `release/pdf-mana-1.2.1.zip` (older zips in `release/archive/`). **Versioning is odometer-style since 1.2.1**: each component counts 0–9 and carries (1.2.9 → 1.3.0 → … → 1.9.9 → 2.0.0); `npm run release` implements the carry. GitHub Releases exist through v1.0.18; the v1.0.19/v1.0.20/v1.2.1 tags are pushed but their GitHub releases await `npm run release:publish` (agent sessions can't run it — it creates a public release).
 - **Repo:** https://github.com/billye2/pdfxtn — **public, MIT** (© Billy Ye). `main` is the working branch; release commits carry annotated `vX.Y.Z` tags and `npm run release:publish` creates the GitHub release.
-- **Chrome Web Store:** **published / live** at https://chromewebstore.google.com/detail/pdf-mana/bhkhobdaindpenllbgliigfafkkigpnk — **v1.0.16 uploaded 2026-07-06, pending review** (with refreshed listing copy). Once it clears, upload `release/pdf-mana-1.0.20.zip` — it carries the a11y fixes + stale-chunk fix from v1.0.17/18 (v1.0.17–1.0.19 were never uploaded; 1.0.19/1.0.20 are internal-only on top of 1.0.18).
-- **Tests:** 140 unit (Vitest; pure logic + persistence via `fake-indexeddb` in Node, hooks via jsdom `// @vitest-environment` docblock), 30 e2e incl. axe a11y scans (Playwright; 1 pointer-drag test skipped) — all in CI — plus 15 visual-regression baselines (`npm run visual`, macOS-local, NOT in CI).
-- **Recent work (v1.0.11 → 1.0.20):** "Nighty Night" dark theme (5th Look) with themed
+- **Chrome Web Store:** **published / live** at https://chromewebstore.google.com/detail/pdf-mana/bhkhobdaindpenllbgliigfafkkigpnk — **v1.0.16 uploaded 2026-07-06, pending review** (with refreshed listing copy). Once it clears, upload `release/pdf-mana-1.2.1.zip` — it supersedes the never-uploaded 1.0.17–1.0.20 and adds the arrangement pack (below).
+- **Tests:** 173 unit (Vitest; pure logic + persistence via `fake-indexeddb` in Node, hooks via jsdom `// @vitest-environment` docblock), 35 e2e incl. axe a11y scans (Playwright; 1 pointer-drag test skipped) — in CI on **Linux + Windows** — plus 12 visual-regression baselines (`npm run visual`, macOS-local, NOT in CI).
+- **Recent work (v1.0.11 → 1.0.20):** "Nighty Night" dark theme with themed
   page-render inversion; crop-box corner-handle resize; WYSIWYG crop previews
   (`lib/cropView.ts`); last-used Look persists in localStorage; dark-theme contrast
   fixes (look menu, restore banner) found by the new axe audit; App.tsx split into
@@ -17,6 +17,12 @@ _Snapshot for picking this back up later._
   un-code-split + pdf-lib warmed at mount so tabs survive extension updates;
   styles.css relocated into co-located per-component files + `styles/base.css`
   (v1.0.19); CI hygiene — prettier gate satisfied, actions@v5, Node 22 (v1.0.20).
+- **Recent work (v1.2.1):** arrangement pack — Duplicate (dock + Cmd/Ctrl+D),
+  Reverse (all or picked), Un-mix mode inside the Mix dialog (Mix now opens for
+  single-doc sessions), Insert blank page (neighbor-sized, rotation-aware,
+  synthetic pdf-lib doc through the normal ingest pipeline); toolbar tooltips
+  everywhere + icon-only export buttons (single-row toolbar); Sunny look removed
+  (falls back to Blocks, including stale saved sessions); Windows e2e CI job.
 
 ## Commands
 
@@ -56,7 +62,7 @@ node scripts/promo-video.mjs   # promo video (webm) → release/video/ (upload v
 - `src/manifest.ts` — MV3 manifest (perms: activeTab, storage, contextMenus + optional host).
 - `src/background.ts` — service worker: icon click, context menus, tab→editor handoff.
 - `src/editor/` — the app:
-  - `App.tsx` (wiring), `store.ts` (reducer + undo/redo + `restore`), `themes.ts` (5 Looks + saved-look storage)
+  - `App.tsx` (wiring), `store.ts` (reducer + undo/redo + `restore`), `themes.ts` (4 Looks + saved-look storage)
   - `components/` — Header, Toolbar, ThumbnailGrid, PageThumb, PagePeek, Lightbox, CropDialog,
     RangeDialog, ImagesDialog, MixDialog, SplitEveryDialog, SelectionDock, EmptyState, …
   - `hooks/` — `useToast`, `useDialogs`, `useExport`, `useAutosave`, `usePeek`

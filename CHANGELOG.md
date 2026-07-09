@@ -1,8 +1,48 @@
 # Changelog
 
 All notable changes to PDF Mana are documented here. This project follows
-[Keep a Changelog](https://keepachangelog.com/) conventions and
-[Semantic Versioning](https://semver.org/).
+[Keep a Changelog](https://keepachangelog.com/) conventions.
+
+Versioning (since 1.2.1): each version component counts 0–9 and carries into
+the next, like an odometer — 1.2.9 → 1.3.0 → 1.3.1, … 1.9.9 → 2.0.0. Versions
+before 1.2.1 followed semver patch bumps (hence the jump from 1.0.20).
+
+## [1.2.1] — 2026-07-09
+
+### Added
+
+- **Duplicate pages** — a Duplicate button in the selection dock, plus
+  Cmd/Ctrl+D (the shortcut only engages when pages are picked, so browser
+  bookmarking still works). Copies land right after their originals, carry
+  rotation and crop, and become the new selection.
+- **Reverse page order** — a toolbar button that flips the whole document, or
+  just the picked pages (within their slots) when two or more are selected.
+- **Un-mix** — the inverse of Mix, as a second mode in the Mix dialog: pull an
+  interleaved document apart into fronts and backs, with optional
+  reverse-second-half and a "Split into two files" mark (on by default) so one
+  Save downloads both halves. Mix now opens for single-document sessions and
+  starts in Un-mix mode there. One undo reverts the whole operation.
+- **Insert blank page** — a Blank page button in the selection dock inserts a
+  blank after the last picked page, sized and oriented to match it (a rotated
+  landscape neighbor gets a landscape blank). Blanks survive autosave/restore.
+- **Tooltips on every toolbar button**, noting keyboard shortcuts where they exist.
+
+### Changed
+
+- Export range… and Export images… are now icon-only toolbar buttons (their
+  accessible names are unchanged), keeping the toolbar to a single row.
+
+### Removed
+
+- The **Sunny** look — visually redundant with Blocks. A saved Sunny preference
+  (localStorage or a restored session) falls back to Blocks safely.
+
+### Internal
+
+- CI now runs the functional + a11y e2e suite on **Windows** as well as Linux
+  (OS matrix on the e2e job).
+- New versioning scheme (see header); the release script bumps with 0–9
+  carry-over instead of `npm version patch`.
 
 ## [1.0.20] — 2026-07-07
 
