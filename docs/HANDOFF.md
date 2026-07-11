@@ -59,6 +59,8 @@ npm run icons      # regenerate icons from src/icons/icon.svg
 node scripts/screenshots.mjs   # store screenshots (1280x800) → release/screenshots/
 node scripts/promo.mjs         # promo tiles (440x280, 1400x560) → release/promo/
 node scripts/promo-video.mjs   # promo video (webm) → release/video/ (upload via YouTube)
+node scripts/promo-video-2.mjs # promo video v2 — page-tools cut (rotate/crop/duplicate/
+                               #   blank/delete/keep-these via the dock) → release/video/
 ```
 
 > ⚠️ Always repackage with **`npm run release`** so the zip version increments — the Web
