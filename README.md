@@ -9,6 +9,23 @@ Nothing is uploaded; all parsing and writing happens locally.
 
 **[Install from the Chrome Web Store](https://chromewebstore.google.com/detail/pdf-mana/bhkhobdaindpenllbgliigfafkkigpnk)** · [watch the full demo on YouTube](https://www.youtube.com/watch?v=-0Jnd0kRKog)
 
+## Use cases
+
+- **Stitching paperwork together** — drop in every contract, receipt, and cover letter
+  you've got; pages simply append, and you drag them into the order you want before saving
+  one clean PDF.
+- **Rescuing a messy scan** — turn sideways pages right-side up, nip off crooked edges and
+  scanner shadows, and slip in a blank page where the feeder ate one.
+- **Taming double-sided scans** — your scanner gives you fronts and backs as two stacks or
+  one interleaved mess; Mix and Un-mix sort it into reading order (or back out of it) in
+  one click.
+- **Sending only what's needed** — pick the pages that matter and keep just those, or
+  split a long document every N pages so each section becomes its own file.
+- **Working with images** — JPG and PNG files become PDF pages the moment you drop them,
+  and any page can go back out as an image — one file each or a single `.zip`.
+- **Keeping it to yourself** — no upload, no account, no watermark; your files are
+  processed on your device and never leave it.
+
 ## Features
 
 - **Reorder** pages — drag a whole card anywhere to move it, or select a page and
