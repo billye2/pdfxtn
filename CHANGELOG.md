@@ -20,6 +20,11 @@ before 1.2.1 followed semver patch bumps (hence the jump from 1.0.20).
 - **Keyboard-shortcuts cheat sheet** — a new keyboard-icon button in the header
   (next to the tips "?") opens a dialog documenting every hotkey, grouped by
   task, with a mouse-gestures footnote. Pressing **?** opens it from anywhere.
+- **Action hotkeys** — with pages picked: **R** rotates clockwise (Shift+R
+  counter-clockwise), **C** opens Crop, **B** inserts a blank page after,
+  **K** keeps only the picked pages, **S** adds split marks. Plain letters
+  only — Cmd/Ctrl+R (reload) and Cmd/Ctrl+C (copy) are untouched — and the
+  toolbar/dock tooltips now name their keys.
 
 ### Changed
 

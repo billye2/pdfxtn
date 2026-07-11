@@ -135,6 +135,55 @@ describe('useKeyboardShortcuts', () => {
     card.remove();
   });
 
+  it('R rotates the picked pages; Shift+R goes counter-clockwise', () => {
+    const { dispatch } = setup();
+    press('r');
+    expect(dispatch).toHaveBeenCalledWith({ type: 'rotateSelected', delta: 90 });
+    press('R', { shiftKey: true });
+    expect(dispatch).toHaveBeenCalledWith({ type: 'rotateSelected', delta: -90 });
+  });
+
+  it('K keeps the picked pages; C/B/S call their handlers', () => {
+    const onOpenCrop = vi.fn();
+    const onInsertBlank = vi.fn();
+    const onSplitPicked = vi.fn();
+    const { dispatch } = setup({ onOpenCrop, onInsertBlank, onSplitPicked });
+    press('k');
+    expect(dispatch).toHaveBeenCalledWith({ type: 'extractSelected' });
+    press('c');
+    press('b');
+    press('s');
+    expect(onOpenCrop).toHaveBeenCalledTimes(1);
+    expect(onInsertBlank).toHaveBeenCalledTimes(1);
+    expect(onSplitPicked).toHaveBeenCalledTimes(1);
+  });
+
+  it('action letters are inert while a dialog is open', () => {
+    const backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop';
+    document.body.append(backdrop);
+    const { dispatch } = setup();
+    press('r');
+    press('k');
+    expect(dispatch).not.toHaveBeenCalled();
+    backdrop.remove();
+  });
+
+  it('action letters need a selection and no Cmd/Ctrl (browser Cmd+R survives)', () => {
+    const onOpenCrop = vi.fn();
+    const empty = setup({ selected: new Set<string>(), onOpenCrop });
+    press('r');
+    press('c');
+    expect(empty.dispatch).not.toHaveBeenCalled();
+    expect(onOpenCrop).not.toHaveBeenCalled();
+
+    const { dispatch } = setup();
+    press('r', { metaKey: true });
+    expect(dispatch).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'rotateSelected' }),
+    );
+  });
+
   it('"?" opens the shortcuts cheat sheet, but not while typing', () => {
     const onShowShortcuts = vi.fn();
     setup({ onShowShortcuts });

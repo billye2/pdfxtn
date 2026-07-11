@@ -91,7 +91,7 @@ export default function Toolbar(props: Props) {
       <div className="tgroup">
         <button
           className="btn-rotate"
-          title="Rotate the picked pages 90° clockwise"
+          title="Rotate the picked pages 90° clockwise (R)"
           onClick={() => props.onRotateSelected(90)}
           disabled={!hasSel}
         >
@@ -99,7 +99,7 @@ export default function Toolbar(props: Props) {
         </button>
         <button
           className="btn-crop"
-          title="Draw one crop and apply it to all or just the picked pages"
+          title="Draw one crop and apply it to all or just the picked pages (C)"
           onClick={props.onOpenCrop}
           disabled={!props.hasPages}
         >
@@ -107,7 +107,7 @@ export default function Toolbar(props: Props) {
         </button>
         <button
           className="btn-split"
-          title="Mark a split after each picked page — Save then makes one file per part"
+          title="Mark a split after each picked page — Save then makes one file per part (S)"
           onClick={props.onSplit}
           disabled={!hasSel}
         >

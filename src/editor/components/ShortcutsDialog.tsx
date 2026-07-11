@@ -27,6 +27,11 @@ const GROUPS: Array<{ title: string; rows: Row[] }> = [
   {
     title: 'Acting on picked pages',
     rows: [
+      { keys: ['R'], does: 'rotate clockwise (Shift+R for counter-clockwise)' },
+      { keys: ['C'], does: 'crop' },
+      { keys: ['B'], does: 'insert a blank page after them' },
+      { keys: ['K'], does: 'keep only these pages' },
+      { keys: ['S'], does: 'add split marks after them' },
       { keys: ['Delete'], or: ['Backspace'], does: 'delete them' },
       { keys: ['Cmd/Ctrl', 'D'], does: 'duplicate them' },
       { keys: ['←'], or: ['→'], does: 'move a single picked page one spot' },

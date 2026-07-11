@@ -10,13 +10,21 @@ interface Args {
   dispatch: Dispatch<Action>;
   /** Open the keyboard-shortcuts cheat sheet (the `?` key). */
   onShowShortcuts?: () => void;
+  /** Open the Crop dialog (the C key; only fires with pages picked). */
+  onOpenCrop?: () => void;
+  /** Insert a blank page after the last picked one (the B key). */
+  onInsertBlank?: () => void;
+  /** Add split marks after the picked pages (the S key). */
+  onSplitPicked?: () => void;
 }
 
 /**
  * The global keyboard map: preview paging/closing, Space preview toggle,
  * Enter pick-toggle on the focused card (Shift+Enter picks a range),
  * arrow-key page nudging (the modeless drag alternative, announced via the
- * returned aria-live message), undo/redo, select-all, Esc, Delete.
+ * returned aria-live message), single-letter action keys on the picked pages
+ * (R rotate, C crop, B blank page, K keep-these, S split), undo/redo,
+ * select-all, Esc, Delete.
  */
 export function useKeyboardShortcuts({
   pages,
@@ -25,6 +33,9 @@ export function useKeyboardShortcuts({
   setPreviewIndex,
   dispatch,
   onShowShortcuts,
+  onOpenCrop,
+  onInsertBlank,
+  onSplitPicked,
 }: Args) {
   const [liveMsg, setLiveMsg] = useState(''); // screen-reader announcements
 
@@ -104,6 +115,49 @@ export function useKeyboardShortcuts({
         dispatch({ type: 'reorder', from, to });
         setLiveMsg(`Moved page to position ${to + 1} of ${pages.length}.`);
         return;
+      }
+
+      // Single-letter action keys, Gmail-style: act on the picked pages. All
+      // require a selection, no Cmd/Ctrl (so browser Cmd+R/Cmd+C stay intact),
+      // not typing, and no open dialog (a letter must never edit the pages
+      // BEHIND a modal). Documented in the shortcuts cheat sheet.
+      const modalOpen = document.querySelector('.modal-backdrop') !== null;
+      if (!mod && !typing && !modalOpen && selected.size > 0) {
+        const n = selected.size;
+        const pagesWord = `page${n === 1 ? '' : 's'}`;
+        const letter = e.key.toLowerCase();
+        if (letter === 'r') {
+          e.preventDefault();
+          const delta = e.shiftKey ? -90 : 90;
+          dispatch({ type: 'rotateSelected', delta });
+          setLiveMsg(
+            `Rotated ${n} ${pagesWord} ${e.shiftKey ? 'counter-clockwise' : 'clockwise'}.`,
+          );
+          return;
+        }
+        if (letter === 'k') {
+          e.preventDefault();
+          dispatch({ type: 'extractSelected' });
+          setLiveMsg(`Kept the ${n} picked ${pagesWord}.`);
+          return;
+        }
+        if (letter === 'c' && onOpenCrop) {
+          e.preventDefault();
+          onOpenCrop();
+          return;
+        }
+        if (letter === 'b' && onInsertBlank) {
+          e.preventDefault();
+          onInsertBlank();
+          setLiveMsg('Inserted a blank page after the picked pages.');
+          return;
+        }
+        if (letter === 's' && onSplitPicked) {
+          e.preventDefault();
+          onSplitPicked();
+          setLiveMsg(`Added split marks after the picked ${pagesWord}.`);
+          return;
+        }
       }
 
       if (mod && e.key.toLowerCase() === 'z') {

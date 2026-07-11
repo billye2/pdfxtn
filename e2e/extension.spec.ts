@@ -709,6 +709,54 @@ test('selection: Shift-click picks a range; Select all picks everything', async 
   await expect(page.locator('.card.selected')).toHaveCount(4);
 });
 
+test('keyboard: R/B/C/S/K action hotkeys drive the picked pages', async () => {
+  const page = await openEditor();
+  await drop(page, [
+    pdf(
+      'hot.pdf',
+      await makePdf([
+        [100, 1],
+        [200, 1],
+        [300, 1],
+        [400, 1],
+      ]),
+    ),
+  ]);
+  await expect(page.locator('.card')).toHaveCount(4);
+
+  await page.locator('.card').nth(0).click();
+
+  // R rotates the picked page (rotate(90deg) computes to this matrix).
+  await page.keyboard.press('r');
+  await expect(page.locator('.card').nth(0).locator('.card-page')).toHaveCSS(
+    'transform',
+    'matrix(0, 1, -1, 0, 0, 0)',
+  );
+
+  // B inserts a blank page right after it.
+  await page.keyboard.press('b');
+  await expect(page.locator('.card')).toHaveCount(5);
+
+  // S marks a split after the picked page.
+  await page.keyboard.press('s');
+  await expect(page.locator('.card-split-line')).toHaveCount(1);
+
+  // C opens the crop dialog.
+  await page.keyboard.press('c');
+  await expect(page.locator('.crop-canvas')).toBeVisible({ timeout: 15_000 });
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.modal')).toHaveCount(0);
+
+  // K keeps only the picked pages.
+  await page.locator('.card').nth(0).click();
+  await page
+    .locator('.card')
+    .nth(1)
+    .click({ modifiers: ['Shift'] });
+  await page.keyboard.press('k');
+  await expect(page.locator('.card')).toHaveCount(2);
+});
+
 test('shortcuts dialog: header button and "?" open it, Escape closes it', async () => {
   const page = await openEditor();
   await page.getByRole('button', { name: 'Keyboard shortcuts' }).click();

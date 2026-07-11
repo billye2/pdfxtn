@@ -118,6 +118,9 @@ export default function App() {
     setPreviewIndex,
     dispatch,
     onShowShortcuts: () => setShortcutsOpen(true),
+    onOpenCrop: () => dialogs.openDialog('crop'),
+    onInsertBlank: () => insertBlankAfterPicked(),
+    onSplitPicked: () => applySplitToSelection(),
   });
 
   // Warn before leaving/reloading while there's work in progress. (Can't help
@@ -152,6 +155,15 @@ export default function App() {
       }
     });
     showToast('Added split marks');
+  }
+
+  // Insert after the highest-position selected page (dock button + B key).
+  function insertBlankAfterPicked() {
+    let last = -1;
+    pages.forEach((p, i) => {
+      if (selected.has(p.id)) last = i;
+    });
+    if (last >= 0) insertBlank(pages, docs, last);
   }
 
   return (
@@ -284,14 +296,7 @@ export default function App() {
             dispatch({ type: 'duplicateSelected' });
             showToast(`Duplicated ${n} page${n === 1 ? '' : 's'}`);
           }}
-          onInsertBlank={() => {
-            // Insert after the highest-position selected page.
-            let last = -1;
-            pages.forEach((p, i) => {
-              if (selected.has(p.id)) last = i;
-            });
-            insertBlank(pages, docs, last);
-          }}
+          onInsertBlank={insertBlankAfterPicked}
           onExtract={() => {
             dispatch({ type: 'extractSelected' });
             showToast('Kept the picked pages');
