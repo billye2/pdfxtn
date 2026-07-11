@@ -90,8 +90,16 @@
   color: var(--sub);
 }
 
+.recent-pin,
 .recent-remove {
   flex-shrink: 0;
+}
+
+.recent-pin.pinned {
+  background: var(--accentSoft);
+}
+.recent-pin.pinned svg {
+  fill: currentColor;
 }
 
 .recents-footer {
@@ -102,7 +110,25 @@
   margin-top: 14px;
 }
 
+.recents-remember {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+}
+.recents-remember input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--c-go);
+  cursor: pointer;
+}
+
 .recents-caption {
+  margin: 10px 0 0;
   font-family: 'Nunito', sans-serif;
   font-weight: 600;
   font-size: 12px;

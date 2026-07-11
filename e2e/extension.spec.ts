@@ -1109,7 +1109,7 @@ test('insert blank: matches the neighbor page size and survives a reload', async
   );
 });
 
-test('recents: the star dialog lists opened files, reopens, removes, clears', async () => {
+test('recents: the pin dialog lists opened files — reopen, pin, remove, clear, off switch', async () => {
   const page = await openEditor();
   await drop(page, [
     pdf(
@@ -1142,9 +1142,16 @@ test('recents: the star dialog lists opened files, reopens, removes, clears', as
   await page2.locator('.recent-open', { hasText: 'recents-a.pdf' }).click();
   await expect(page2.locator('.card')).toHaveCount(2);
 
-  // Per-item remove drops the entry; Clear all empties whatever remains.
+  // Pinning is a toggle and survives a re-open of the same file.
   // (Reopening re-records the file, also fire-and-forget — retry again.)
   await expect(() => dialogShowsEntry(page2)).toPass({ timeout: 10_000 });
+  const pinBtn = page2.getByRole('button', { name: 'Pin recents-a.pdf' });
+  await pinBtn.click();
+  await expect(pinBtn).toHaveAttribute('aria-pressed', 'true');
+  await pinBtn.click();
+  await expect(pinBtn).toHaveAttribute('aria-pressed', 'false');
+
+  // Per-item remove drops the entry; Clear all empties whatever remains.
   const row2 = page2.locator('.recent-row', { hasText: 'recents-a.pdf' });
   await page2
     .getByRole('button', { name: 'Remove recents-a.pdf from this list' })
@@ -1158,4 +1165,18 @@ test('recents: the star dialog lists opened files, reopens, removes, clears', as
   await page2.keyboard.press('Escape');
   await page2.getByRole('button', { name: 'Previously opened files' }).click();
   await expect(page2.getByText('Files you open will show up here')).toBeVisible();
+
+  // Off switch: with "Remember opened files" unchecked, opens are not recorded.
+  await page2.getByRole('checkbox', { name: 'Remember opened files' }).uncheck();
+  await page2.keyboard.press('Escape');
+  await drop(page2, [pdf('recents-b.pdf', await makePdf([[300, 400]]))]);
+  await expect(page2.locator('.card')).toHaveCount(3);
+  await page2.waitForTimeout(500); // would-be recording window
+  await page2.getByRole('button', { name: 'Previously opened files' }).click();
+  await expect(page2.getByText('Remembering is off')).toBeVisible();
+  await expect(page2.locator('.recent-row')).toHaveCount(0);
+
+  // Re-enable so the persistent context doesn't leak the setting elsewhere.
+  await page2.getByRole('checkbox', { name: 'Remember opened files' }).check();
+  await page2.keyboard.press('Escape');
 });

@@ -53,6 +53,8 @@ export interface RecentMeta {
   pageCount: number;
   openedAt: number;
   thumb?: string;
+  /** Pinned entries are never evicted by the count/size caps. */
+  pinned?: boolean;
 }
 
 function hasIDB(): boolean {
@@ -173,8 +175,9 @@ export async function clearSession(): Promise<void> {
 /**
  * Record a previously opened file (meta + bytes) and evict the oldest entries
  * until the count/size caps hold again. One transaction across both stores so
- * meta and bytes can never drift apart. The entry being saved is never
- * evicted, even if it alone exceeds the size cap.
+ * meta and bytes can never drift apart. Pinned entries and the entry being
+ * saved are never evicted, even when that leaves the caps exceeded.
+ * Re-recording an existing entry keeps its pinned flag.
  */
 export async function saveRecent(meta: RecentMeta, bytes: Uint8Array): Promise<void> {
   if (!hasIDB()) return;
@@ -183,16 +186,17 @@ export async function saveRecent(meta: RecentMeta, bytes: Uint8Array): Promise<v
     const tx = db.transaction(['recentMeta', 'recentBytes'], 'readwrite');
     const metaStore = tx.objectStore('recentMeta');
     const bytesStore = tx.objectStore('recentBytes');
-    metaStore.put(meta);
+    const existing = await get<RecentMeta>(metaStore, meta.hash);
+    metaStore.put({ ...meta, pinned: meta.pinned ?? existing?.pinned });
     bytesStore.put(bytes, meta.hash);
 
     const all = await getAll<RecentMeta>(metaStore);
-    const oldestFirst = all
-      .filter((m) => m.hash !== meta.hash)
+    const evictable = all
+      .filter((m) => m.hash !== meta.hash && !m.pinned)
       .sort((a, b) => a.openedAt - b.openedAt);
     let count = all.length;
     let total = all.reduce((sum, m) => sum + m.size, 0);
-    for (const m of oldestFirst) {
+    for (const m of evictable) {
       if (count <= RECENTS_MAX_COUNT && total <= RECENTS_MAX_BYTES) break;
       metaStore.delete(m.hash);
       bytesStore.delete(m.hash);
@@ -205,7 +209,7 @@ export async function saveRecent(meta: RecentMeta, bytes: Uint8Array): Promise<v
   }
 }
 
-/** All recent-file metadata, most recently opened first. */
+/** All recent-file metadata: pinned first, most recently opened first within each group. */
 export async function loadRecents(): Promise<RecentMeta[]> {
   if (!hasIDB()) return [];
   const db = await openDb();
@@ -213,7 +217,24 @@ export async function loadRecents(): Promise<RecentMeta[]> {
     const all = await getAll<RecentMeta>(
       db.transaction('recentMeta', 'readonly').objectStore('recentMeta'),
     );
-    return all.sort((a, b) => b.openedAt - a.openedAt);
+    return all.sort(
+      (a, b) => Number(b.pinned ?? false) - Number(a.pinned ?? false) || b.openedAt - a.openedAt,
+    );
+  } finally {
+    db.close();
+  }
+}
+
+/** Pin or unpin one recent file. No-op if the entry no longer exists. */
+export async function setRecentPinned(hash: string, pinned: boolean): Promise<void> {
+  if (!hasIDB()) return;
+  const db = await openDb();
+  try {
+    const tx = db.transaction('recentMeta', 'readwrite');
+    const store = tx.objectStore('recentMeta');
+    const meta = await get<RecentMeta>(store, hash);
+    if (meta) store.put({ ...meta, pinned });
+    await done(tx);
   } finally {
     db.close();
   }

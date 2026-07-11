@@ -25,9 +25,10 @@ storage (IndexedDB), still entirely on your device:
 
 - an autosave of your current session, so an accidental reload can offer to restore
   your work — cleared when you empty the editor;
-- a short list of recently opened files (the ★ button), so you can reopen one without
-  finding it again — capped to the last 10 files, and you can remove any entry or use
-  "Clear all" in that dialog at any time.
+- a short list of recently opened files (the pin button), so you can reopen one without
+  finding it again — capped to the last 10 files (pinned files are kept until you remove
+  them). You can remove any entry, use "Clear all", or turn the feature off entirely with
+  the "Remember opened files" switch in that dialog.
 
 ## Permissions
 

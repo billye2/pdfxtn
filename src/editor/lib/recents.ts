@@ -10,6 +10,27 @@ import { saveRecent, type RecentMeta } from './persist';
  * must never break the ingest that triggered it, so all errors are swallowed.
  */
 
+// The off switch lives in localStorage (like the saved Look): synchronous to
+// read on the ingest path, independent of the doc-coupled IndexedDB stores.
+// Guarded — vitest's environments and private mode may lack localStorage.
+const REMEMBER_KEY = 'pdf-mana-remember-recents';
+
+export function isRememberEnabled(): boolean {
+  try {
+    return localStorage.getItem(REMEMBER_KEY) !== '0';
+  } catch {
+    return true;
+  }
+}
+
+export function setRememberEnabled(enabled: boolean): void {
+  try {
+    localStorage.setItem(REMEMBER_KEY, enabled ? '1' : '0');
+  } catch {
+    // nowhere to persist the preference — recording stays on
+  }
+}
+
 /** Content hash so the same file opened twice dedupes to one entry. */
 export async function hashBytes(bytes: Uint8Array, name: string): Promise<string> {
   try {
@@ -37,6 +58,7 @@ async function makeThumb(doc: LoadedDoc): Promise<string | undefined> {
 
 export async function recordRecent(doc: LoadedDoc): Promise<void> {
   try {
+    if (!isRememberEnabled()) return;
     const meta: RecentMeta = {
       hash: await hashBytes(doc.bytes, doc.name),
       name: doc.name,

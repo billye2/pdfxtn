@@ -7,6 +7,22 @@ Versioning (since 1.2.1): each version component counts 0–9 and carries into
 the next, like an odometer — 1.2.9 → 1.3.0 → 1.3.1, … 1.9.9 → 2.0.0. Versions
 before 1.2.1 followed semver patch bumps (hence the jump from 1.0.20).
 
+## [1.2.6] — 2026-07-11
+
+### Added
+
+- **Pin your regulars** — each entry in the "Previously opened" dialog now has
+  a pin toggle: pinned files are never auto-removed by the 10-file/100 MB
+  caps and sort to the top of the list. Pins survive reopening the file.
+- **"Remember opened files" off switch** — a checkbox in the same dialog turns
+  the feature off entirely: nothing new is recorded while it's off (existing
+  entries stay until you remove them or "Clear all"). `PRIVACY.md` updated.
+
+### Changed
+
+- The header button for previously opened files is now a **pin** icon (was a
+  star), matching the new pinning model.
+
 ## [1.2.5] — 2026-07-11
 
 ### Added

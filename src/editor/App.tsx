@@ -115,7 +115,8 @@ export default function App() {
     clearRestorable,
   });
 
-  const { recents, removeRecent, clearRecents } = useRecents(recentsOpen);
+  const { recents, removeRecent, clearRecents, togglePin, remember, toggleRemember } =
+    useRecents(recentsOpen);
 
   // Reopen a previously viewed file: rebuild a File from the stored bytes and
   // run it through the normal ingest path, so every downstream invariant
@@ -347,9 +348,12 @@ export default function App() {
       {recentsOpen && (
         <RecentFilesDialog
           recents={recents}
+          remember={remember}
           onOpen={openRecent}
+          onTogglePin={togglePin}
           onRemove={removeRecent}
           onClearAll={clearRecents}
+          onToggleRemember={toggleRemember}
           onClose={() => setRecentsOpen(false)}
         />
       )}

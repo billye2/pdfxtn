@@ -10,6 +10,7 @@ import {
   getRecentBytes,
   removeRecent,
   clearRecents,
+  setRecentPinned,
   RECENTS_MAX_COUNT,
   RECENTS_MAX_BYTES,
   type RecentMeta,
@@ -225,5 +226,40 @@ describe('recents', () => {
 
   it('getRecentBytes returns null for unknown hashes', async () => {
     expect(await getRecentBytes('nope')).toBeNull();
+  });
+
+  it('pinned entries are never evicted; the oldest unpinned goes instead', async () => {
+    await saveRecent(...mkRecent('keeper', 0, new Uint8Array([1]), { pinned: true }));
+    for (let i = 1; i <= RECENTS_MAX_COUNT; i++) {
+      await saveRecent(...mkRecent(`f${i}`, i));
+    }
+    const recents = await loadRecents();
+    expect(recents).toHaveLength(RECENTS_MAX_COUNT);
+    expect(recents.some((r) => r.hash === 'keeper')).toBe(true);
+    expect(recents.some((r) => r.hash === 'f1')).toBe(false); // oldest unpinned evicted
+    expect(await getRecentBytes('keeper')).not.toBeNull();
+  });
+
+  it('setRecentPinned toggles, survives a re-open, and sorts pinned first', async () => {
+    await saveRecent(...mkRecent('a', 1));
+    await saveRecent(...mkRecent('b', 2));
+    await setRecentPinned('a', true);
+
+    // Re-opening the same file (fresh meta, no pinned field) keeps the pin.
+    await saveRecent(...mkRecent('a', 3));
+
+    let recents = await loadRecents();
+    expect(recents.map((r) => r.hash)).toEqual(['a', 'b']); // pinned first
+    expect(recents[0].pinned).toBe(true);
+
+    await setRecentPinned('a', false);
+    recents = await loadRecents();
+    expect(recents.map((r) => r.hash)).toEqual(['a', 'b']); // now by openedAt (3 > 2)
+    expect(recents[0].pinned).toBe(false);
+  });
+
+  it('setRecentPinned on a missing hash is a no-op', async () => {
+    await expect(setRecentPinned('nope', true)).resolves.toBeUndefined();
+    expect(await loadRecents()).toEqual([]);
   });
 });

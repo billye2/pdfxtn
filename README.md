@@ -61,6 +61,10 @@ Nothing is uploaded; all parsing and writing happens locally.
 - **Undo / redo** (Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z), select-all, Esc to clear
 - **Autosave & restore** — your session is saved locally (IndexedDB) as you work, so an
   accidental reload offers a one-click "Restore your previous work?"
+- **Previously opened files** — the header pin button lists the files you've opened
+  (thumbnail, name, page count) for one-click reopening; pin the ones you keep coming
+  back to and they're never auto-removed. All local, with per-item remove, "Clear all",
+  and a "Remember opened files" off switch
 - **Save progress** indicator, and a warning before you reload away unsaved work
 - Load from a **local file** (picker or drag-drop), the **PDF open in the current tab**, or
   a **right-click** on any PDF link → "Open link in PDF Mana"

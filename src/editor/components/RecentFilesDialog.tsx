@@ -1,13 +1,16 @@
 import Modal from './Modal';
-import { X } from './icons';
+import { Pin, X } from './icons';
 import type { RecentMeta } from '../lib/persist';
 import './RecentFilesDialog.css';
 
 interface Props {
   recents: RecentMeta[];
+  remember: boolean;
   onOpen: (meta: RecentMeta) => void;
+  onTogglePin: (hash: string) => void;
   onRemove: (hash: string) => void;
   onClearAll: () => void;
+  onToggleRemember: () => void;
   onClose: () => void;
 }
 
@@ -20,16 +23,19 @@ function metaLine(r: RecentMeta): string {
 }
 
 /**
- * The star-button dialog: files opened before, newest first, one click to
- * open again. The row body is one button and the remove control a sibling
- * button (never nested), so both stay real keyboard/screen-reader targets.
+ * The pin-button dialog: files opened before (pinned first, then newest
+ * first), one click to open again. The row body is one button and the
+ * pin/remove controls are siblings (never nested), so all three stay real
+ * keyboard/screen-reader targets. Pinned entries are never auto-evicted.
  */
 export default function RecentFilesDialog(props: Props) {
   return (
     <Modal title="Previously opened" className="recents-modal" onClose={props.onClose}>
       {props.recents.length === 0 ? (
         <p className="recents-empty">
-          Files you open will show up here, ready to reopen with one click.
+          {props.remember
+            ? 'Files you open will show up here, ready to reopen with one click.'
+            : 'Remembering is off — files you open are not kept for reopening.'}
         </p>
       ) : (
         <ul className="recents-list">
@@ -53,6 +59,16 @@ export default function RecentFilesDialog(props: Props) {
               </button>
               <button
                 type="button"
+                className={`btn-secondary icon-btn recent-pin${r.pinned ? ' pinned' : ''}`}
+                aria-pressed={r.pinned ?? false}
+                aria-label={`Pin ${r.name}`}
+                title={r.pinned ? 'Unpin (can be auto-removed again)' : 'Pin (never auto-removed)'}
+                onClick={() => props.onTogglePin(r.hash)}
+              >
+                <Pin size={15} />
+              </button>
+              <button
+                type="button"
                 className="btn-secondary icon-btn recent-remove"
                 aria-label={`Remove ${r.name} from this list`}
                 title="Remove from this list"
@@ -66,15 +82,24 @@ export default function RecentFilesDialog(props: Props) {
       )}
 
       <div className="recents-footer">
-        <span className="recents-caption">
-          Kept only on this device — never uploaded.
-        </span>
+        <label className="recents-remember">
+          <input
+            type="checkbox"
+            checked={props.remember}
+            onChange={props.onToggleRemember}
+          />
+          Remember opened files
+        </label>
         {props.recents.length > 0 && (
           <button type="button" className="btn-secondary" onClick={props.onClearAll}>
             Clear all
           </button>
         )}
       </div>
+      <p className="recents-caption">
+        Kept only on this device — never uploaded. Pinned files stay until you remove
+        them.
+      </p>
     </Modal>
   );
 }

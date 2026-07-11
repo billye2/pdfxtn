@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { recordRecent, hashBytes } from './recents';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { recordRecent, hashBytes, isRememberEnabled, setRememberEnabled } from './recents';
 import { renderThumbnail, type LoadedDoc } from './pdfRender';
 import { saveRecent } from './persist';
 
@@ -62,5 +62,39 @@ describe('recordRecent', () => {
   it('swallows storage failures', async () => {
     vi.mocked(saveRecent).mockRejectedValue(new Error('quota'));
     await expect(recordRecent(mkDoc([1]))).resolves.toBeUndefined();
+  });
+});
+
+describe('remember off switch', () => {
+  // Node has no localStorage — stub the minimal surface the setting uses.
+  const store = new Map<string, string>();
+  beforeEach(() => {
+    store.clear();
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => store.get(k) ?? null,
+      setItem: (k: string, v: string) => void store.set(k, v),
+    });
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('defaults to enabled and round-trips the preference', () => {
+    expect(isRememberEnabled()).toBe(true);
+    setRememberEnabled(false);
+    expect(isRememberEnabled()).toBe(false);
+    setRememberEnabled(true);
+    expect(isRememberEnabled()).toBe(true);
+  });
+
+  it('recordRecent does nothing while remembering is off', async () => {
+    setRememberEnabled(false);
+    await recordRecent(mkDoc([1]));
+    expect(saveRecent).not.toHaveBeenCalled();
+    expect(renderThumbnail).not.toHaveBeenCalled();
+  });
+
+  it('stays enabled when localStorage is unavailable', () => {
+    vi.unstubAllGlobals();
+    expect(isRememberEnabled()).toBe(true);
+    expect(() => setRememberEnabled(false)).not.toThrow();
   });
 });

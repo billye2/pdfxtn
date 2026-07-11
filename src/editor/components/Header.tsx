@@ -1,4 +1,4 @@
-import { Download, HelpCircle, Keyboard, Loader2, Star } from './icons';
+import { Download, HelpCircle, Keyboard, Loader2, Pin } from './icons';
 import LookPicker from './LookPicker';
 import type { LookId } from '../themes';
 import type { AppState } from '../store';
@@ -67,7 +67,7 @@ export default function Header(props: Props) {
           aria-label="Previously opened files"
           onClick={props.onRecents}
         >
-          <Star size={18} />
+          <Pin size={18} />
         </button>
         <LookPicker
           look={props.look}

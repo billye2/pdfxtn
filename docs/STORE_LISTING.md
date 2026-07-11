@@ -63,6 +63,11 @@ Everything you need to paste into the Developer Dashboard for PDF Mana.
 > offered back the next time you open PDF Mana, plus a heads-up before you accidentally
 > close with unsaved changes.
 >
+> 📌 **Previously opened files** — the pin button lists the files you've opened before,
+> ready to reopen with one click; pin your regulars and they stick around. Everything
+> stays on your device, with per-file remove, "Clear all", and an off switch if you'd
+> rather nothing be remembered at all.
+>
 > ⌨️ **Accessible** — reorder and edit pages entirely from the keyboard, with screen-reader
 > announcements as you go.
 >
