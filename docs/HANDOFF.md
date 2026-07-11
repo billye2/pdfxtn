@@ -5,9 +5,9 @@ _Snapshot for picking this back up later._
 ## Status
 
 - **Product:** PDF Mana — MV3 Chrome extension, local PDF _page_ manager (Merge · Arrange · Nip · Adjust).
-- **Version:** 1.2.3 — packaged at `release/pdf-mana-1.2.3.zip` (older zips in `release/archive/`). **Versioning is odometer-style since 1.2.1**: each component counts 0–9 and carries (1.2.9 → 1.3.0 → … → 1.9.9 → 2.0.0); `npm run release` implements the carry. GitHub Releases exist through v1.0.18; the v1.0.19/v1.0.20/v1.2.1/v1.2.2/v1.2.3 tags are pushed but their GitHub releases await `npm run release:publish` (agent sessions can't run it — it creates a public release).
+- **Version:** 1.2.4 — packaged at `release/pdf-mana-1.2.4.zip` (older zips in `release/archive/`). **Versioning is odometer-style since 1.2.1**: each component counts 0–9 and carries (1.2.9 → 1.3.0 → … → 1.9.9 → 2.0.0); `npm run release` implements the carry. GitHub Releases exist through v1.0.18; the v1.0.19 through v1.2.4 tags are pushed but their GitHub releases await `npm run release:publish` (agent sessions can't run it — it creates a public release).
 - **Repo:** https://github.com/billye2/pdfxtn — **public, MIT** (© Billy Ye). `main` is the working branch; release commits carry annotated `vX.Y.Z` tags and `npm run release:publish` creates the GitHub release.
-- **Chrome Web Store:** **published / live** at https://chromewebstore.google.com/detail/pdf-mana/bhkhobdaindpenllbgliigfafkkigpnk — **v1.2.1 cleared review and is live (2026-07-10); v1.2.3 submitted for review 2026-07-10** (toolbar-first opening screen + 80% dashed drop box, superseding the never-uploaded v1.2.2). Promo video is on YouTube: https://www.youtube.com/watch?v=-0Jnd0kRKog (goes in the dashboard's "Promotional video" field; the v2 page-tools cut is not yet uploaded).
+- **Chrome Web Store:** **published / live** at https://chromewebstore.google.com/detail/pdf-mana/bhkhobdaindpenllbgliigfafkkigpnk — **v1.2.1 cleared review and is live (2026-07-10); v1.2.3 submitted for review 2026-07-10**; **v1.2.4 (the keyboard pack) is packaged and ready to upload once 1.2.3 clears**. v1.2.2 was never uploaded (superseded). Promo video is on YouTube: https://www.youtube.com/watch?v=-0Jnd0kRKog (goes in the dashboard's "Promotional video" field; the v2 page-tools cut is not yet uploaded; both videos predate 1.2.4's header changes — re-record when convenient).
 - **Tests:** 173 unit (Vitest; pure logic + persistence via `fake-indexeddb` in Node, hooks via jsdom `// @vitest-environment` docblock), 35 e2e incl. axe a11y scans (Playwright; 1 pointer-drag test skipped) — in CI on **Linux + Windows** — plus 12 visual-regression baselines (`npm run visual`, macOS-local, NOT in CI).
 - **Recent work (v1.0.11 → 1.0.20):** "Nighty Night" dark theme with themed
   page-render inversion; crop-box corner-handle resize; WYSIWYG crop previews
@@ -39,6 +39,17 @@ _Snapshot for picking this back up later._
   clicks a _detached_ input, so tests must patch
   `HTMLInputElement.prototype.click` to observe it). Two new HELP_TIPS cover
   drop-anywhere and hover-to-discover disabled toolbar buttons.
+- **Recent work (v1.2.4): the keyboard pack.** Enter/Shift+Enter pick pages from
+  the keyboard (cards carry `data-page-id`, get a `:focus-visible` ring, picks
+  announce via the aria-live region); action hotkeys R/Shift+R, C, B, K, S act
+  on the picked pages (guarded: no Cmd/Ctrl, not typing, inert while a modal is
+  open — that guard now covers the WHOLE global map, fixing a leak where
+  arrows/Space/Delete edited pages behind dialogs); keyboard crop (stage takes
+  the crop dialog's initial focus; arrows place/move the box, Shift+arrows
+  resize, live-region announcements); a shortcuts cheat-sheet dialog
+  (`ShortcutsDialog.tsx`, header keyboard-icon button + the `?` key); theme
+  picker palette dots removed (`paletteDots` deleted). Crop + header visual
+  baselines regenerated along the way.
 
 ## Commands
 
