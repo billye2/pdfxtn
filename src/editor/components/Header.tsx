@@ -1,4 +1,4 @@
-import { Download, HelpCircle, Keyboard, Loader2 } from './icons';
+import { Download, HelpCircle, Keyboard, Loader2, Star } from './icons';
 import LookPicker from './LookPicker';
 import type { LookId } from '../themes';
 import type { AppState } from '../store';
@@ -17,6 +17,7 @@ interface Props {
   onCloseLookMenu: () => void;
   onHelp: () => void;
   onShortcuts: () => void;
+  onRecents: () => void;
   onSave: () => void;
 }
 
@@ -59,6 +60,14 @@ export default function Header(props: Props) {
           onClick={props.onShortcuts}
         >
           <Keyboard size={18} />
+        </button>
+        <button
+          className="btn-secondary icon-btn"
+          title="Previously opened files"
+          aria-label="Previously opened files"
+          onClick={props.onRecents}
+        >
+          <Star size={18} />
         </button>
         <LookPicker
           look={props.look}

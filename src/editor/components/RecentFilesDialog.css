@@ -1,0 +1,110 @@
+/* Tall enough that a full list (10 files at ~72px a row) fits without
+   scrolling on a normal screen; the list still scrolls on short viewports. */
+.recents-modal {
+  width: min(440px, 94vw);
+  max-height: min(940px, 88vh);
+  display: flex;
+  flex-direction: column;
+}
+
+.recents-empty {
+  margin: 12px 0 4px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  color: var(--sub);
+}
+
+.recents-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  overflow-y: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.recent-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.recent-open {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  /* The global `button` rule centers content and fixes height at 42px —
+     rows are left-aligned and tall enough for the 52px thumbnail. */
+  justify-content: flex-start;
+  height: auto;
+  gap: 12px;
+  padding: 8px 10px;
+  text-align: left;
+  color: var(--ink);
+  background: var(--bg);
+  border: 2px solid var(--cardOutlineCol);
+  border-radius: 12px;
+  cursor: pointer;
+}
+.recent-open:hover {
+  border-color: var(--c-sel);
+}
+
+.recent-thumb {
+  flex-shrink: 0;
+  width: 40px;
+  height: 52px;
+  object-fit: cover;
+  object-position: top;
+  border-radius: 6px;
+  border: 1px solid var(--cardOutlineCol);
+  background: #fff;
+}
+.recent-thumb-blank {
+  display: inline-block;
+}
+
+.recent-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.recent-name {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recent-meta {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--sub);
+}
+
+.recent-remove {
+  flex-shrink: 0;
+}
+
+.recents-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.recents-caption {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--sub);
+}

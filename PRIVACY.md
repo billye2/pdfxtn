@@ -1,6 +1,6 @@
 # Privacy Policy — PDF Mana
 
-_Last updated: 2026-06-20_
+_Last updated: 2026-07-11_
 
 PDF Mana is a Chrome extension that manages PDF pages entirely on your device.
 
@@ -20,7 +20,14 @@ All PDF and image processing happens locally in your browser:
 - Exported files are saved directly to your computer via the browser's download feature.
 
 Your documents are **never uploaded** to any third party or to us. They stay on your
-device and are discarded when you close the editor tab.
+device. For convenience, the extension keeps two things in your browser's local
+storage (IndexedDB), still entirely on your device:
+
+- an autosave of your current session, so an accidental reload can offer to restore
+  your work — cleared when you empty the editor;
+- a short list of recently opened files (the ★ button), so you can reopen one without
+  finding it again — capped to the last 10 files, and you can remove any entry or use
+  "Clear all" in that dialog at any time.
 
 ## Permissions
 

@@ -3,12 +3,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { usePendingSource } from './usePendingSource';
 import { consumePendingSource, ensureHostPermission, ingestUrl } from '../lib/ingest';
+import { recordRecent } from '../lib/recents';
 
 vi.mock('../lib/ingest', () => ({
   consumePendingSource: vi.fn(),
   ensureHostPermission: vi.fn(),
   ingestUrl: vi.fn(),
 }));
+vi.mock('../lib/recents', () => ({ recordRecent: vi.fn().mockResolvedValue(undefined) }));
 
 function setup() {
   const dispatch = vi.fn();
@@ -62,6 +64,7 @@ describe('usePendingSource', () => {
     expect(setAppState).toHaveBeenLastCalledWith('editor');
     expect(showToast).toHaveBeenCalledWith('Loaded 1 page');
     expect(view.result.current.pendingSource).toBeNull();
+    expect(recordRecent).toHaveBeenCalledWith(expect.objectContaining({ id: 'd1' }));
   });
 
   it('denied permission toasts and does not ingest', async () => {

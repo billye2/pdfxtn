@@ -1,20 +1,32 @@
 import type { PageDescriptor } from './pageModel';
 
 /**
- * Local autosave of the working session in IndexedDB, so an accidental reload
- * doesn't lose work. Two object stores keep large data out of the hot path:
+ * Local persistence in IndexedDB. Object stores keep large data out of the
+ * hot path:
  *
- * - `docs`  — the raw source-PDF bytes, keyed by docId. Written once when a doc
- *             is added (megabytes), never on every edit.
+ * - `docs`  — the raw source-PDF bytes for the current session, keyed by
+ *             docId. Written once when a doc is added (megabytes), never on
+ *             every edit.
  * - `state` — the lightweight descriptor state (pages, split marks, theme),
  *             rewritten on each edit. Small, so frequent writes stay cheap.
+ * - `recentMeta`  — one small record per previously opened file (name, dates,
+ *                   thumbnail), keyed by content hash. Loaded for the
+ *                   empty-state list without touching the bytes.
+ * - `recentBytes` — the raw bytes of previously opened files, keyed by the
+ *                   same hash. Fetched only when a recent file is reopened.
+ *
+ * The session stores (`docs`/`state`) are cleared when the editor empties;
+ * the recents stores survive independently, capped by count and total size.
  *
  * Everything degrades to a no-op if IndexedDB is unavailable (e.g. private mode).
  */
 
 const DB_NAME = 'pdf-mana';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STATE_KEY = 'current';
+
+export const RECENTS_MAX_COUNT = 10;
+export const RECENTS_MAX_BYTES = 100 * 1024 * 1024;
 
 export interface PersistedDoc {
   id: string;
@@ -34,6 +46,15 @@ export interface RestoredSession {
   docs: PersistedDoc[];
 }
 
+export interface RecentMeta {
+  hash: string;
+  name: string;
+  size: number;
+  pageCount: number;
+  openedAt: number;
+  thumb?: string;
+}
+
 function hasIDB(): boolean {
   return typeof indexedDB !== 'undefined';
 }
@@ -48,6 +69,12 @@ function openDb(): Promise<IDBDatabase> {
       }
       if (!db.objectStoreNames.contains('state')) {
         db.createObjectStore('state');
+      }
+      if (!db.objectStoreNames.contains('recentMeta')) {
+        db.createObjectStore('recentMeta', { keyPath: 'hash' });
+      }
+      if (!db.objectStoreNames.contains('recentBytes')) {
+        db.createObjectStore('recentBytes');
       }
     };
     req.onsuccess = () => resolve(req.result);
@@ -129,7 +156,7 @@ export async function loadSession(): Promise<RestoredSession | null> {
   }
 }
 
-/** Drop the entire saved session (both stores). */
+/** Drop the entire saved session (both session stores; recents survive). */
 export async function clearSession(): Promise<void> {
   if (!hasIDB()) return;
   const db = await openDb();
@@ -137,6 +164,98 @@ export async function clearSession(): Promise<void> {
     const tx = db.transaction(['docs', 'state'], 'readwrite');
     tx.objectStore('docs').clear();
     tx.objectStore('state').clear();
+    await done(tx);
+  } finally {
+    db.close();
+  }
+}
+
+/**
+ * Record a previously opened file (meta + bytes) and evict the oldest entries
+ * until the count/size caps hold again. One transaction across both stores so
+ * meta and bytes can never drift apart. The entry being saved is never
+ * evicted, even if it alone exceeds the size cap.
+ */
+export async function saveRecent(meta: RecentMeta, bytes: Uint8Array): Promise<void> {
+  if (!hasIDB()) return;
+  const db = await openDb();
+  try {
+    const tx = db.transaction(['recentMeta', 'recentBytes'], 'readwrite');
+    const metaStore = tx.objectStore('recentMeta');
+    const bytesStore = tx.objectStore('recentBytes');
+    metaStore.put(meta);
+    bytesStore.put(bytes, meta.hash);
+
+    const all = await getAll<RecentMeta>(metaStore);
+    const oldestFirst = all
+      .filter((m) => m.hash !== meta.hash)
+      .sort((a, b) => a.openedAt - b.openedAt);
+    let count = all.length;
+    let total = all.reduce((sum, m) => sum + m.size, 0);
+    for (const m of oldestFirst) {
+      if (count <= RECENTS_MAX_COUNT && total <= RECENTS_MAX_BYTES) break;
+      metaStore.delete(m.hash);
+      bytesStore.delete(m.hash);
+      count -= 1;
+      total -= m.size;
+    }
+    await done(tx);
+  } finally {
+    db.close();
+  }
+}
+
+/** All recent-file metadata, most recently opened first. */
+export async function loadRecents(): Promise<RecentMeta[]> {
+  if (!hasIDB()) return [];
+  const db = await openDb();
+  try {
+    const all = await getAll<RecentMeta>(
+      db.transaction('recentMeta', 'readonly').objectStore('recentMeta'),
+    );
+    return all.sort((a, b) => b.openedAt - a.openedAt);
+  } finally {
+    db.close();
+  }
+}
+
+/** The stored bytes for one recent file, or null if evicted/missing. */
+export async function getRecentBytes(hash: string): Promise<Uint8Array | null> {
+  if (!hasIDB()) return null;
+  const db = await openDb();
+  try {
+    const bytes = await get<Uint8Array>(
+      db.transaction('recentBytes', 'readonly').objectStore('recentBytes'),
+      hash,
+    );
+    return bytes ?? null;
+  } finally {
+    db.close();
+  }
+}
+
+/** Remove one recent file (meta + bytes). */
+export async function removeRecent(hash: string): Promise<void> {
+  if (!hasIDB()) return;
+  const db = await openDb();
+  try {
+    const tx = db.transaction(['recentMeta', 'recentBytes'], 'readwrite');
+    tx.objectStore('recentMeta').delete(hash);
+    tx.objectStore('recentBytes').delete(hash);
+    await done(tx);
+  } finally {
+    db.close();
+  }
+}
+
+/** Remove all recent files. */
+export async function clearRecents(): Promise<void> {
+  if (!hasIDB()) return;
+  const db = await openDb();
+  try {
+    const tx = db.transaction(['recentMeta', 'recentBytes'], 'readwrite');
+    tx.objectStore('recentMeta').clear();
+    tx.objectStore('recentBytes').clear();
     await done(tx);
   } finally {
     db.close();

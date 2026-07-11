@@ -8,6 +8,7 @@ import {
   type IngestResult,
 } from '../lib/ingest';
 import { getPagePointSize, type LoadedDoc } from '../lib/pdfRender';
+import { recordRecent } from '../lib/recents';
 import type { PageDescriptor } from '../lib/pageModel';
 
 interface Args {
@@ -48,6 +49,7 @@ export function useFileIngest({
           setDocs((prev) => new Map(prev).set(result.doc.id, result.doc));
           dispatch({ type: 'addPages', pages: result.pages });
           added += result.pages.length;
+          void recordRecent(result.doc); // best-effort, off the critical path
         };
         for (const file of pdfs) ingest(await ingestFile(file));
         if (images.length) ingest(await ingestImages(images));

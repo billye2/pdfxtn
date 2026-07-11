@@ -8,6 +8,7 @@ import SelectionDock from './components/SelectionDock';
 import DragOverlay from './components/DragOverlay';
 import Toast from './components/Toast';
 import ShortcutsDialog from './components/ShortcutsDialog';
+import RecentFilesDialog from './components/RecentFilesDialog';
 import Banners from './components/Banners';
 import EditorDialogs from './components/EditorDialogs';
 import { initialHistory, reducer, type AppState } from './store';
@@ -21,7 +22,9 @@ import { useAutosave } from './hooks/useAutosave';
 import { useSessionRestore } from './hooks/useSessionRestore';
 import { usePendingSource } from './hooks/usePendingSource';
 import { useFileIngest } from './hooks/useFileIngest';
+import { useRecents } from './hooks/useRecents';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { getRecentBytes, type RecentMeta } from './lib/persist';
 
 // Rotating single-line tips shown by the header "?" button — one per click.
 const HELP_TIPS = [
@@ -60,6 +63,7 @@ export default function App() {
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [recentsOpen, setRecentsOpen] = useState(false);
   const tipIndex = useRef(0);
 
   const { pages, selected, splitMarks } = history.present;
@@ -110,6 +114,25 @@ export default function App() {
     showToast,
     clearRestorable,
   });
+
+  const { recents, removeRecent, clearRecents } = useRecents(recentsOpen);
+
+  // Reopen a previously viewed file: rebuild a File from the stored bytes and
+  // run it through the normal ingest path, so every downstream invariant
+  // (restore offer, loading state, autosave, recents timestamp) holds.
+  const openRecent = useCallback(
+    async (meta: RecentMeta) => {
+      setRecentsOpen(false);
+      const bytes = await getRecentBytes(meta.hash);
+      if (!bytes) {
+        showToast('That file is no longer stored', 'error');
+        removeRecent(meta.hash);
+        return;
+      }
+      addFiles([new File([bytes as BlobPart], meta.name, { type: 'application/pdf' })]);
+    },
+    [addFiles, removeRecent, showToast],
+  );
 
   const { liveMsg } = useKeyboardShortcuts({
     pages,
@@ -216,6 +239,7 @@ export default function App() {
           tipIndex.current = (tipIndex.current + 1) % HELP_TIPS.length;
         }}
         onShortcuts={() => setShortcutsOpen(true)}
+        onRecents={() => setRecentsOpen(true)}
         onSave={save}
       />
 
@@ -320,6 +344,15 @@ export default function App() {
       />
 
       {shortcutsOpen && <ShortcutsDialog onClose={() => setShortcutsOpen(false)} />}
+      {recentsOpen && (
+        <RecentFilesDialog
+          recents={recents}
+          onOpen={openRecent}
+          onRemove={removeRecent}
+          onClearAll={clearRecents}
+          onClose={() => setRecentsOpen(false)}
+        />
+      )}
       {dragActive && <DragOverlay />}
       {toast && <Toast message={toast.message} tone={toast.tone} />}
 

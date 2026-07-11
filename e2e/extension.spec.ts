@@ -1108,3 +1108,54 @@ test('insert blank: matches the neighbor page size and survives a reload', async
       }),
   );
 });
+
+test('recents: the star dialog lists opened files, reopens, removes, clears', async () => {
+  const page = await openEditor();
+  await drop(page, [
+    pdf(
+      'recents-a.pdf',
+      await makePdf([
+        [300, 400],
+        [400, 300],
+      ]),
+    ),
+  ]);
+  await expect(page.locator('.card')).toHaveCount(2);
+
+  // Recording is fire-and-forget after ingest (hash + thumbnail + IDB write),
+  // so reopen the dialog until the entry has landed.
+  const dialogShowsEntry = async (p: typeof page) => {
+    await p.keyboard.press('Escape'); // close the dialog if a prior try opened it
+    await p.getByRole('button', { name: 'Previously opened files' }).click();
+    await expect(p.locator('.recent-row', { hasText: 'recents-a.pdf' })).toBeVisible({
+      timeout: 1_000,
+    });
+  };
+  await expect(() => dialogShowsEntry(page)).toPass({ timeout: 10_000 });
+  const row = page.locator('.recent-row', { hasText: 'recents-a.pdf' });
+  await expect(row).toContainText('2 pages');
+  await page.keyboard.press('Escape');
+
+  // A brand-new editor tab (fresh session) can reopen the file from the list.
+  const page2 = await openEditor();
+  await page2.getByRole('button', { name: 'Previously opened files' }).click();
+  await page2.locator('.recent-open', { hasText: 'recents-a.pdf' }).click();
+  await expect(page2.locator('.card')).toHaveCount(2);
+
+  // Per-item remove drops the entry; Clear all empties whatever remains.
+  // (Reopening re-records the file, also fire-and-forget — retry again.)
+  await expect(() => dialogShowsEntry(page2)).toPass({ timeout: 10_000 });
+  const row2 = page2.locator('.recent-row', { hasText: 'recents-a.pdf' });
+  await page2
+    .getByRole('button', { name: 'Remove recents-a.pdf from this list' })
+    .click();
+  await expect(row2).toHaveCount(0);
+  const clearAll = page2.getByRole('button', { name: 'Clear all' });
+  if (await clearAll.isVisible()) await clearAll.click();
+  await expect(page2.getByText('Files you open will show up here')).toBeVisible();
+
+  // Removal persists: reopening the dialog shows the empty message again.
+  await page2.keyboard.press('Escape');
+  await page2.getByRole('button', { name: 'Previously opened files' }).click();
+  await expect(page2.getByText('Files you open will show up here')).toBeVisible();
+});

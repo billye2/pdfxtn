@@ -26,4 +26,5 @@ export {
   CopyCheck,
   CircleCheck,
   Loader2,
+  Star,
 } from 'lucide-react';

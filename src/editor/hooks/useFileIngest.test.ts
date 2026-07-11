@@ -3,12 +3,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useFileIngest } from './useFileIngest';
 import { ingestFile, ingestImages, isImageFile } from '../lib/ingest';
+import { recordRecent } from '../lib/recents';
 
 vi.mock('../lib/ingest', () => ({
   ingestFile: vi.fn(),
   ingestImages: vi.fn(),
   isImageFile: vi.fn(),
 }));
+vi.mock('../lib/recents', () => ({ recordRecent: vi.fn().mockResolvedValue(undefined) }));
 
 const file = (name: string, type: string) => new File(['x'], name, { type });
 
@@ -69,6 +71,9 @@ describe('useFileIngest', () => {
     expect(dispatch).toHaveBeenCalledTimes(2); // one addPages per ingest
     expect(showToast).toHaveBeenCalledWith('Added 3 pages');
     expect(setAppState).toHaveBeenLastCalledWith('editor');
+    // Both the PDF and the image-batch doc land in the recents list.
+    expect(recordRecent).toHaveBeenCalledWith(expect.objectContaining({ id: 'd1' }));
+    expect(recordRecent).toHaveBeenCalledWith(expect.objectContaining({ id: 'imgs' }));
   });
 
   it('an ingest failure toasts the error but still lands in the editor', async () => {

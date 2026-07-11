@@ -7,6 +7,7 @@ import {
 } from 'react';
 import type { Action, AppState } from '../store';
 import { consumePendingSource, ensureHostPermission, ingestUrl } from '../lib/ingest';
+import { recordRecent } from '../lib/recents';
 import type { LoadedDoc } from '../lib/pdfRender';
 
 interface Args {
@@ -68,6 +69,7 @@ export function usePendingSource({
       const { doc, pages: newPages } = await ingestUrl(url);
       setDocs((prev) => new Map(prev).set(doc.id, doc));
       dispatch({ type: 'addPages', pages: newPages });
+      void recordRecent(doc); // best-effort, off the critical path
       setAppState('editor');
       showToast(`Loaded ${newPages.length} page${newPages.length === 1 ? '' : 's'}`);
     } catch (e) {
