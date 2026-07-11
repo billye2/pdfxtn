@@ -218,7 +218,8 @@ export async function loadRecents(): Promise<RecentMeta[]> {
       db.transaction('recentMeta', 'readonly').objectStore('recentMeta'),
     );
     return all.sort(
-      (a, b) => Number(b.pinned ?? false) - Number(a.pinned ?? false) || b.openedAt - a.openedAt,
+      (a, b) =>
+        Number(b.pinned ?? false) - Number(a.pinned ?? false) || b.openedAt - a.openedAt,
     );
   } finally {
     db.close();

@@ -62,7 +62,11 @@ export default function RecentFilesDialog(props: Props) {
                 className={`btn-secondary icon-btn recent-pin${r.pinned ? ' pinned' : ''}`}
                 aria-pressed={r.pinned ?? false}
                 aria-label={`Pin ${r.name}`}
-                title={r.pinned ? 'Unpin (can be auto-removed again)' : 'Pin (never auto-removed)'}
+                title={
+                  r.pinned
+                    ? 'Unpin (can be auto-removed again)'
+                    : 'Pin (never auto-removed)'
+                }
                 onClick={() => props.onTogglePin(r.hash)}
               >
                 <Pin size={15} />

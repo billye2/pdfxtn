@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { recordRecent, hashBytes, isRememberEnabled, setRememberEnabled } from './recents';
+import {
+  recordRecent,
+  hashBytes,
+  isRememberEnabled,
+  setRememberEnabled,
+} from './recents';
 import { renderThumbnail, type LoadedDoc } from './pdfRender';
 import { saveRecent } from './persist';
 
