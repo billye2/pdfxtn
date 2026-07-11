@@ -111,10 +111,13 @@ The item is already live. To ship a new version:
   `hooks/useAutosave.ts`, store `restore`). Still single-session/local only — no cross-device sync
   or named projects.
 - **Accessibility — audited.** axe-core (WCAG 2.1 AA) scans run in CI over the key screens in
-  light + dark Looks (`e2e/a11y.spec.ts`); real fixes landed in v1.0.17. Two known, deliberate
-  gaps: the branded bright buttons sit below 4.5:1 (documented exclusion list in a11y.spec.ts —
-  owner's call), and keyboard users can Tab to a card but have no Enter/Space path to _select_
-  it (selection is mouse-first; the `←`/`→` nudge works once selected).
+  light + dark Looks (`e2e/a11y.spec.ts`); real fixes landed in v1.0.17. One known, deliberate
+  gap remains: the branded bright buttons sit below 4.5:1 (documented exclusion list in
+  a11y.spec.ts — owner's call). The former keyboard-selection gap is **closed in v1.2.4**:
+  Enter picks/unpicks the focused card, Shift+Enter range-picks (handled centrally in
+  `useKeyboardShortcuts` via the card's `data-page-id`; cards have a `:focus-visible` ring
+  and picks announce via the aria-live region). Note there is NO dnd-kit KeyboardSensor —
+  the grid registers only PointerSensor; keyboard reorder is the `←`/`→` nudge.
 - **styles.css split — DONE.** (Plan doc removed after execution; see git history if
   the rationale is needed — `docs/styles-split-plan.md` at 3813e88.) Styles now live in
   `src/editor/styles/base.css` (reset, keyframes, button base/variants, app shell, the

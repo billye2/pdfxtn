@@ -73,6 +73,68 @@ describe('useKeyboardShortcuts', () => {
     expect(dispatch).not.toHaveBeenCalled();
   });
 
+  // The Enter pick-toggle reads e.target: it must be the card element itself
+  // (class "card" + data-page-id), never a button nested inside it.
+  function mkCard(pageId: string) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.pageId = pageId;
+    document.body.append(card);
+    return card;
+  }
+
+  it('Enter on a focused card toggles it into the selection additively', () => {
+    const card = mkCard('p1'); // p0 is selected; p1 is not
+    const { dispatch } = setup();
+    press('Enter', {}, card);
+    expect(dispatch).toHaveBeenCalledWith({
+      type: 'toggleSelect',
+      id: 'p1',
+      additive: true,
+    });
+    card.remove();
+  });
+
+  it('Shift+Enter on a focused card picks the range to it', () => {
+    const card = mkCard('p2');
+    const { dispatch } = setup();
+    press('Enter', { shiftKey: true }, card);
+    expect(dispatch).toHaveBeenCalledWith({ type: 'selectRangeTo', id: 'p2' });
+    card.remove();
+  });
+
+  it('Enter from a button inside the card is left to the button', () => {
+    const card = mkCard('p1');
+    const btn = document.createElement('button');
+    card.append(btn);
+    const { dispatch } = setup();
+    press('Enter', {}, btn);
+    expect(dispatch).not.toHaveBeenCalled();
+    card.remove();
+  });
+
+  it('announces picks and unpicks via the live message', () => {
+    const card = mkCard('p0'); // p0 already selected → Enter removes it
+    const dispatch = vi.fn();
+    const { result } = renderHook(() =>
+      useKeyboardShortcuts({
+        pages: mkPages(3),
+        selected: new Set(['p0']),
+        previewIndex: null,
+        setPreviewIndex: vi.fn(),
+        dispatch,
+      }),
+    );
+    press('Enter', {}, card);
+    expect(dispatch).toHaveBeenCalledWith({
+      type: 'toggleSelect',
+      id: 'p0',
+      additive: true,
+    });
+    expect(result.current.liveMsg).toBe('Removed page 1 from the picked pages.');
+    card.remove();
+  });
+
   it('announces a successful nudge via the live message', () => {
     const dispatch = vi.fn();
     const { result } = renderHook(() =>

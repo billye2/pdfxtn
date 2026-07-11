@@ -156,8 +156,9 @@ export default function PageThumb({
   // dnd-kit's sortable attributes default to role="button", but the card
   // contains real buttons (rotate/split/delete/expand) — an interactive role
   // with focusable descendants is invalid (axe: nested-interactive). listitem
-  // keeps the card focusable via dnd-kit's tabIndex without promising
-  // Enter/Space activation it doesn't have.
+  // keeps the card focusable via dnd-kit's tabIndex; Enter/Shift+Enter pick
+  // the focused card via the global handler in useKeyboardShortcuts, which
+  // finds the page through data-page-id.
   return (
     <div
       ref={setRefs}
@@ -177,6 +178,8 @@ export default function PageThumb({
       onPointerCancel={peek.onPointerCancel}
       {...attributes}
       role="listitem"
+      data-page-id={page.id}
+      aria-keyshortcuts="Enter"
       {...listeners}
       onPointerDown={onPointerDown}
     >

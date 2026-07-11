@@ -12,6 +12,7 @@ interface Args {
 
 /**
  * The global keyboard map: preview paging/closing, Space preview toggle,
+ * Enter pick-toggle on the focused card (Shift+Enter picks a range),
  * arrow-key page nudging (the modeless drag alternative, announced via the
  * returned aria-live message), undo/redo, select-all, Esc, Delete.
  */
@@ -42,6 +43,31 @@ export function useKeyboardShortcuts({
         else if (e.key === 'ArrowLeft')
           setPreviewIndex((i) => (i === null ? i : Math.max(i - 1, 0)));
         return;
+      }
+
+      // Enter on a focused card toggles it in/out of the selection — the
+      // keyboard mirror of Cmd/Ctrl-click; Shift+Enter mirrors Shift-click's
+      // range pick. Only when the card ITSELF is focused: buttons inside it
+      // (rotate/split/delete/expand) keep their native Enter behavior.
+      if (e.key === 'Enter' && !typing) {
+        const t = e.target as HTMLElement | null;
+        const id = t?.classList?.contains('card') ? t.dataset.pageId : undefined;
+        if (id) {
+          e.preventDefault();
+          const pos = pages.findIndex((p) => p.id === id) + 1;
+          if (e.shiftKey) {
+            dispatch({ type: 'selectRangeTo', id });
+            setLiveMsg(`Picked through page ${pos}.`);
+          } else {
+            dispatch({ type: 'toggleSelect', id, additive: true });
+            setLiveMsg(
+              selected.has(id)
+                ? `Removed page ${pos} from the picked pages.`
+                : `Picked page ${pos}.`,
+            );
+          }
+          return;
+        }
       }
 
       // Space opens the preview for a single selected page.

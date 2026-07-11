@@ -709,6 +709,53 @@ test('selection: Shift-click picks a range; Select all picks everything', async 
   await expect(page.locator('.card.selected')).toHaveCount(4);
 });
 
+test('keyboard: Enter picks the focused card, Shift+Enter a range, no mouse needed', async () => {
+  const page = await openEditor();
+  await drop(page, [
+    pdf(
+      'kbd.pdf',
+      await makePdf([
+        [100, 1],
+        [200, 1],
+        [300, 1],
+        [400, 1],
+        [500, 1],
+      ]),
+    ),
+  ]);
+  await expect(page.locator('.card')).toHaveCount(5);
+
+  // Enter on the focused card picks it; the dock appears.
+  await page.locator('.card').nth(1).focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.card.selected')).toHaveCount(1);
+  await expect(page.locator('.dock-count')).toHaveText('1');
+
+  // Shift+Enter extends to a range from the anchor.
+  await page.locator('.card').nth(3).focus();
+  await page.keyboard.press('Shift+Enter');
+  await expect(page.locator('.card.selected')).toHaveCount(3);
+
+  // Enter again on a picked card unpicks just that one (additive toggle).
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.card.selected')).toHaveCount(2);
+
+  // The picked pages are actionable from the keyboard too.
+  await page.keyboard.press('Delete');
+  await expect(page.locator('.card')).toHaveCount(3);
+
+  // Enter on a button inside a card still activates the button, not a pick:
+  // the rotate op button turns its page instead of changing the selection.
+  await page.locator('.card').nth(0).locator('.card-ops button').first().focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.card.selected')).toHaveCount(0);
+  // rotate(90deg) computes to this exact matrix (rotate(0) would be identity).
+  await expect(page.locator('.card').nth(0).locator('.card-page')).toHaveCSS(
+    'transform',
+    'matrix(0, 1, -1, 0, 0, 0)',
+  );
+});
+
 test('undo and redo toolbar buttons step through a delete', async () => {
   const page = await openEditor();
   await drop(page, [

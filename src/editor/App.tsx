@@ -27,6 +27,7 @@ const HELP_TIPS = [
   'Tip: drag any page to reorder — grab anywhere on the card, not just the edge.',
   'Tip: select a page and tap ← or → to nudge it one spot without dragging.',
   'Tip: Shift-click to pick a range; Cmd/Ctrl-click to add or remove one page.',
+  'Tip: no mouse? Tab to a page and press Enter to pick it — Shift+Enter picks a range.',
   'Tip: double-click a page, tap the magnifier, or press Space to preview it large — scroll to see the rest.',
   'Tip: on a touch screen, press and hold a page to peek at it while you reorder.',
   'Tip: use Mix to interleave two PDFs — perfect for double-sided scans.',

@@ -7,6 +7,17 @@ Versioning (since 1.2.1): each version component counts 0–9 and carries into
 the next, like an odometer — 1.2.9 → 1.3.0 → 1.3.1, … 1.9.9 → 2.0.0. Versions
 before 1.2.1 followed semver patch bumps (hence the jump from 1.0.20).
 
+## [1.2.4] — Unreleased
+
+### Added
+
+- **Keyboard page selection** — Tab to a page card and press **Enter** to pick
+  or unpick it (the keyboard mirror of Cmd/Ctrl-click); **Shift+Enter** picks a
+  range (mirror of Shift-click). Cards show a visible focus ring, and picks are
+  announced to screen readers. This closes the last mouse-only step: pick with
+  Enter, then preview (Space), nudge (←/→), delete, or duplicate (Cmd/Ctrl+D)
+  entirely from the keyboard.
+
 ## [1.2.3] — 2026-07-10
 
 ### Changed
