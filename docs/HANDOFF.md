@@ -72,6 +72,8 @@ node scripts/promo.mjs         # promo tiles (440x280, 1400x560) → release/pro
 node scripts/promo-video.mjs   # promo video (webm) → release/video/ (upload via YouTube)
 node scripts/promo-video-2.mjs # promo video v2 — page-tools cut (rotate/crop/duplicate/
                                #   blank/delete/keep-these via the dock) → release/video/
+node scripts/demo-gif.mjs      # 15s README demo → release/video/readme-demo.webm;
+                               #   ffmpeg commands in the script header → docs/demo.gif
 ```
 
 > ⚠️ Always repackage with **`npm run release`** so the zip version increments — the Web

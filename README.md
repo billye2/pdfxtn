@@ -5,6 +5,10 @@
 A Chrome extension (Manifest V3) for managing PDF pages — entirely in your browser.
 Nothing is uploaded; all parsing and writing happens locally.
 
+![PDF Mana demo: dropping PDFs to merge, rotating and deleting pages, cropping visually, and saving — all locally](docs/demo.gif)
+
+**[Install from the Chrome Web Store](https://chromewebstore.google.com/detail/pdf-mana/bhkhobdaindpenllbgliigfafkkigpnk)** · [watch the full demo on YouTube](https://www.youtube.com/watch?v=-0Jnd0kRKog)
+
 ## Features
 
 - **Reorder** pages — drag a whole card anywhere to move it, or select a page and
@@ -33,6 +37,10 @@ Nothing is uploaded; all parsing and writing happens locally.
 - **Page labels stay original** — a page keeps its source page number after reordering
 - **Four themes** — switchable "Looks" (Blocks, Bubble, Sticker, and the
   Nighty Night dark theme); your last pick is remembered across sessions
+- **Full keyboard support** — Tab to a page and Enter picks it (Shift+Enter for a
+  range); R / C / B / K / S rotate, crop, insert a blank, keep, or split the picked
+  pages; the crop box places, moves, and resizes with the arrow keys; press **?**
+  for the built-in cheat sheet
 - **Undo / redo** (Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z), select-all, Esc to clear
 - **Autosave & restore** — your session is saved locally (IndexedDB) as you work, so an
   accidental reload offers a one-click "Restore your previous work?"
@@ -76,7 +84,8 @@ pull request (`.github/workflows/ci.yml`).
 - Click **Save PDF** to download `‹name›-edited.pdf`. With split marks set it downloads one
   file per part (`‹name›-part1.pdf`, …). **Export range…** and **Export images…** offer
   more targeted output.
-- The header **?** cycles through usage tips; the **Look** picker switches themes.
+- The header **?** cycles through usage tips; the **keyboard button** (or pressing
+  `?`) opens the shortcuts cheat sheet; the **Look** picker switches themes.
 
 ## How it works
 
@@ -108,7 +117,7 @@ pure transform over that list, which keeps edits non-destructive and undoable.
   it's covered by `pageModel` unit tests and the keyboard-reorder e2e.) The same run scans
   key screens with **axe-core** (WCAG 2.1 AA) in the default and dark Looks.
 - **Visual regression** (`npm run visual`) — screenshots the grid, crop dialog, and lightbox
-  in all five Looks against committed baselines (macOS-local; `visual:update` regenerates
+  in all four Looks against committed baselines (macOS-local; `visual:update` regenerates
   them after intentional UI changes).
 
 ## Project layout
@@ -121,7 +130,7 @@ src/
   editor/
     App.tsx            top-level state wiring
     store.ts           reducer + undo/redo history
-    themes.ts          the five Looks (CSS-var token sets) + saved-look storage
+    themes.ts          the four Looks (CSS-var token sets) + saved-look storage
     styles/base.css    shared reset, keyframes, button primitives, app shell
     components/        Header, Toolbar, ThumbnailGrid, PageThumb, PagePeek, Lightbox,
                        Banners, EditorDialogs, CropDialog, RangeDialog, ImagesDialog,
