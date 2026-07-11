@@ -7,6 +7,23 @@ Versioning (since 1.2.1): each version component counts 0–9 and carries into
 the next, like an odometer — 1.2.9 → 1.3.0 → 1.3.1, … 1.9.9 → 2.0.0. Versions
 before 1.2.1 followed semver patch bumps (hence the jump from 1.0.20).
 
+## [1.2.3] — 2026-07-10
+
+### Changed
+
+- **Bigger, clearer drop invite.** The empty-state mascot is twice the size
+  (144×176), and a persistent dashed drop box now fills ~80% of the area below
+  the toolbar, resizing with the window. The dashes match the drag-time
+  overlay's style, so dragging a file over reads as the box lighting up. The
+  whole box is clickable — click anywhere inside it to open the file picker
+  (the mascot stays the keyboard-accessible control).
+
+### Added
+
+- Two help tips covering the new opening screen: drops work anywhere in the
+  window (the dashed box doubles as a giant "open a file" button), and greyed
+  toolbar buttons reveal what they do on hover before a PDF loads.
+
 ## [1.2.2] — 2026-07-10
 
 ### Changed

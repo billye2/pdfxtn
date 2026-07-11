@@ -1,20 +1,32 @@
 .empty {
-  position: relative;
-  min-height: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+}
+.drop-zone {
+  width: 80%;
+  height: 80%;
+  min-height: 340px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  gap: 18px;
-  padding: 32px 20px;
-  width: min(580px, 92vw);
-  margin: 0 auto;
+  gap: 22px;
+  border: 4px dashed var(--c-add);
+  border-radius: 28px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.drop-zone:hover {
+  background: color-mix(in srgb, var(--c-add) 6%, transparent);
 }
 .empty-title {
   font-family: 'Fredoka', sans-serif;
   font-weight: 700;
-  font-size: 21px;
+  font-size: 24px;
   color: var(--ink);
   margin: 0;
 }
@@ -35,15 +47,15 @@
 /* Mascot (CSS shapes only) */
 .mascot {
   position: relative;
-  width: 72px;
-  height: 88px;
+  width: 144px;
+  height: 176px;
   padding: 0;
   appearance: none;
   -webkit-appearance: none;
   background: var(--card);
-  border: 3px solid var(--ink);
-  border-radius: 12px;
-  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.13);
+  border: 5px solid var(--ink);
+  border-radius: 22px;
+  box-shadow: 0 9px 0 rgba(0, 0, 0, 0.13);
   animation: bob 3s ease-in-out infinite;
   cursor: pointer;
 }
@@ -57,52 +69,52 @@
 .mascot::after {
   content: '';
   position: absolute;
-  top: -3px;
-  right: -3px;
-  width: 18px;
-  height: 18px;
+  top: -5px;
+  right: -5px;
+  width: 36px;
+  height: 36px;
   background: var(--bg);
-  border-left: 3px solid var(--ink);
-  border-bottom: 3px solid var(--ink);
-  border-bottom-left-radius: 6px;
+  border-left: 5px solid var(--ink);
+  border-bottom: 5px solid var(--ink);
+  border-bottom-left-radius: 10px;
 }
 .mascot-eye {
   position: absolute;
-  top: 31px;
-  width: 8px;
-  height: 10px;
+  top: 62px;
+  width: 16px;
+  height: 20px;
   background: var(--ink);
-  border-radius: 4px;
+  border-radius: 8px;
 }
 .mascot-eye.left {
-  left: 20px;
+  left: 40px;
 }
 .mascot-eye.right {
-  right: 20px;
+  right: 40px;
 }
 .mascot-cheek {
   position: absolute;
-  top: 42px;
-  width: 9px;
-  height: 6px;
+  top: 84px;
+  width: 18px;
+  height: 12px;
   background: #ffb3c1;
   border-radius: 50%;
 }
 .mascot-cheek.left {
-  left: 13px;
+  left: 26px;
 }
 .mascot-cheek.right {
-  right: 13px;
+  right: 26px;
 }
 .mascot-smile {
   position: absolute;
-  top: 40px;
+  top: 80px;
   left: 50%;
   transform: translateX(-50%);
-  width: 17px;
-  height: 17px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  border: 2.5px solid var(--ink);
+  border: 5px solid var(--ink);
   border-top-color: transparent;
   border-left-color: transparent;
   border-right-color: transparent;

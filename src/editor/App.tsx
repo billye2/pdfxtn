@@ -35,6 +35,8 @@ const HELP_TIPS = [
   'Tip: pick a page, then "Blank page" to slip in an empty page right after it.',
   'Tip: Split every N pages, then Save to get one file per chunk.',
   'Tip: drop JPG or PNG files right in — they become PDF pages instantly.',
+  'Tip: no PDF yet? Drop one anywhere in the window — the dashed box is one big "open a file" button.',
+  'Tip: hover any toolbar button to see what it does — greyed ones wake up once a PDF loads.',
   'Tip: Export images as PNG or JPG (up to 3×) — bundle them into one .zip in a click.',
   'Tip: crop one region and apply it to all pages or just the selected ones.',
   'Tip: pick some pages, then "Keep these" to extract only those.',
