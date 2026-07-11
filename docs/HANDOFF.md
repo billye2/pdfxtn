@@ -5,10 +5,10 @@ _Snapshot for picking this back up later._
 ## Status
 
 - **Product:** PDF Mana — MV3 Chrome extension, local PDF _page_ manager (Merge · Arrange · Nip · Adjust).
-- **Version:** 1.2.4 — packaged at `release/pdf-mana-1.2.4.zip` (older zips in `release/archive/`). **Versioning is odometer-style since 1.2.1**: each component counts 0–9 and carries (1.2.9 → 1.3.0 → … → 1.9.9 → 2.0.0); `npm run release` implements the carry. GitHub Releases exist through v1.0.18; the v1.0.19 through v1.2.4 tags are pushed but their GitHub releases await `npm run release:publish` (agent sessions can't run it — it creates a public release).
+- **Version:** 1.2.5 — packaged at `release/pdf-mana-1.2.5.zip` (older zips in `release/archive/`). **Versioning is odometer-style since 1.2.1**: each component counts 0–9 and carries (1.2.9 → 1.3.0 → … → 1.9.9 → 2.0.0); `npm run release` implements the carry. GitHub Releases exist through v1.0.18; the v1.0.19 through v1.2.5 tags await `npm run release:publish` (agent sessions can't run it — it creates a public release; the v1.2.5 tag is local-only until then).
 - **Repo:** https://github.com/billye2/pdfxtn — **public, MIT** (© Billy Ye). `main` is the working branch; release commits carry annotated `vX.Y.Z` tags and `npm run release:publish` creates the GitHub release.
-- **Chrome Web Store:** **published / live** at https://chromewebstore.google.com/detail/pdf-mana/bhkhobdaindpenllbgliigfafkkigpnk — **v1.2.1 cleared review and is live (2026-07-10); v1.2.3 submitted for review 2026-07-10**; **v1.2.4 (the keyboard pack) is packaged and ready to upload once 1.2.3 clears**. v1.2.2 was never uploaded (superseded). Promo video is on YouTube: https://www.youtube.com/watch?v=-0Jnd0kRKog (goes in the dashboard's "Promotional video" field). Both local videos in `release/video/` and the five store screenshots in `release/screenshots/` were regenerated against v1.2.4 (2026-07-11) — the YouTube upload is the older 1.2.3 cut, so replace/re-upload it (and optionally upload the v2 page-tools cut) when convenient, and refresh the dashboard screenshots with the 1.2.4 upload.
-- **Tests:** 173 unit (Vitest; pure logic + persistence via `fake-indexeddb` in Node, hooks via jsdom `// @vitest-environment` docblock), 35 e2e incl. axe a11y scans (Playwright; 1 pointer-drag test skipped) — in CI on **Linux + Windows** — plus 12 visual-regression baselines (`npm run visual`, macOS-local, NOT in CI).
+- **Chrome Web Store:** **published / live** at https://chromewebstore.google.com/detail/pdf-mana/bhkhobdaindpenllbgliigfafkkigpnk — **v1.2.1 cleared review and is live (2026-07-10); v1.2.3 submitted for review 2026-07-10**; **v1.2.5 (recents + the keyboard pack from 1.2.4) is packaged and ready to upload once 1.2.3 clears — upload 1.2.5 and skip 1.2.4**. v1.2.2 was never uploaded (superseded). Promo video is on YouTube: https://www.youtube.com/watch?v=-0Jnd0kRKog (goes in the dashboard's "Promotional video" field). Both local videos in `release/video/` and the five store screenshots in `release/screenshots/` were regenerated against v1.2.5 (2026-07-11) — the YouTube upload is the older 1.2.3 cut, so replace/re-upload it (and optionally upload the v2 page-tools cut) when convenient, and refresh the dashboard screenshots with the 1.2.5 upload. The detailed description gained a "Perfect for" use-cases block (`docs/STORE_LISTING.md`) — paste the refreshed description into the dashboard with the upload.
+- **Tests:** 195 unit (Vitest; pure logic + persistence via `fake-indexeddb` in Node, hooks via jsdom `// @vitest-environment` docblock), 40 e2e incl. axe a11y scans (Playwright; 1 pointer-drag test skipped) — in CI on **Linux + Windows** — plus 12 visual-regression baselines (`npm run visual`, macOS-local, NOT in CI).
 - **Recent work (v1.0.11 → 1.0.20):** "Nighty Night" dark theme with themed
   page-render inversion; crop-box corner-handle resize; WYSIWYG crop previews
   (`lib/cropView.ts`); last-used Look persists in localStorage; dark-theme contrast
@@ -50,6 +50,26 @@ _Snapshot for picking this back up later._
   (`ShortcutsDialog.tsx`, header keyboard-icon button + the `?` key); theme
   picker palette dots removed (`paletteDots` deleted). Crop + header visual
   baselines regenerated along the way.
+
+- **Recent work (v1.2.5): previously opened files.** A header star button (right
+  of the keyboard button) opens `RecentFilesDialog` — files opened before, newest
+  first, with thumbnail/name/page-count/date, per-row remove, Clear all, and a
+  "Kept only on this device" caption. Storage: `persist.ts` bumped to DB v2 with
+  two new stores — `recentMeta` (keyPath `hash` = SHA-256 of the bytes, so
+  re-opens dedupe/update in place) and `recentBytes` (raw bytes keyed the same);
+  caps `RECENTS_MAX_COUNT = 10` / `RECENTS_MAX_BYTES = 100 MB`, oldest evicted in
+  the same transaction as the write. Recording is fire-and-forget after each
+  successful ingest (`lib/recents.ts` `recordRecent`; wired in `useFileIngest` +
+  `usePendingSource`; blank pages not recorded); reopening rebuilds a `File` and
+  goes through the normal `addFiles` path. `clearSession` (autosave's
+  clear-on-empty) names only the session stores, so recents survive — tested.
+  Gotchas hit: the global `button` CSS rule (`justify-content: center`,
+  `height: 42px`) had to be overridden in `.recent-open` for left-aligned,
+  full-height rows; the fire-and-forget write means e2e must retry-open the
+  dialog until the entry lands. Use-cases copy added to README +
+  `docs/STORE_LISTING.md` ("Perfect for" block); `PRIVACY.md` now discloses both
+  local caches. No manifest/permission changes. Header visual baselines
+  regenerated (icon cluster shifted).
 
 ## Commands
 
