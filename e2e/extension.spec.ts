@@ -773,6 +773,10 @@ test('keyboard crop: arrows place, move, and resize the box, Tab applies', async
   await page.locator('.card').nth(0).click();
   await page.keyboard.press('c');
   await expect(page.locator('.crop-canvas')).toBeVisible({ timeout: 15_000 });
+  // The canvas lands one React commit before the `size` state the keyboard
+  // handler needs — wait for the stage's inline width (set with `size`), or a
+  // too-early ArrowRight is ignored (flaked on Ubuntu CI).
+  await expect(page.locator('.crop-stage')).toHaveAttribute('style', /width/);
 
   // The stage takes the dialog's initial focus, so arrows work immediately.
   await expect(page.locator('.crop-stage')).toBeFocused();
