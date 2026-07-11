@@ -5,10 +5,10 @@ _Snapshot for picking this back up later._
 ## Status
 
 - **Product:** PDF Mana — MV3 Chrome extension, local PDF _page_ manager (Merge · Arrange · Nip · Adjust).
-- **Version:** 1.2.5 — packaged at `release/pdf-mana-1.2.5.zip` (older zips in `release/archive/`). **Versioning is odometer-style since 1.2.1**: each component counts 0–9 and carries (1.2.9 → 1.3.0 → … → 1.9.9 → 2.0.0); `npm run release` implements the carry. GitHub Releases exist through v1.0.18; the v1.0.19 through v1.2.5 tags await `npm run release:publish` (agent sessions can't run it — it creates a public release; the v1.2.5 tag is local-only until then).
+- **Version:** 1.2.6 — packaged at `release/pdf-mana-1.2.6.zip` (older zips in `release/archive/`). **Versioning is odometer-style since 1.2.1**: each component counts 0–9 and carries (1.2.9 → 1.3.0 → … → 1.9.9 → 2.0.0); `npm run release` implements the carry. GitHub Releases exist through v1.0.18; the v1.0.19 through v1.2.6 tags await `npm run release:publish` (agent sessions can't run it — it creates a public release; the v1.2.5 and v1.2.6 tags are local-only until then).
 - **Repo:** https://github.com/billye2/pdfxtn — **public, MIT** (© Billy Ye). `main` is the working branch; release commits carry annotated `vX.Y.Z` tags and `npm run release:publish` creates the GitHub release.
-- **Chrome Web Store:** **published / live** at https://chromewebstore.google.com/detail/pdf-mana/bhkhobdaindpenllbgliigfafkkigpnk — **v1.2.1 cleared review and is live (2026-07-10); v1.2.3 submitted for review 2026-07-10**; **v1.2.5 (recents + the keyboard pack from 1.2.4) is packaged and ready to upload once 1.2.3 clears — upload 1.2.5 and skip 1.2.4**. v1.2.2 was never uploaded (superseded). Promo video is on YouTube: https://www.youtube.com/watch?v=-0Jnd0kRKog (goes in the dashboard's "Promotional video" field). Both local videos in `release/video/` and the five store screenshots in `release/screenshots/` were regenerated against v1.2.5 (2026-07-11) — the YouTube upload is the older 1.2.3 cut, so replace/re-upload it (and optionally upload the v2 page-tools cut) when convenient, and refresh the dashboard screenshots with the 1.2.5 upload. The detailed description gained a "Perfect for" use-cases block (`docs/STORE_LISTING.md`) — paste the refreshed description into the dashboard with the upload.
-- **Tests:** 195 unit (Vitest; pure logic + persistence via `fake-indexeddb` in Node, hooks via jsdom `// @vitest-environment` docblock), 40 e2e incl. axe a11y scans (Playwright; 1 pointer-drag test skipped) — in CI on **Linux + Windows** — plus 12 visual-regression baselines (`npm run visual`, macOS-local, NOT in CI).
+- **Chrome Web Store:** **published / live** at https://chromewebstore.google.com/detail/pdf-mana/bhkhobdaindpenllbgliigfafkkigpnk — **v1.2.1 cleared review and is live (2026-07-10); v1.2.3 submitted for review 2026-07-10**; **v1.2.6 (recents with pinning + off switch, plus the 1.2.4 keyboard pack) is packaged and ready to upload once 1.2.3 clears — upload 1.2.6 and skip 1.2.4/1.2.5** (1.2.5 shipped the recents list with a star icon and no pin/off-switch; superseded same day). v1.2.2 was never uploaded (superseded). Promo video is on YouTube: https://www.youtube.com/watch?v=-0Jnd0kRKog (goes in the dashboard's "Promotional video" field). Both local videos in `release/video/` and the five store screenshots in `release/screenshots/` were regenerated against v1.2.6 (2026-07-11) — the YouTube upload is the older 1.2.3 cut, so replace/re-upload it (and optionally upload the v2 page-tools cut) when convenient, and refresh the dashboard screenshots with the 1.2.6 upload. The detailed description gained a "Perfect for" use-cases block and a "Previously opened files" feature item (`docs/STORE_LISTING.md`) — paste the refreshed description into the dashboard with the upload.
+- **Tests:** 201 unit (Vitest; pure logic + persistence via `fake-indexeddb` in Node, hooks via jsdom `// @vitest-environment` docblock), 40 e2e incl. axe a11y scans (Playwright; 1 pointer-drag test skipped) — in CI on **Linux + Windows** — plus 12 visual-regression baselines (`npm run visual`, macOS-local, NOT in CI).
 - **Recent work (v1.0.11 → 1.0.20):** "Nighty Night" dark theme with themed
   page-render inversion; crop-box corner-handle resize; WYSIWYG crop previews
   (`lib/cropView.ts`); last-used Look persists in localStorage; dark-theme contrast
@@ -70,6 +70,16 @@ _Snapshot for picking this back up later._
   `docs/STORE_LISTING.md` ("Perfect for" block); `PRIVACY.md` now discloses both
   local caches. No manifest/permission changes. Header visual baselines
   regenerated (icon cluster shifted).
+- **Recent work (v1.2.6): pinning + off switch for recents.** Same-day
+  follow-up to 1.2.5 (which was never uploaded): per-row **pin toggle**
+  (`RecentMeta.pinned` — exempt from both eviction caps, sorts first,
+  preserved when the same file is re-recorded via a merge in `saveRecent`;
+  `setRecentPinned(hash, pinned)` in `persist.ts`), a **"Remember opened
+  files" checkbox** (localStorage key `pdf-mana-remember-recents`, default on,
+  guarded reads — `recordRecent` no-ops while off; existing entries stay), and
+  the header icon changed star → **pin** (visual baselines regenerated again).
+  The dialog keeps its list order stable while open (pinned-first regrouping
+  applies on next open) so rows don't jump under the pointer.
 
 ## Commands
 
