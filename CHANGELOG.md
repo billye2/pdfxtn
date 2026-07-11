@@ -17,6 +17,14 @@ before 1.2.1 followed semver patch bumps (hence the jump from 1.0.20).
   announced to screen readers. This closes the last mouse-only step: pick with
   Enter, then preview (Space), nudge (←/→), delete, or duplicate (Cmd/Ctrl+D)
   entirely from the keyboard.
+- **Keyboard-shortcuts cheat sheet** — a new keyboard-icon button in the header
+  (next to the tips "?") opens a dialog documenting every hotkey, grouped by
+  task, with a mouse-gestures footnote. Pressing **?** opens it from anywhere.
+
+### Changed
+
+- The theme picker no longer shows the four palette dots — on the header
+  trigger or in the menu — just the Look names.
 
 ## [1.2.3] — 2026-07-10
 

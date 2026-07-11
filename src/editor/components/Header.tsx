@@ -1,4 +1,4 @@
-import { Download, HelpCircle, Loader2 } from './icons';
+import { Download, HelpCircle, Keyboard, Loader2 } from './icons';
 import LookPicker from './LookPicker';
 import type { LookId } from '../themes';
 import type { AppState } from '../store';
@@ -16,6 +16,7 @@ interface Props {
   onPickLook: (look: LookId) => void;
   onCloseLookMenu: () => void;
   onHelp: () => void;
+  onShortcuts: () => void;
   onSave: () => void;
 }
 
@@ -50,6 +51,14 @@ export default function Header(props: Props) {
       <div className="header-controls">
         <button className="btn-secondary icon-btn" title="Help" onClick={props.onHelp}>
           <HelpCircle size={18} />
+        </button>
+        <button
+          className="btn-secondary icon-btn"
+          title="Keyboard shortcuts (?)"
+          aria-label="Keyboard shortcuts"
+          onClick={props.onShortcuts}
+        >
+          <Keyboard size={18} />
         </button>
         <LookPicker
           look={props.look}

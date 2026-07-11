@@ -181,12 +181,6 @@ export function lookStyle(look: LookId): CSSProperties {
   return style as CSSProperties;
 }
 
-/** The four palette swatches shown in the Look picker, in token order. */
-export function paletteDots(look: LookId): string[] {
-  const v = LOOKS[look].vars;
-  return [v['c-del'], v['c-rotate'], v['c-add'], v['c-go']];
-}
-
 const LOOK_STORAGE_KEY = 'pdf-mana-look';
 
 /** Last-used look from localStorage, falling back to the default. */

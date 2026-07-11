@@ -135,6 +135,19 @@ describe('useKeyboardShortcuts', () => {
     card.remove();
   });
 
+  it('"?" opens the shortcuts cheat sheet, but not while typing', () => {
+    const onShowShortcuts = vi.fn();
+    setup({ onShowShortcuts });
+    press('?');
+    expect(onShowShortcuts).toHaveBeenCalledTimes(1);
+
+    const input = document.createElement('input');
+    document.body.append(input);
+    press('?', {}, input);
+    expect(onShowShortcuts).toHaveBeenCalledTimes(1);
+    input.remove();
+  });
+
   it('announces a successful nudge via the live message', () => {
     const dispatch = vi.fn();
     const { result } = renderHook(() =>

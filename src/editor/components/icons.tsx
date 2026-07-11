@@ -22,6 +22,7 @@ export {
   Shuffle,
   SplitSquareHorizontal,
   HelpCircle,
+  Keyboard,
   CopyCheck,
   CircleCheck,
   Loader2,

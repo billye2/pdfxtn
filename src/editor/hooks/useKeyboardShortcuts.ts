@@ -8,6 +8,8 @@ interface Args {
   previewIndex: number | null;
   setPreviewIndex: Dispatch<SetStateAction<number | null>>;
   dispatch: Dispatch<Action>;
+  /** Open the keyboard-shortcuts cheat sheet (the `?` key). */
+  onShowShortcuts?: () => void;
 }
 
 /**
@@ -22,6 +24,7 @@ export function useKeyboardShortcuts({
   previewIndex,
   setPreviewIndex,
   dispatch,
+  onShowShortcuts,
 }: Args) {
   const [liveMsg, setLiveMsg] = useState(''); // screen-reader announcements
 
@@ -42,6 +45,13 @@ export function useKeyboardShortcuts({
           setPreviewIndex((i) => (i === null ? i : Math.min(i + 1, pages.length - 1)));
         else if (e.key === 'ArrowLeft')
           setPreviewIndex((i) => (i === null ? i : Math.max(i - 1, 0)));
+        return;
+      }
+
+      // The shortcuts cheat sheet (documents itself under "Anywhere").
+      if (e.key === '?' && !typing) {
+        e.preventDefault();
+        onShowShortcuts?.();
         return;
       }
 

@@ -7,6 +7,7 @@ import LoadingState from './components/LoadingState';
 import SelectionDock from './components/SelectionDock';
 import DragOverlay from './components/DragOverlay';
 import Toast from './components/Toast';
+import ShortcutsDialog from './components/ShortcutsDialog';
 import Banners from './components/Banners';
 import EditorDialogs from './components/EditorDialogs';
 import { initialHistory, reducer, type AppState } from './store';
@@ -58,6 +59,7 @@ export default function App() {
   const [lookMenuOpen, setLookMenuOpen] = useState(false);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const tipIndex = useRef(0);
 
   const { pages, selected, splitMarks } = history.present;
@@ -115,6 +117,7 @@ export default function App() {
     previewIndex,
     setPreviewIndex,
     dispatch,
+    onShowShortcuts: () => setShortcutsOpen(true),
   });
 
   // Warn before leaving/reloading while there's work in progress. (Can't help
@@ -200,6 +203,7 @@ export default function App() {
           showToast(HELP_TIPS[tipIndex.current]);
           tipIndex.current = (tipIndex.current + 1) % HELP_TIPS.length;
         }}
+        onShortcuts={() => setShortcutsOpen(true)}
         onSave={save}
       />
 
@@ -310,6 +314,7 @@ export default function App() {
         exportImages={exportImages}
       />
 
+      {shortcutsOpen && <ShortcutsDialog onClose={() => setShortcutsOpen(false)} />}
       {dragActive && <DragOverlay />}
       {toast && <Toast message={toast.message} tone={toast.tone} />}
 

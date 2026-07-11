@@ -709,6 +709,19 @@ test('selection: Shift-click picks a range; Select all picks everything', async 
   await expect(page.locator('.card.selected')).toHaveCount(4);
 });
 
+test('shortcuts dialog: header button and "?" open it, Escape closes it', async () => {
+  const page = await openEditor();
+  await page.getByRole('button', { name: 'Keyboard shortcuts' }).click();
+  await expect(page.getByRole('dialog', { name: 'Keyboard shortcuts' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.modal')).toHaveCount(0);
+
+  await page.keyboard.press('?');
+  await expect(page.getByRole('dialog', { name: 'Keyboard shortcuts' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.modal')).toHaveCount(0);
+});
+
 test('keyboard: Enter picks the focused card, Shift+Enter a range, no mouse needed', async () => {
   const page = await openEditor();
   await drop(page, [

@@ -99,6 +99,17 @@ for (const look of ['blocks', 'midnight'] as const) {
       await expect(page.locator('.look-menu')).toHaveCount(0);
     });
 
+    await test.step('shortcuts dialog', async () => {
+      await page.getByRole('button', { name: 'Keyboard shortcuts' }).click();
+      await expect(
+        page.getByRole('dialog', { name: 'Keyboard shortcuts' }),
+      ).toBeVisible();
+      await checkA11y(page, `${look}: shortcuts dialog`);
+      // Same Escape-vs-axe caveat as the look menu — close via the backdrop.
+      await page.locator('.modal-backdrop').click({ position: { x: 10, y: 10 } });
+      await expect(page.locator('.modal')).toHaveCount(0);
+    });
+
     const dialogs: Array<{ open: string; ready: string }> = [
       { open: 'Crop', ready: '.crop-canvas' },
       { open: 'Export range…', ready: '.modal' },

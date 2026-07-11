@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { ChevronDown, Check } from './icons';
-import { LOOKS, LOOK_ORDER, paletteDots, type LookId } from '../themes';
+import { LOOKS, LOOK_ORDER, type LookId } from '../themes';
 import './LookPicker.css';
 
 interface Props {
@@ -9,16 +9,6 @@ interface Props {
   onToggle: () => void;
   onPick: (look: LookId) => void;
   onClose: () => void;
-}
-
-function Dots({ look }: { look: LookId }) {
-  return (
-    <span className="palette">
-      {paletteDots(look).map((c, i) => (
-        <span key={i} className="palette-dot" style={{ background: c }} />
-      ))}
-    </span>
-  );
 }
 
 export default function LookPicker({ look, open, onToggle, onPick, onClose }: Props) {
@@ -40,7 +30,6 @@ export default function LookPicker({ look, open, onToggle, onPick, onClose }: Pr
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        <Dots look={look} />
         <span className="look-name">{LOOKS[look].name}</span>
         <ChevronDown size={14} className="chev" />
       </button>
@@ -56,7 +45,6 @@ export default function LookPicker({ look, open, onToggle, onPick, onClose }: Pr
                 className={`look-option${id === look ? ' active' : ''}`}
                 onClick={() => onPick(id)}
               >
-                <Dots look={id} />
                 <span className="look-name">{LOOKS[id].name}</span>
                 {id === look && <Check size={16} className="look-check" />}
               </button>

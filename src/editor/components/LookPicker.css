@@ -4,15 +4,6 @@
 .look-trigger {
   padding: 0 13px;
 }
-.palette {
-  display: inline-flex;
-  gap: 3px;
-}
-.palette-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-}
 .look-name {
   font-family: 'Fredoka', sans-serif;
   font-weight: 600;
