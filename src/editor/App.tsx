@@ -200,40 +200,35 @@ export default function App() {
         onSave={save}
       />
 
-      {appState === 'editor' && (
-        <Toolbar
-          selectedCount={selected.size}
-          hasCrop={hasCrop}
-          canOpenMix={pages.length >= 2}
-          canReverse={pages.length >= 2}
-          canUndo={history.past.length > 0}
-          canRedo={history.future.length > 0}
-          onAddFiles={addFiles}
-          onSelectAll={() => dispatch({ type: 'selectAll' })}
-          onClearSelection={() => dispatch({ type: 'clearSelection' })}
-          onRotateSelected={(delta) => dispatch({ type: 'rotateSelected', delta })}
-          onDeleteSelected={() => dispatch({ type: 'deleteSelected' })}
-          onOpenCrop={() => dialogs.openDialog('crop')}
-          onSplit={applySplitToSelection}
-          onOpenSplitEvery={() => dialogs.openDialog('splitEvery')}
-          onOpenMix={() => dialogs.openDialog('mix')}
-          onReverse={() => {
-            dispatch({ type: 'reverse' });
-            showToast(
-              selected.size >= 2
-                ? 'Reversed the picked pages'
-                : 'Reversed the page order',
-            );
-          }}
-          onClearCrop={() =>
-            dispatch({ type: 'applyCrop', crop: undefined, scope: 'all' })
-          }
-          onOpenRange={() => dialogs.openDialog('range')}
-          onOpenImages={() => dialogs.openDialog('images')}
-          onUndo={() => dispatch({ type: 'undo' })}
-          onRedo={() => dispatch({ type: 'redo' })}
-        />
-      )}
+      <Toolbar
+        hasPages={pages.length > 0}
+        selectedCount={selected.size}
+        hasCrop={hasCrop}
+        canOpenMix={pages.length >= 2}
+        canReverse={pages.length >= 2}
+        canUndo={history.past.length > 0}
+        canRedo={history.future.length > 0}
+        onAddFiles={addFiles}
+        onSelectAll={() => dispatch({ type: 'selectAll' })}
+        onClearSelection={() => dispatch({ type: 'clearSelection' })}
+        onRotateSelected={(delta) => dispatch({ type: 'rotateSelected', delta })}
+        onDeleteSelected={() => dispatch({ type: 'deleteSelected' })}
+        onOpenCrop={() => dialogs.openDialog('crop')}
+        onSplit={applySplitToSelection}
+        onOpenSplitEvery={() => dialogs.openDialog('splitEvery')}
+        onOpenMix={() => dialogs.openDialog('mix')}
+        onReverse={() => {
+          dispatch({ type: 'reverse' });
+          showToast(
+            selected.size >= 2 ? 'Reversed the picked pages' : 'Reversed the page order',
+          );
+        }}
+        onClearCrop={() => dispatch({ type: 'applyCrop', crop: undefined, scope: 'all' })}
+        onOpenRange={() => dialogs.openDialog('range')}
+        onOpenImages={() => dialogs.openDialog('images')}
+        onUndo={() => dispatch({ type: 'undo' })}
+        onRedo={() => dispatch({ type: 'redo' })}
+      />
 
       <Banners
         restoreCount={

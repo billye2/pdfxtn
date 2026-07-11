@@ -750,7 +750,7 @@ test('errors: an unsupported file type is ignored, not loaded', async () => {
   const page = await openEditor();
   await drop(page, [{ name: 'note.txt', bytes: [104, 105], type: 'text/plain' }]);
   // Nothing is ingested — we stay on the empty state with no cards.
-  await expect(page.getByText("Let's fix up your PDF!")).toBeVisible();
+  await expect(page.getByText('Drop a PDF here')).toBeVisible();
   await expect(page.locator('.card')).toHaveCount(0);
 });
 
@@ -774,11 +774,11 @@ test('persistence: Discard dismisses the offer and clears the session', async ()
   await expect(banner).toBeVisible({ timeout: 5_000 });
   await banner.getByRole('button', { name: 'Discard' }).click();
   await expect(banner).toHaveCount(0);
-  await expect(page.getByText("Let's fix up your PDF!")).toBeVisible();
+  await expect(page.getByText('Drop a PDF here')).toBeVisible();
 
   // Discard cleared the saved session, so a fresh reload offers nothing.
   await page.reload();
-  await expect(page.getByText("Let's fix up your PDF!")).toBeVisible();
+  await expect(page.getByText('Drop a PDF here')).toBeVisible();
   await expect(page.locator('.restore-banner')).toHaveCount(0);
 
   // Belt-and-suspenders cleanup in case the assertion above ever regresses.

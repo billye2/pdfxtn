@@ -16,6 +16,7 @@ import {
 import './Toolbar.css';
 
 interface Props {
+  hasPages: boolean;
   selectedCount: number;
   hasCrop: boolean;
   canOpenMix: boolean;
@@ -71,6 +72,7 @@ export default function Toolbar(props: Props) {
           className="btn-secondary"
           title="Select every page (Cmd/Ctrl+A)"
           onClick={props.onSelectAll}
+          disabled={!props.hasPages}
         >
           Select all
         </button>
@@ -99,6 +101,7 @@ export default function Toolbar(props: Props) {
           className="btn-crop"
           title="Draw one crop and apply it to all or just the picked pages"
           onClick={props.onOpenCrop}
+          disabled={!props.hasPages}
         >
           <Crop size={16} /> Crop
         </button>
@@ -135,6 +138,7 @@ export default function Toolbar(props: Props) {
           className="btn-secondary"
           title="Add a split mark every N pages"
           onClick={props.onOpenSplitEvery}
+          disabled={!props.hasPages}
         >
           <SplitSquareHorizontal size={16} /> Split every…
         </button>
@@ -153,6 +157,7 @@ export default function Toolbar(props: Props) {
         aria-label="Export range…"
         title="Export range… — save pages by position (e.g. 1-3, 5)"
         onClick={props.onOpenRange}
+        disabled={!props.hasPages}
       >
         <FileOutput size={18} />
       </button>
@@ -161,6 +166,7 @@ export default function Toolbar(props: Props) {
         aria-label="Export images…"
         title="Export images… — save pages as PNG or JPG"
         onClick={props.onOpenImages}
+        disabled={!props.hasPages}
       >
         <Images size={18} />
       </button>

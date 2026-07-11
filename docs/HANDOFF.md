@@ -5,9 +5,9 @@ _Snapshot for picking this back up later._
 ## Status
 
 - **Product:** PDF Mana — MV3 Chrome extension, local PDF _page_ manager (Merge · Arrange · Nip · Adjust).
-- **Version:** 1.2.1 — packaged at `release/pdf-mana-1.2.1.zip` (older zips in `release/archive/`). **Versioning is odometer-style since 1.2.1**: each component counts 0–9 and carries (1.2.9 → 1.3.0 → … → 1.9.9 → 2.0.0); `npm run release` implements the carry. GitHub Releases exist through v1.0.18; the v1.0.19/v1.0.20/v1.2.1 tags are pushed but their GitHub releases await `npm run release:publish` (agent sessions can't run it — it creates a public release).
+- **Version:** 1.2.2 — packaged at `release/pdf-mana-1.2.2.zip` (older zips in `release/archive/`). **Versioning is odometer-style since 1.2.1**: each component counts 0–9 and carries (1.2.9 → 1.3.0 → … → 1.9.9 → 2.0.0); `npm run release` implements the carry. GitHub Releases exist through v1.0.18; the v1.0.19/v1.0.20/v1.2.1/v1.2.2 tags are pushed but their GitHub releases await `npm run release:publish` (agent sessions can't run it — it creates a public release).
 - **Repo:** https://github.com/billye2/pdfxtn — **public, MIT** (© Billy Ye). `main` is the working branch; release commits carry annotated `vX.Y.Z` tags and `npm run release:publish` creates the GitHub release.
-- **Chrome Web Store:** **published / live** at https://chromewebstore.google.com/detail/pdf-mana/bhkhobdaindpenllbgliigfafkkigpnk — **v1.2.1 uploaded 2026-07-09, pending review**. It supersedes the never-uploaded 1.0.17–1.0.20 and adds the arrangement pack (below); v1.0.16 (uploaded 2026-07-06) was the previous submission.
+- **Chrome Web Store:** **published / live** at https://chromewebstore.google.com/detail/pdf-mana/bhkhobdaindpenllbgliigfafkkigpnk — **v1.2.1 uploaded 2026-07-09, pending review**; v1.2.2 (toolbar-first opening screen) is packaged and ready to upload once 1.2.1 clears (or replace the pending submission if the dashboard allows). v1.0.16 (uploaded 2026-07-06) was the previous submission.
 - **Tests:** 173 unit (Vitest; pure logic + persistence via `fake-indexeddb` in Node, hooks via jsdom `// @vitest-environment` docblock), 35 e2e incl. axe a11y scans (Playwright; 1 pointer-drag test skipped) — in CI on **Linux + Windows** — plus 12 visual-regression baselines (`npm run visual`, macOS-local, NOT in CI).
 - **Recent work (v1.0.11 → 1.0.20):** "Nighty Night" dark theme with themed
   page-render inversion; crop-box corner-handle resize; WYSIWYG crop previews
@@ -23,6 +23,14 @@ _Snapshot for picking this back up later._
   synthetic pdf-lib doc through the normal ingest pipeline); toolbar tooltips
   everywhere + icon-only export buttons (single-row toolbar); Sunny look removed
   (falls back to Blocks, including stale saved sessions); Windows e2e CI job.
+- **Recent work (v1.2.2):** toolbar-first opening screen — the toolbar renders
+  in every app state (new `hasPages` prop gates Select all / Crop / Split
+  every… / exports; the rest were already selection- or count-guarded) so the
+  button row doubles as a capability map for new users; `EmptyState` slimmed to
+  a compact drop invite (smaller mascot, "Drop a PDF here — or click + Add
+  PDF" h1, privacy chip; CTA/body copy/decor removed). Visual baselines
+  unchanged (the suite never shot the empty state); e2e empty-state marker text
+  updated in `e2e/helpers.ts` + `extension.spec.ts`.
 
 ## Commands
 

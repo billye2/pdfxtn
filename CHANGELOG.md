@@ -7,6 +7,21 @@ Versioning (since 1.2.1): each version component counts 0–9 and carries into
 the next, like an odometer — 1.2.9 → 1.3.0 → 1.3.1, … 1.9.9 → 2.0.0. Versions
 before 1.2.1 followed semver patch bumps (hence the jump from 1.0.20).
 
+## [1.2.2] — 2026-07-10
+
+### Changed
+
+- **The editor opens on the full app chrome.** The toolbar is now always
+  visible — page-dependent buttons (Select all, Crop, Split every…, the export
+  buttons) start disabled and wake up once pages load — so first-time users can
+  see at a glance what PDF Mana does before committing a file. Disabled buttons
+  keep their tooltips for feature discovery.
+- **Compact drop invite** replaces the full-screen welcome page: a smaller
+  mascot (still clickable to pick a file), a one-line "Drop a PDF here — or
+  click + Add PDF" hint, and the privacy chip. The big CTA button, long intro
+  copy, and floating decor shapes are gone. Drag-and-drop behavior is unchanged
+  (the whole window was and remains a drop target).
+
 ## [1.2.1] — 2026-07-09
 
 ### Added

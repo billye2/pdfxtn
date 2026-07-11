@@ -49,7 +49,7 @@ export async function openEditor(
 ): Promise<Page> {
   const page = await context.newPage();
   await page.goto(`chrome-extension://${extensionId}/src/editor/index.html`);
-  await expect(page.getByText("Let's fix up your PDF!")).toBeVisible();
+  await expect(page.getByText('Drop a PDF here')).toBeVisible();
   return page;
 }
 
