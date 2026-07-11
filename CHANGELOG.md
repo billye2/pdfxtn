@@ -7,6 +7,23 @@ Versioning (since 1.2.1): each version component counts 0–9 and carries into
 the next, like an odometer — 1.2.9 → 1.3.0 → 1.3.1, … 1.9.9 → 2.0.0. Versions
 before 1.2.1 followed semver patch bumps (hence the jump from 1.0.20).
 
+## [1.2.5] — 2026-07-11
+
+### Added
+
+- **Previously opened files** — a new star button in the header (right of the
+  keyboard button) opens a "Previously opened" dialog listing the files you've
+  opened before: thumbnail, name, page count, and date, newest first. One
+  click reopens a file without hunting for it on disk — the bytes are kept
+  locally in the browser's IndexedDB, never uploaded. The list keeps the last
+  10 files (100 MB overall cap, oldest evicted); reopening the same file
+  updates its entry instead of duplicating. Each row has a remove button and
+  the dialog has "Clear all". Emptying the editor still clears only the
+  session autosave — the recents list survives independently.
+- The README and store listing now include a use-cases section, and
+  `PRIVACY.md` describes both local caches (session autosave, recents) and
+  how to clear them. No new extension permissions.
+
 ## [1.2.4] — 2026-07-10
 
 ### Added
