@@ -130,12 +130,16 @@ Everything you need to paste into the Developer Dashboard for PDF Mana.
   At least one is required; up to five (all five are generated).
 - **Promo tiles (optional):** `release/promo/small-440x280.png` and
   `release/promo/marquee-1400x560.png` (regenerate with `node scripts/promo.mjs`).
-- **Promo video (optional):** `release/video/pdf-mana-promo.webm` — a ~52 s scripted
+- **Promo video (optional):** `release/video/pdf-mana-promo.webm` — a ~51 s scripted
   demo at 1280×720, silent with caption overlays (regenerate with `npm run build &&
 node scripts/promo-video.mjs`). The dashboard field takes a **YouTube URL**, not a
   file: upload the webm to YouTube (webm is accepted directly; add music there if
   desired), then paste the URL into "Promotional video". Convert to mp4 with ffmpeg
   only if some other outlet needs it.
+  **Uploaded 2026-07-10:** https://www.youtube.com/watch?v=-0Jnd0kRKog — paste this
+  URL into the dashboard's "Promotional video" field. A second cut focused on the
+  page tools exists at `release/video/pdf-mana-promo-2.webm`
+  (`node scripts/promo-video-2.mjs`), ~41 s, not yet uploaded.
 
 ## Pre-submit checklist
 
