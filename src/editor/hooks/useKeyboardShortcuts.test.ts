@@ -158,14 +158,18 @@ describe('useKeyboardShortcuts', () => {
     expect(onSplitPicked).toHaveBeenCalledTimes(1);
   });
 
-  it('action letters are inert while a dialog is open', () => {
+  it('the whole global map is inert while a dialog is open', () => {
     const backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop';
     document.body.append(backdrop);
-    const { dispatch } = setup();
+    const { dispatch, setPreviewIndex } = setup(); // p0 picked
     press('r');
     press('k');
+    press('ArrowRight'); // would nudge the page behind the modal
+    press(' '); // would open the preview behind the modal
+    press('Delete'); // would delete behind the modal
     expect(dispatch).not.toHaveBeenCalled();
+    expect(setPreviewIndex).not.toHaveBeenCalled();
     backdrop.remove();
   });
 

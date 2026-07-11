@@ -757,6 +757,59 @@ test('keyboard: R/B/C/S/K action hotkeys drive the picked pages', async () => {
   await expect(page.locator('.card')).toHaveCount(2);
 });
 
+test('keyboard crop: arrows place, move, and resize the box, Tab applies', async () => {
+  const page = await openEditor();
+  await drop(page, [
+    pdf(
+      'kcrop.pdf',
+      await makePdf([
+        [100, 1],
+        [200, 1],
+      ]),
+    ),
+  ]);
+  await expect(page.locator('.card')).toHaveCount(2);
+
+  await page.locator('.card').nth(0).click();
+  await page.keyboard.press('c');
+  await expect(page.locator('.crop-canvas')).toBeVisible({ timeout: 15_000 });
+
+  // The stage takes the dialog's initial focus, so arrows work immediately.
+  await expect(page.locator('.crop-stage')).toBeFocused();
+
+  // First arrow places the default centered box.
+  await page.keyboard.press('ArrowRight');
+  await expect(page.locator('.crop-rect')).toBeVisible();
+  const leftBefore = await page
+    .locator('.crop-rect')
+    .evaluate((el) => parseFloat((el as HTMLElement).style.left));
+
+  // A second arrow moves it; Shift+arrow grows it.
+  await page.keyboard.press('ArrowRight');
+  const leftAfter = await page
+    .locator('.crop-rect')
+    .evaluate((el) => parseFloat((el as HTMLElement).style.left));
+  expect(leftAfter).toBeGreaterThan(leftBefore);
+
+  const widthBefore = await page
+    .locator('.crop-rect')
+    .evaluate((el) => parseFloat((el as HTMLElement).style.width));
+  await page.keyboard.press('Shift+ArrowRight');
+  const widthAfter = await page
+    .locator('.crop-rect')
+    .evaluate((el) => parseFloat((el as HTMLElement).style.width));
+  expect(widthAfter).toBeGreaterThan(widthBefore);
+
+  // Tab to "Apply to all" (stage → Cancel → Keep picked → Apply) and apply.
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('button', { name: 'Apply to all' })).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.modal')).toHaveCount(0);
+  await expect(page.locator('.card-crop-badge')).toHaveCount(2);
+});
+
 test('shortcuts dialog: header button and "?" open it, Escape closes it', async () => {
   const page = await openEditor();
   await page.getByRole('button', { name: 'Keyboard shortcuts' }).click();

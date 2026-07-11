@@ -59,6 +59,12 @@ export function useKeyboardShortcuts({
         return;
       }
 
+      // While any dialog is open, the whole global map goes quiet — a
+      // shortcut must never edit the pages behind a modal. (Modal handles its
+      // own Esc/Tab; the lightbox is not a .modal-backdrop, so the preview
+      // branch above is unaffected.)
+      if (document.querySelector('.modal-backdrop')) return;
+
       // The shortcuts cheat sheet (documents itself under "Anywhere").
       if (e.key === '?' && !typing) {
         e.preventDefault();
@@ -118,11 +124,9 @@ export function useKeyboardShortcuts({
       }
 
       // Single-letter action keys, Gmail-style: act on the picked pages. All
-      // require a selection, no Cmd/Ctrl (so browser Cmd+R/Cmd+C stay intact),
-      // not typing, and no open dialog (a letter must never edit the pages
-      // BEHIND a modal). Documented in the shortcuts cheat sheet.
-      const modalOpen = document.querySelector('.modal-backdrop') !== null;
-      if (!mod && !typing && !modalOpen && selected.size > 0) {
+      // require a selection, no Cmd/Ctrl (so browser Cmd+R/Cmd+C stay
+      // intact), and not typing. Documented in the shortcuts cheat sheet.
+      if (!mod && !typing && selected.size > 0) {
         const n = selected.size;
         const pagesWord = `page${n === 1 ? '' : 's'}`;
         const letter = e.key.toLowerCase();

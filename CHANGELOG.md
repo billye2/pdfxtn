@@ -26,10 +26,23 @@ before 1.2.1 followed semver patch bumps (hence the jump from 1.0.20).
   only — Cmd/Ctrl+R (reload) and Cmd/Ctrl+C (copy) are untouched — and the
   toolbar/dock tooltips now name their keys.
 
+- **Keyboard crop** — the crop dialog's page area takes focus on open; an
+  arrow key places the starting box (same centered region a quick click
+  gives), arrows move it, Shift+arrows resize it, and the box position is
+  announced to screen readers. The whole crop flow now works mouse-free:
+  pick → C → arrows → Tab → Apply.
+
 ### Changed
 
 - The theme picker no longer shows the four palette dots — on the header
   trigger or in the menu — just the Look names.
+
+### Fixed
+
+- Global shortcuts no longer act on the pages _behind_ an open dialog —
+  previously, with a page picked, arrow keys could silently reorder pages,
+  Space could open the preview, and Delete could delete pages while a dialog
+  was showing.
 
 ## [1.2.3] — 2026-07-10
 

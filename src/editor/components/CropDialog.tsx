@@ -35,6 +35,7 @@ export default function CropDialog({
   const stageRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const [rect, setRect] = useState<PxRect | null>(null);
+  const [liveBox, setLiveBox] = useState(''); // SR announcement of the box
   const drag = useRef<{ ax: number; ay: number; mode: 'draw' | 'resize' } | null>(null);
 
   useEffect(() => {
@@ -122,6 +123,66 @@ export default function CropDialog({
     drag.current = null;
   }
 
+  // Keyboard path: an arrow (or Enter) with no box places the same centered
+  // default the tiny-drag snap uses; arrows then move it and Shift+arrows
+  // resize from the bottom-right edge. 2% steps — key-repeat makes it glide.
+  const KEY_STEP = 0.02;
+  const MIN_KEY_SIZE = 20; // px — don't let keyboard shrinking collapse the box
+
+  function announce(r: PxRect, s: { w: number; h: number }) {
+    const pct = (v: number, total: number) => Math.round((v / total) * 100);
+    setLiveBox(
+      `Box: left ${pct(r.x, s.w)}%, top ${pct(r.y, s.h)}%, ` +
+        `width ${pct(r.w, s.w)}%, height ${pct(r.h, s.h)}%.`,
+    );
+  }
+
+  function stageKeyDown(e: React.KeyboardEvent) {
+    if (!size) return;
+    const arrows = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+    if (!arrows.includes(e.key) && e.key !== 'Enter') return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!rect || rect.w < 4 || rect.h < 4) {
+      const start = {
+        x: size.w * 0.15,
+        y: size.h * 0.15,
+        w: size.w * 0.7,
+        h: size.h * 0.7,
+      };
+      setRect(start);
+      announce(start, size);
+      return;
+    }
+    if (e.key === 'Enter') return; // Enter only places the starting box
+
+    const dx = e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : 0;
+    const dy = e.key === 'ArrowUp' ? -1 : e.key === 'ArrowDown' ? 1 : 0;
+    let next: PxRect;
+    if (e.shiftKey) {
+      next = {
+        ...rect,
+        w: Math.min(
+          Math.max(rect.w + dx * size.w * KEY_STEP, MIN_KEY_SIZE),
+          size.w - rect.x,
+        ),
+        h: Math.min(
+          Math.max(rect.h + dy * size.h * KEY_STEP, MIN_KEY_SIZE),
+          size.h - rect.y,
+        ),
+      };
+    } else {
+      next = {
+        ...rect,
+        x: Math.min(Math.max(rect.x + dx * size.w * KEY_STEP, 0), size.w - rect.w),
+        y: Math.min(Math.max(rect.y + dy * size.h * KEY_STEP, 0), size.h - rect.h),
+      };
+    }
+    setRect(next);
+    announce(next, size);
+  }
+
   function toCrop(): CropRect | null {
     if (!rect || !size || rect.w < 4 || rect.h < 4) return null;
     return {
@@ -141,12 +202,18 @@ export default function CropDialog({
 
   return (
     <Modal title="Crop your pages" onClose={onCancel} className="crop-modal">
-      <p className="modal-help">Drag a box across the page to choose what to keep.</p>
+      <p className="modal-help">
+        Drag a box across the page — or press the arrow keys (Shift+arrows to resize).
+      </p>
 
       <div
         ref={stageRef}
         className="crop-stage"
         style={size ? { width: size.w, height: size.h } : undefined}
+        tabIndex={0}
+        role="group"
+        aria-label="Crop box — arrow keys move it, Shift+arrow keys resize it"
+        onKeyDown={stageKeyDown}
         onPointerDown={down}
         onPointerMove={move}
         onPointerUp={up}
@@ -178,6 +245,10 @@ export default function CropDialog({
             />
           </div>
         )}
+      </div>
+
+      <div className="sr-only" aria-live="polite" role="status">
+        {liveBox}
       </div>
 
       <div className="modal-footer">

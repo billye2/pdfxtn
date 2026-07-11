@@ -11,6 +11,10 @@
   cursor: crosshair;
   overflow: hidden;
 }
+.crop-stage:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
+}
 .crop-stage .crop-canvas {
   width: 100%;
   height: 100%;

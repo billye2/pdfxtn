@@ -46,6 +46,14 @@ const GROUPS: Array<{ title: string; rows: Row[] }> = [
     ],
   },
   {
+    title: 'In the crop dialog',
+    rows: [
+      { keys: ['←→↑↓'], does: 'place the box, then move it' },
+      { keys: ['Shift', '←→↑↓'], does: 'resize the box' },
+      { keys: ['Tab'], does: 'reach Cancel / Apply' },
+    ],
+  },
+  {
     title: 'Anywhere',
     rows: [
       { keys: ['Cmd/Ctrl', 'Z'], does: 'undo' },
