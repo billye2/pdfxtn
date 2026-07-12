@@ -163,10 +163,11 @@ node scripts/promo-video.mjs`). The dashboard field takes a **YouTube URL**, not
   file: upload the webm to YouTube (webm is accepted directly; add music there if
   desired), then paste the URL into "Promotional video". Convert to mp4 with ffmpeg
   only if some other outlet needs it.
-  **Uploaded 2026-07-10:** https://www.youtube.com/watch?v=-0Jnd0kRKog — paste this
-  URL into the dashboard's "Promotional video" field. A second cut focused on the
-  page tools exists at `release/video/pdf-mana-promo-2.webm`
-  (`node scripts/promo-video-2.mjs`), ~41 s, not yet uploaded.
+  **Uploaded 2026-07-11:** https://www.youtube.com/watch?v=Dt8iiK6Fvzk — paste this
+  URL into the dashboard's "Promotional video" field. Two more cuts exist locally,
+  not uploaded: the page-tools cut `release/video/pdf-mana-promo-2.webm`
+  (`node scripts/promo-video-2.mjs`, ~41 s) and the six-use-cases cut
+  `release/video/pdf-mana-promo-3.webm` (`node scripts/promo-video-3.mjs`, ~75 s).
 
 ## Pre-submit checklist
 

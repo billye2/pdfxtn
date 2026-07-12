@@ -7,7 +7,7 @@ Nothing is uploaded; all parsing and writing happens locally.
 
 ![PDF Mana demo: dropping PDFs to merge, rotating and deleting pages, cropping visually, and saving — all locally](docs/demo.gif)
 
-**[Install from the Chrome Web Store](https://chromewebstore.google.com/detail/pdf-mana/bhkhobdaindpenllbgliigfafkkigpnk)** · [watch the full demo on YouTube](https://www.youtube.com/watch?v=-0Jnd0kRKog)
+**[Install from the Chrome Web Store](https://chromewebstore.google.com/detail/pdf-mana/bhkhobdaindpenllbgliigfafkkigpnk)** · [watch the full demo on YouTube](https://www.youtube.com/watch?v=Dt8iiK6Fvzk)
 
 ## Use cases
 
