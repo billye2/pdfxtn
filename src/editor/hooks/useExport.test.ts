@@ -95,6 +95,56 @@ describe('useExport', () => {
     expect(showToast).toHaveBeenCalledWith('Saved 3 images as a .zip');
   });
 
+  it('exportImages() drives progress through an awaited onProgress callback', async () => {
+    const seen: Array<[number, number]> = [];
+    vi.mocked(exportPagesAsImages).mockImplementation(
+      async (_pages, _docs, _name, opts) => {
+        await opts.onProgress?.(1, 2);
+        seen.push([1, 2]);
+        await opts.onProgress?.(2, 2);
+        seen.push([2, 2]);
+        return 2;
+      },
+    );
+    const { result } = setup();
+    await act(async () =>
+      result.current.exportImages({ format: 'png', scale: 2, indices: [0, 1] }),
+    );
+    expect(seen).toEqual([
+      [1, 2],
+      [2, 2],
+    ]);
+    // Progress state is cleaned up once the export settles.
+    expect(result.current.saving).toBe(false);
+    expect(result.current.saveProgress).toBeNull();
+  });
+
+  it('ignores overlapping exports while a save is already running', async () => {
+    let release!: (v?: unknown) => void;
+    vi.mocked(exportSingle).mockImplementationOnce(
+      () =>
+        new Promise((r) => {
+          release = r;
+        }) as Promise<void>,
+    );
+    const { result } = setup();
+    let savePromise!: Promise<void>;
+    await act(async () => {
+      savePromise = result.current.save();
+      // save() yields a paint frame before exporting — wait until it's really in flight.
+      await vi.waitFor(() => expect(exportSingle).toHaveBeenCalledOnce());
+    });
+    expect(result.current.saving).toBe(true);
+    await act(async () => result.current.exportRange([0]));
+    await act(async () => {
+      release();
+      await savePromise;
+    });
+    // Only the original save reached the export lib; the range call was ignored.
+    expect(exportSingle).toHaveBeenCalledTimes(1);
+    expect(result.current.saving).toBe(false);
+  });
+
   it('surfaces export failures as an error toast', async () => {
     vi.mocked(exportSingle).mockRejectedValue(new Error('disk full'));
     const { result, showToast } = setup();

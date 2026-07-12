@@ -12,6 +12,8 @@ interface Props {
   lookMenuOpen: boolean;
   canSave: boolean;
   saving: boolean;
+  /** Step progress for multi-file/multi-page exports; null = indeterminate. */
+  saveProgress: { done: number; total: number } | null;
   onToggleLookMenu: () => void;
   onPickLook: (look: LookId) => void;
   onCloseLookMenu: () => void;
@@ -82,7 +84,11 @@ export default function Header(props: Props) {
           onClick={props.onSave}
         >
           {props.saving ? <Loader2 size={17} className="spin" /> : <Download size={17} />}
-          {props.saving ? 'Saving…' : 'Save PDF'}
+          {props.saving
+            ? props.saveProgress
+              ? `Saving ${props.saveProgress.done}/${props.saveProgress.total}…`
+              : 'Saving…'
+            : 'Save PDF'}
         </button>
       </div>
     </header>

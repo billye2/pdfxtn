@@ -10,6 +10,11 @@ export interface ImageExportOptions {
   scale: number;
   /** Bundle the pages into one `.zip` instead of downloading each separately. */
   zip?: boolean;
+  /**
+   * Called after each page renders; awaited so the caller can yield a paint
+   * frame — rendering blocks the main thread between calls.
+   */
+  onProgress?: (done: number, total: number) => void | Promise<void>;
 }
 
 function canvasToBlob(
@@ -85,6 +90,7 @@ export async function exportPagesAsImages(
       opts.format === 'jpeg' ? 0.92 : undefined,
     );
     files.push({ name: `${base}-p${String(i + 1).padStart(pad, '0')}.${ext}`, blob });
+    await opts.onProgress?.(i + 1, pages.length);
   }
 
   if (opts.zip && files.length > 0) {

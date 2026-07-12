@@ -209,7 +209,14 @@ export default function App() {
       }}
     >
       {saving && (
-        <div className="save-bar">
+        <div
+          className="save-bar"
+          role="progressbar"
+          aria-label="Export progress"
+          aria-valuemin={saveProgress ? 0 : undefined}
+          aria-valuemax={saveProgress ? saveProgress.total : undefined}
+          aria-valuenow={saveProgress ? saveProgress.done : undefined}
+        >
           <div
             className={`save-bar-fill${saveProgress ? '' : ' indeterminate'}`}
             style={
@@ -229,6 +236,7 @@ export default function App() {
         lookMenuOpen={lookMenuOpen}
         canSave={pages.length > 0}
         saving={saving}
+        saveProgress={saveProgress}
         onToggleLookMenu={() => setLookMenuOpen((v) => !v)}
         onPickLook={(l) => {
           setLook(l);

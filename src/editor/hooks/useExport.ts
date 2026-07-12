@@ -11,6 +11,9 @@ interface Args {
   showToast: (message: string, tone?: 'success' | 'error') => void;
 }
 
+/** Yield a frame so the saving UI (button, progress bar) can actually paint. */
+const nextFrame = () => new Promise((r) => requestAnimationFrame(() => r(null)));
+
 /**
  * Save/export flows for the current page list: full save (single file, or one
  * file per split group with progress), an arbitrary page range, and pages as
@@ -19,7 +22,8 @@ interface Args {
  */
 export function useExport({ pages, docs, splitMarks, showToast }: Args) {
   const [saving, setSaving] = useState(false);
-  // For multi-file (split) exports we can show real progress; single is indeterminate.
+  // For multi-step exports (split parts, images) we can show real progress;
+  // single-file saves are indeterminate.
   const [saveProgress, setSaveProgress] = useState<{
     done: number;
     total: number;
@@ -34,16 +38,18 @@ export function useExport({ pages, docs, splitMarks, showToast }: Args) {
     if (saving) return; // guard against double-clicks
     setSaving(true);
     try {
+      // Yield a frame so the saving UI paints before the (blocking) build.
+      await nextFrame();
       if (splitMarks.size > 0) {
         const groups = splitAt(pages, boundariesFromMarks(pages, splitMarks));
         setSaveProgress({ done: 0, total: groups.length });
-        await exportGroups(groups, docs, sourceName(), (done, total) =>
-          setSaveProgress({ done, total }),
-        );
+        await nextFrame();
+        await exportGroups(groups, docs, sourceName(), async (done, total) => {
+          setSaveProgress({ done, total });
+          await nextFrame();
+        });
         showToast(`Saved ${groups.length} files`);
       } else {
-        // Yield a frame so the saving UI paints before the (blocking) build.
-        await new Promise((r) => requestAnimationFrame(() => r(null)));
         await exportSingle(pages, docs, sourceName());
         showToast(`Saved ${sourceName().replace(/\.pdf$/i, '')}-edited.pdf`);
       }
@@ -57,15 +63,20 @@ export function useExport({ pages, docs, splitMarks, showToast }: Args) {
 
   const exportRange = useCallback(
     async (indices: number[]) => {
+      if (saving) return;
+      setSaving(true);
       try {
+        await nextFrame();
         const subset = indices.map((i) => pages[i]).filter(Boolean);
         await exportSingle(subset, docs, sourceName());
         showToast(`Saved ${subset.length} page${subset.length === 1 ? '' : 's'}`);
       } catch (e) {
         showToast(`Export failed: ${(e as Error).message}`, 'error');
+      } finally {
+        setSaving(false);
       }
     },
-    [pages, docs, sourceName, showToast],
+    [saving, pages, docs, sourceName, showToast],
   );
 
   const exportImages = useCallback(
@@ -75,12 +86,20 @@ export function useExport({ pages, docs, splitMarks, showToast }: Args) {
       indices: number[];
       zip?: boolean;
     }) => {
+      if (saving) return;
+      setSaving(true);
       try {
         const subset = opts.indices.map((i) => pages[i]).filter(Boolean);
+        setSaveProgress({ done: 0, total: subset.length });
+        await nextFrame();
         const n = await exportPagesAsImages(subset, docs, sourceName(), {
           format: opts.format,
           scale: opts.scale,
           zip: opts.zip,
+          onProgress: async (done, total) => {
+            setSaveProgress({ done, total });
+            await nextFrame();
+          },
         });
         showToast(
           opts.zip && n > 0
@@ -89,9 +108,12 @@ export function useExport({ pages, docs, splitMarks, showToast }: Args) {
         );
       } catch (e) {
         showToast(`Image export failed: ${(e as Error).message}`, 'error');
+      } finally {
+        setSaving(false);
+        setSaveProgress(null);
       }
     },
-    [pages, docs, sourceName, showToast],
+    [saving, pages, docs, sourceName, showToast],
   );
 
   return { saving, saveProgress, save, exportRange, exportImages };
