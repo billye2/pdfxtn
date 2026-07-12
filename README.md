@@ -17,8 +17,8 @@ Nothing is uploaded; all parsing and writing happens locally.
 - **Rescuing a messy scan** — turn sideways pages right-side up, nip off crooked edges and
   scanner shadows, and slip in a blank page where the feeder ate one.
 - **Taming double-sided scans** — your scanner gives you fronts and backs as two stacks or
-  one interleaved mess; Mix and Un-mix sort it into reading order (or back out of it) in
-  one click.
+  one interleaved mess; Mix and Un-mix sort it into reading order (or back out of it) —
+  with a one-click preset for the classic flip-the-stack scan.
 - **Sending only what's needed** — pick the pages that matter and keep just those, or
   split a long document every N pages so each section becomes its own file.
 - **Working with images** — JPG and PNG files become PDF pages the moment you drop them,
