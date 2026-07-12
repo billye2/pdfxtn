@@ -150,11 +150,11 @@ Everything you need to paste into the Developer Dashboard for PDF Mana.
 - **Screenshots (1280×800):** `release/screenshots/01-hero.png` … `05-dark-free.png`
   (regenerate with `node scripts/screenshots.mjs`). Branded frames with benefit
   headlines, in upload order: 01 hero — "Tidy up any PDF — right in your browser"
-  (mixed docs + photos board); 02 "Pick pages — fix them in one click" (multi-select
-  - dock); 03 "Un-scramble double-sided scans" (Mix dialog + preset); 04 "Rescue
-    messy scans" (crop dialog nipping shadow bands); 05 "Dark mode included — and
-    it's all free" (Nighty Night board). At least one is required; up to five (all
-    five are generated).
+  (mixed docs and photos board); 02 "Pick pages — fix them in one click"
+  (multi-select and dock); 03 "Un-scramble double-sided scans" (Mix dialog and
+  preset); 04 "Rescue messy scans" (crop dialog nipping shadow bands); 05 "Dark
+  mode included — and it's all free" (Nighty Night board). At least one is
+  required; up to five (all five are generated).
 - **Promo tiles (optional):** `release/promo/small-440x280.png` and
   `release/promo/marquee-1400x560.png` (regenerate with `node scripts/promo.mjs`).
 - **Promo video (optional):** `release/video/pdf-mana-promo.webm` — a ~51 s scripted
