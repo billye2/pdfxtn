@@ -3,14 +3,20 @@
   inset: 0;
   background: rgba(40, 30, 20, 0.35);
   backdrop-filter: blur(3px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   z-index: 95;
   animation: fadein 0.14s ease;
 }
-/* Sized to match the EmptyState .drop-zone so the drop target reads the same
-   whether the grid is full, or empty after deleting every page. */
+/* Mirrors the .empty wrapper: JS pins it to the .main rect (inset fallback
+   until measured), and the 20px padding + centered 80% box below reproduce
+   the EmptyState .drop-zone geometry so the two dashed boxes line up. */
+.drag-align {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
 .drag-panel {
   width: 80%;
   height: 80%;
