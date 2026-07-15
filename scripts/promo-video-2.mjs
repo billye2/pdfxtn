@@ -20,37 +20,42 @@ mkdirSync(outDir, { recursive: true });
 const W = 1280;
 const H = 720;
 
-// Same document-like sample as scripts/screenshots.mjs so thumbnails look real.
+// The numbered sample (same document as the repo-root sample-numbers-1-7.pdf,
+// generated in-memory like every other promo fixture): 7 white pages, one huge
+// solid-color numeral each, so every page op reads instantly at thumbnail size.
+const NUMBER_COLORS = {
+  1: [0.0, 0.45, 0.85], // blue
+  2: [0.0, 0.62, 0.28], // green
+  3: [0.95, 0.55, 0.0], // orange
+  4: [0.55, 0.1, 0.75], // purple
+  5: [0.0, 0.65, 0.65], // teal
+  6: [0.9, 0.15, 0.55], // magenta
+  7: [0.45, 0.3, 0.1], // brown
+};
+
 async function samplePdf() {
   const doc = await PDFDocument.create();
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
-  const titles = [
-    'Quarterly Report',
-    'Invoice #1042',
-    'Project Brief',
-    'Meeting Notes',
-    'Appendix A',
-    'Contract',
-  ];
-  for (let i = 0; i < titles.length; i += 1) {
-    const p = doc.addPage([612, 792]);
-    p.drawText(titles[i], {
-      x: 56,
-      y: 712,
-      size: 26,
-      font: bold,
-      color: rgb(0.13, 0.12, 0.25),
-    });
-    for (let l = 0; l < 22; l += 1) {
-      const w = 360 + ((i * 7 + l * 13) % 130);
-      p.drawRectangle({
-        x: 56,
-        y: 672 - l * 26,
-        width: w,
-        height: 9,
-        color: rgb(0.86, 0.87, 0.91),
-      });
+  const pw = 612;
+  const ph = 792;
+  for (let n = 1; n <= 7; n += 1) {
+    const page = doc.addPage([pw, ph]);
+    const text = String(n);
+    const capHeight = (s) => bold.heightAtSize(s, { descender: false });
+    let size = 1000;
+    while (bold.widthOfTextAtSize(text, size) > pw * 0.8 || capHeight(size) > ph * 0.8) {
+      size -= 5;
     }
+    const w = bold.widthOfTextAtSize(text, size);
+    const h = capHeight(size);
+    const [r, g, b] = NUMBER_COLORS[n];
+    page.drawText(text, {
+      x: (pw - w) / 2,
+      y: (ph - h) / 2 + h * 0.06,
+      size,
+      font: bold,
+      color: rgb(r, g, b),
+    });
   }
   return [...(await doc.save())];
 }
@@ -215,7 +220,7 @@ const dt = await page.evaluateHandle(
     d.items.add(new File([new Uint8Array(b)], n, { type: 'application/pdf' }));
     return d;
   },
-  [await samplePdf(), 'sample.pdf'],
+  [await samplePdf(), 'sample-numbers-1-7.pdf'],
 );
 await page.dispatchEvent('.app', 'dragover', { dataTransfer: dt });
 await page.dispatchEvent('.app', 'drop', { dataTransfer: dt });
@@ -250,25 +255,25 @@ await caption('Duplicate a page in one click');
 await clickAt(cards().nth(0));
 await pause(500);
 await clickAt(dockButton('Duplicate'));
-await waitCards(7);
+await waitCards(8);
 await pause(1700);
 
 // 6) Blank page — inserted after the picked page, same size
 await caption('Need a spacer? Slip in a blank page');
 await clickAt(dockButton('Blank page'));
-await waitCards(8);
+await waitCards(9);
 await pause(1700);
 
-// 7) Delete a couple of pages
+// 7) Delete a couple of pages — numbers 6 and 7 visibly vanish
 await caption("Delete what you don't need");
 const META = process.platform === 'darwin' ? 'Meta' : 'Control';
-await clickAt(cards().nth(6));
-await page.keyboard.down(META);
 await clickAt(cards().nth(7));
+await page.keyboard.down(META);
+await clickAt(cards().nth(8));
 await page.keyboard.up(META);
 await pause(500);
 await clickAt(dockButton('Delete'));
-await waitCards(6);
+await waitCards(7);
 await pause(1500);
 
 // 8) Keep these — extract just the pages you want
