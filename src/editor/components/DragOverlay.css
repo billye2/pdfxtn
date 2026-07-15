@@ -9,12 +9,17 @@
   z-index: 95;
   animation: fadein 0.14s ease;
 }
+/* Sized to match the EmptyState .drop-zone so the drop target reads the same
+   whether the grid is full, or empty after deleting every page. */
 .drag-panel {
+  width: 80%;
+  height: 80%;
+  min-height: 340px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 14px;
-  padding: 60px 80px;
   border: 4px dashed var(--c-add);
   border-radius: 28px;
   color: var(--card);
