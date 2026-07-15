@@ -111,14 +111,6 @@ async function settle() {
   await page.waitForTimeout(800); // let all visible thumbnails finish rendering
 }
 
-// Clear the grid between scenes (select-all + Delete keeps the editor alive).
-async function resetSession() {
-  await page.keyboard.press(`${META}+a`);
-  await page.keyboard.press('Delete');
-  await waitCards(0);
-  await page.waitForTimeout(300);
-}
-
 // Capture the app at 1050x640, then re-shoot it inset on a 1280x800 branded
 // frame (gradient + headline). Runs inside the extension page so the bundled
 // Fredoka/Nunito fonts are available to the caption.
