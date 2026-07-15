@@ -3,7 +3,7 @@
 // dnd-kit drags), merge the same file back in, bulk delete, and a real Save.
 // Run: npm run build && node scripts/promo-video-4.mjs
 //   → release/video/pdf-mana-promo-4.webm  (earlier videos are left untouched)
-//   → release/video/sample-numbers-0-12-edited.pdf (the on-camera Save output)
+//   → release/video/sample-numbers-1-7-edited.pdf (the on-camera Save output)
 //
 // Unlike the e2e suite (where dnd-kit's PointerSensor hangs under synthetic
 // dispatched events and the drag test is skipped), slow *trusted* mouse input
@@ -31,11 +31,11 @@ const META = process.platform === 'darwin' ? 'Meta' : 'Control';
 
 // ---- Fixture ----------------------------------------------------------------
 
-// 13 white pages, one huge solid-color numeral (0–12) filling ~80% of each
-// page — same document as the repo-root sample-numbers-0-12.pdf, generated
+// 7 white pages, one huge solid-color numeral (1–7) filling ~80% of each
+// page — same document as the repo-root sample-numbers-1-7.pdf, generated
 // in-memory like every other promo fixture so the script is self-contained.
 const NUMBER_COLORS = [
-  [0.86, 0.08, 0.24], // 0 crimson
+  null, // no page 0
   [0.0, 0.45, 0.85], // 1 blue
   [0.0, 0.62, 0.28], // 2 green
   [0.95, 0.55, 0.0], // 3 orange
@@ -43,11 +43,6 @@ const NUMBER_COLORS = [
   [0.0, 0.65, 0.65], // 5 teal
   [0.9, 0.15, 0.55], // 6 magenta
   [0.45, 0.3, 0.1], // 7 brown
-  [0.95, 0.75, 0.0], // 8 gold
-  [0.25, 0.3, 0.9], // 9 indigo
-  [0.65, 0.75, 0.1], // 10 olive
-  [0.1, 0.1, 0.1], // 11 near-black
-  [0.55, 0.55, 0.6], // 12 slate gray
 ];
 
 async function numbersPdf() {
@@ -55,7 +50,7 @@ async function numbersPdf() {
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
   const pw = 612;
   const ph = 792;
-  for (let n = 0; n <= 12; n += 1) {
+  for (let n = 1; n <= 7; n += 1) {
     const page = doc.addPage([pw, ph]);
     const text = String(n);
     const capHeight = (s) => bold.heightAtSize(s, { descender: false });
@@ -336,26 +331,26 @@ await setCard('', '', '', false);
 await pause(600);
 
 // Load the numbered sample
-await caption('One PDF, pages numbered 0–12');
-await dropPdfs([{ name: 'sample-numbers-0-12.pdf', bytes: pdfBytes }]);
-await waitCards(13);
+await caption('One PDF, pages numbered 1–7');
+await dropPdfs([{ name: 'sample-numbers-1-7.pdf', bytes: pdfBytes }]);
+await waitCards(7);
 await page.waitForSelector('.card .page-canvas');
-(await order()).forEach((pid, i) => num.set(pid, i));
+(await order()).forEach((pid, i) => num.set(pid, i + 1));
 await pause(2000);
 
 // Rotate pages 2, 5, 6 — one at a time
 await caption('Rotate any page — pick it, one click');
 for (const n of [2, 5, 6]) {
-  await selectOnly(n);
+  await selectOnly((await numsNow()).indexOf(n));
   await pause(350);
   await clickAt(dockButton('Rotate'));
   await pause(900);
 }
 await pause(600);
 
-// Crop pages 4, 2, 12 — draw a box, keep it to the picked page
+// Crop pages 4, 2, 7 — draw a box, keep it to the picked page
 await caption('Crop a page — draw a box, keep the rest untouched');
-for (const n of [4, 2, 12]) {
+for (const n of [4, 2, 7]) {
   await selectOnly((await numsNow()).indexOf(n));
   await pause(350);
   await clickAt(dockButton('Crop'));
@@ -373,16 +368,16 @@ for (const n of [4, 2, 12]) {
 }
 await pause(400);
 
-// Duplicate pages 9–12 (copies land right after their originals)
+// Duplicate pages 4–7 (copies land right after their originals)
 await caption('Duplicate a whole range');
 await page.keyboard.press('Escape');
-await clickAt(cards().nth(9));
+await clickAt(cards().nth(3));
 await page.keyboard.down('Shift');
-await clickAt(cards().nth(12));
+await clickAt(cards().nth(6));
 await page.keyboard.up('Shift');
 await pause(500);
 await clickAt(dockButton('Duplicate'));
-await waitCards(17);
+await waitCards(11);
 // Register the four new ids: each copy sits right after its original.
 {
   const ids = await order();
@@ -391,11 +386,8 @@ await waitCards(17);
   });
 }
 const idsAfterDup = await order();
-const copies = [10, 12, 14, 16].map((i) => idsAfterDup[i]);
-await expectNums(
-  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 10, 10, 11, 11, 12, 12],
-  'after duplicate',
-);
+const copies = [4, 6, 8, 10].map((i) => idsAfterDup[i]);
+await expectNums([1, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7], 'after duplicate');
 await pause(1400);
 
 // Scramble the copies to the end so the drag beat has real work to do
@@ -404,25 +396,22 @@ await page.keyboard.press('Escape');
 for (const pid of copies) {
   let at = (await order()).indexOf(pid);
   await selectOnly(at);
-  while (at < 16) {
+  while (at < 10) {
     await page.keyboard.press('ArrowRight');
     await pause(90);
     at = (await order()).indexOf(pid);
   }
 }
 await page.keyboard.press('Escape');
-await expectNums(
-  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 9, 10, 11, 12],
-  'after scramble',
-);
+await expectNums([1, 2, 3, 4, 5, 6, 7, 4, 5, 6, 7], 'after scramble');
 await pause(1200);
 
-// …and drag them back into pairs: 9-9 10-10 11-11 12-12
+// …and drag them back into pairs: 4-4 5-5 6-6 7-7
 await caption('…and drag them back into place');
 for (const [copyIdx, n] of [
-  [0, 9],
-  [1, 10],
-  [2, 11],
+  [0, 4],
+  [1, 5],
+  [2, 6],
 ]) {
   const copyPid = copies[copyIdx];
   const originalPid = (await order()).find(
@@ -431,10 +420,7 @@ for (const [copyIdx, n] of [
   await movePairTogether(copyPid, originalPid);
   await pause(700);
 }
-await expectNums(
-  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 10, 10, 11, 11, 12, 12],
-  'after drag-reorder',
-);
+await expectNums([1, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7], 'after drag-reorder');
 await pause(1400);
 
 // Add the same PDF again — pages append at the end
@@ -445,16 +431,16 @@ await clickAt(page.locator('.toolbar').getByRole('button', { name: 'Add PDF' }))
 await (
   await chooser
 ).setFiles({
-  name: 'sample-numbers-0-12.pdf',
+  name: 'sample-numbers-1-7.pdf',
   mimeType: 'application/pdf',
   buffer: Buffer.from(pdfBytes),
 });
-await waitCards(30);
+await waitCards(18);
 await page.waitForSelector('.card .page-canvas');
 {
   const ids = await order();
   ids.forEach((pid, i) => {
-    if (!num.has(pid)) num.set(pid, i - 17);
+    if (!num.has(pid)) num.set(pid, i - 10);
   });
 }
 await pause(2000);
@@ -473,11 +459,8 @@ for (const i of odd.slice(1)) {
 await page.keyboard.up(META);
 await pause(900);
 await clickAt(dockButton('Delete'));
-await waitCards(16);
-await expectNums(
-  [0, 2, 4, 6, 8, 10, 10, 12, 12, 0, 2, 4, 6, 8, 10, 12],
-  'after deleting odds',
-);
+await waitCards(8);
+await expectNums([2, 4, 4, 6, 6, 2, 4, 6], 'after deleting odds');
 await pause(1600);
 
 // Save one combined PDF — a real download, export progress on camera
@@ -485,7 +468,7 @@ await caption('Save it all as one combined PDF');
 const download = page.waitForEvent('download');
 await clickAt(page.getByRole('button', { name: 'Save PDF' }));
 const dl = await download;
-await dl.saveAs(join(videoDir, 'sample-numbers-0-12-edited.pdf'));
+await dl.saveAs(join(videoDir, 'sample-numbers-1-7-edited.pdf'));
 await pause(2200);
 await caption('');
 
