@@ -3,7 +3,7 @@
 // the live UI (captured 1:1 at 1050x640) inset below. Run:
 //   npm run build && node scripts/screenshots.mjs  → release/screenshots/*.png
 import { chromium } from 'playwright';
-import { PDFDocument, StandardFonts, rgb, degrees } from 'pdf-lib';
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { mkdirSync, rmSync } from 'node:fs';
@@ -20,36 +20,45 @@ const FRAME = { width: 1280, height: 800 };
 const RAW = { width: 1050, height: 640 };
 const META = process.platform === 'darwin' ? 'Meta' : 'Control';
 
-// ---- Fixtures (same as scripts/promo-video-3.mjs) ---------------------------
+// ---- Fixtures ----------------------------------------------------------------
 
-// Grey-bar "office paper" pages (title + faux text lines).
-function paperPage(doc, bold, title, seed) {
-  const p = doc.addPage([612, 792]);
-  p.drawText(title, {
-    x: 56,
-    y: 712,
-    size: 26,
-    font: bold,
-    color: rgb(0.13, 0.12, 0.25),
-  });
-  for (let l = 0; l < 22; l += 1) {
-    const w = 360 + ((seed * 7 + l * 13) % 130);
-    p.drawRectangle({
-      x: 56,
-      y: 672 - l * 26,
-      width: w,
-      height: 9,
-      color: rgb(0.86, 0.87, 0.91),
-    });
-  }
-  return p;
-}
+// The numbered sample (same document as the repo-root sample-numbers-1-7.pdf,
+// generated in-memory like every other fixture): 7 white pages, one huge
+// solid-color numeral each, so each shot's operation reads at a glance.
+const NUMBER_COLORS = {
+  1: [0.0, 0.45, 0.85], // blue
+  2: [0.0, 0.62, 0.28], // green
+  3: [0.95, 0.55, 0.0], // orange
+  4: [0.55, 0.1, 0.75], // purple
+  5: [0.0, 0.65, 0.65], // teal
+  6: [0.9, 0.15, 0.55], // magenta
+  7: [0.45, 0.3, 0.1], // brown
+};
 
-// One page each so the hero board is a single, fully visible row of 4 cards.
-async function contractPdf() {
+async function numbersPdf() {
   const doc = await PDFDocument.create();
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
-  paperPage(doc, bold, 'Contract', 0);
+  const pw = 612;
+  const ph = 792;
+  for (let n = 1; n <= 7; n += 1) {
+    const page = doc.addPage([pw, ph]);
+    const text = String(n);
+    const capHeight = (s) => bold.heightAtSize(s, { descender: false });
+    let size = 1000;
+    while (bold.widthOfTextAtSize(text, size) > pw * 0.8 || capHeight(size) > ph * 0.8) {
+      size -= 5;
+    }
+    const w = bold.widthOfTextAtSize(text, size);
+    const h = capHeight(size);
+    const [r, g, b] = NUMBER_COLORS[n];
+    page.drawText(text, {
+      x: (pw - w) / 2,
+      y: (ph - h) / 2 + h * 0.06,
+      size,
+      font: bold,
+      color: rgb(r, g, b),
+    });
+  }
   return [...(await doc.save())];
 }
 
@@ -85,93 +94,6 @@ async function receiptPdf() {
       });
     }
   }
-  return [...(await doc.save())];
-}
-
-async function sixPager() {
-  const doc = await PDFDocument.create();
-  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
-  [
-    'Quarterly Report',
-    'Invoice #1042',
-    'Project Brief',
-    'Meeting Notes',
-    'Appendix A',
-    'Contract',
-  ].forEach((t, i) => paperPage(doc, bold, t, i));
-  return [...(await doc.save())];
-}
-
-// A 3-page "scan": pages 1/3 carry dark scanner-shadow bands along the right
-// and bottom edges; page 2's content is drawn rotated 90° CCW (sideways).
-async function messyScanPdf() {
-  const doc = await PDFDocument.create();
-  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
-  const shadow = (p) => {
-    p.drawRectangle({
-      x: 594,
-      y: 0,
-      width: 18,
-      height: 792,
-      color: rgb(0.32, 0.32, 0.36),
-    });
-    p.drawRectangle({
-      x: 0,
-      y: 0,
-      width: 612,
-      height: 16,
-      color: rgb(0.32, 0.32, 0.36),
-    });
-  };
-  shadow(paperPage(doc, bold, 'Scanned Notes', 0));
-  const sideways = doc.addPage([612, 792]);
-  sideways.drawText('Meeting Notes', {
-    x: 82,
-    y: 90,
-    size: 26,
-    font: bold,
-    color: rgb(0.13, 0.12, 0.25),
-    rotate: degrees(90),
-  });
-  for (let l = 0; l < 14; l += 1) {
-    sideways.drawRectangle({
-      x: 130 + l * 26,
-      y: 90,
-      width: 9,
-      height: 420 + ((l * 17) % 160),
-      color: rgb(0.86, 0.87, 0.91),
-    });
-  }
-  shadow(sideways);
-  shadow(paperPage(doc, bold, 'Scanned Notes — p.3', 2));
-  return [...(await doc.save())];
-}
-
-// The Mix stars: huge numerals. Fronts = 1,3,5; backs = 6,4,2 (flipped stack).
-function numeralPage(doc, bold, n, { tint, ink, label }) {
-  const p = doc.addPage([612, 792]);
-  if (tint) p.drawRectangle({ x: 0, y: 0, width: 612, height: 792, color: tint });
-  p.drawText(label, { x: 40, y: 736, size: 24, font: bold, color: ink });
-  p.drawText(String(n), { x: 205, y: 230, size: 380, font: bold, color: ink });
-}
-
-async function frontsPdf() {
-  const doc = await PDFDocument.create();
-  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
-  const style = { ink: rgb(0.13, 0.12, 0.25), label: 'FRONTS' };
-  [1, 3, 5].forEach((n) => numeralPage(doc, bold, n, style));
-  return [...(await doc.save())];
-}
-
-async function backsPdf() {
-  const doc = await PDFDocument.create();
-  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
-  const style = {
-    tint: rgb(0.85, 0.91, 0.99),
-    ink: rgb(0.09, 0.28, 0.6),
-    label: 'BACKS',
-  };
-  [6, 4, 2].forEach((n) => numeralPage(doc, bold, n, style));
   return [...(await doc.save())];
 }
 
@@ -212,45 +134,6 @@ async function dropPdfs(files) {
       );
     return d;
   }, files);
-  await page.dispatchEvent('.app', 'dragover', { dataTransfer: dt });
-  await page.dispatchEvent('.app', 'drop', { dataTransfer: dt });
-}
-
-// Colorful "photos" generated in-page (canvas → PNG File) and dropped.
-async function dropPhotos(count = 3) {
-  const dt = await page.evaluateHandle(async (n) => {
-    const specs = [
-      ['Photo 1', '#0ea5a3', '#4338ca'],
-      ['Photo 2', '#f97316', '#ec4899'],
-      ['Photo 3', '#22c55e', '#0891b2'],
-    ].slice(0, n);
-    const d = new DataTransfer();
-    for (const [label, c1, c2] of specs) {
-      const cv = document.createElement('canvas');
-      cv.width = 800;
-      cv.height = 600;
-      const g = cv.getContext('2d');
-      const grad = g.createLinearGradient(0, 0, 800, 600);
-      grad.addColorStop(0, c1);
-      grad.addColorStop(1, c2);
-      g.fillStyle = grad;
-      g.fillRect(0, 0, 800, 600);
-      g.fillStyle = 'rgba(255,255,255,0.25)';
-      g.beginPath();
-      g.arc(620, 160, 120, 0, 7);
-      g.fill();
-      g.fillStyle = '#fff';
-      g.font = '700 64px Nunito, sans-serif';
-      g.fillText(label, 48, 520);
-      const blob = await new Promise((r) => cv.toBlob(r, 'image/png'));
-      d.items.add(
-        new File([blob], `${label.toLowerCase().replace(' ', '-')}.png`, {
-          type: 'image/png',
-        }),
-      );
-    }
-    return d;
-  }, count);
   await page.dispatchEvent('.app', 'dragover', { dataTransfer: dt });
   await page.dispatchEvent('.app', 'drop', { dataTransfer: dt });
 }
@@ -318,97 +201,79 @@ async function shoot(file, headline, sub) {
 }
 
 // ---- The five shots ------------------------------------------------------------
+// All five ride the numbered 1–7 sample so each operation reads at a glance.
 
-// 1) Hero — one clean row of visibly mixed content (two PDFs + two photos).
-await dropPdfs([
-  { name: 'contract.pdf', bytes: await contractPdf() },
-  { name: 'receipt.pdf', bytes: await receiptPdf() },
-]);
-await waitCards(2);
-await dropPhotos(2);
-await waitCards(4);
+// 1) Crop — the dialog open over the big "1" with a drawn box.
+await dropPdfs([{ name: 'sample-numbers-1-7.pdf', bytes: await numbersPdf() }]);
+await waitCards(7);
 await settle();
-await shoot(
-  '01-hero.png',
-  'Tidy up any PDF — right in your browser',
-  'Merge, reorder, rotate, crop & split pages. Nothing is ever uploaded.',
-);
-
-// 5) Same board in the dark look (shot now while the content is up).
-await page.locator('.look-trigger').click();
-await page.locator('.look-option', { hasText: 'Nighty Night' }).click();
-await page.waitForTimeout(500);
-await shoot(
-  '05-dark-free.png',
-  "Dark mode included — and it's all free",
-  'No upload · No account · No watermark · Four looks',
-);
-await page.locator('.look-trigger').click();
-await page.locator('.look-option', { hasText: 'Blocks' }).click();
-await page.waitForTimeout(400);
-await resetSession();
-
-// 2) Page tools — three pages picked, the selection dock up.
-await dropPdfs([{ name: 'report.pdf', bytes: await sixPager() }]);
-await waitCards(6);
-await settle();
-// Pick the first three cards (all in the top row, so nothing scrolls).
 await page.locator('.card').nth(0).click();
-await page
-  .locator('.card')
-  .nth(1)
-  .click({ modifiers: ['ControlOrMeta'] });
-await page
-  .locator('.card')
-  .nth(2)
-  .click({ modifiers: ['ControlOrMeta'] });
-await page.waitForTimeout(400);
-await shoot(
-  '02-page-tools.png',
-  'Pick pages — fix them in one click',
-  'Rotate · Crop · Duplicate · Blank page · Keep · Delete',
-);
-await page.keyboard.press('Escape');
-await resetSession();
-
-// 3) Double-sided scans — fronts/backs stacks with the Mix dialog open.
-await dropPdfs([
-  { name: 'fronts.pdf', bytes: await frontsPdf() },
-  { name: 'backs.pdf', bytes: await backsPdf() },
-]);
-await waitCards(6);
-await settle();
-await page.locator('.toolbar').getByRole('button', { name: 'Mix' }).click();
-await page.waitForSelector('.mix-modal');
-await page.waitForTimeout(400);
-await shoot(
-  '03-double-sided.png',
-  'Un-scramble double-sided scans',
-  'Mix fronts & backs into reading order — or un-mix them — in one click',
-);
-await page.keyboard.press('Escape');
-await resetSession();
-
-// 4) Scan rescue — the crop dialog with a box that nips off the shadow bands.
-await dropPdfs([{ name: 'scan.pdf', bytes: await messyScanPdf() }]);
-await waitCards(3);
-await settle();
-await page.locator('.card').nth(1).click();
 await page.locator('.dock').getByRole('button', { name: 'Crop' }).click();
 await page.waitForSelector('.crop-canvas');
 await page.waitForTimeout(300);
 const stage = await page.locator('.crop-stage').boundingBox();
-await page.mouse.move(stage.x + stage.width * 0.05, stage.y + stage.height * 0.04);
+await page.mouse.move(stage.x + stage.width * 0.16, stage.y + stage.height * 0.14);
 await page.mouse.down();
-await page.mouse.move(stage.x + stage.width * 0.94, stage.y + stage.height * 0.93, {
+await page.mouse.move(stage.x + stage.width * 0.86, stage.y + stage.height * 0.84, {
   steps: 10,
 });
 await page.mouse.up();
 await page.waitForTimeout(300);
 await shoot(
-  '04-crop.png',
-  'Rescue messy scans',
-  'Nip off scanner shadows — draw one box, apply it to every page',
+  '01-crop.png',
+  'Crop pages visually',
+  'Draw one box — keep it to one page, or apply it to all',
+);
+await page.getByRole('button', { name: 'Cancel' }).click();
+await page.waitForSelector('.crop-canvas', { state: 'detached' });
+await page.keyboard.press('Escape'); // clear the selection
+
+// 2) Rotate — the "2" spun sideways, still picked, the dock up.
+await page.locator('.card').nth(1).click();
+await page.locator('.dock').getByRole('button', { name: 'Rotate' }).click();
+await page.waitForTimeout(500);
+await shoot(
+  '02-rotate.png',
+  'Rotate pages in one click',
+  'One page or a whole pick — 90° at a time, applied on save',
+);
+await page.keyboard.press(`${META}+z`); // undo the rotation
+await page.keyboard.press('Escape');
+await page.waitForTimeout(300);
+
+// 3) Merge — a second (blue) document dropped in, pages appended.
+await dropPdfs([{ name: 'receipt.pdf', bytes: await receiptPdf() }]);
+await waitCards(8);
+await settle();
+await shoot(
+  '03-merge.png',
+  'Combine PDFs in seconds',
+  'Drop files together — pages append, ready to arrange · Nothing is uploaded',
+);
+// Remove the blue page so the next shots are pure 1–7 again.
+await page.locator('.card').nth(7).click();
+await page.keyboard.press('Delete');
+await waitCards(7);
+
+// 4) Reverse — the whole document flipped to 7…1 with one click.
+await page.locator('button[title="Reverse page order"]').click();
+await page.waitForTimeout(500);
+await shoot(
+  '04-reverse.png',
+  'Reverse the page order in one click',
+  'Scanned back-to-front? Flip the whole document — or just the picked pages',
+);
+
+// 5) Dark mode — the same board in the Nighty Night look.
+await page.locator('button[title="Reverse page order"]').click(); // back to 1…7
+await page.waitForTimeout(400);
+await page.locator('.look-trigger').click();
+await page.locator('.look-option', { hasText: 'Nighty Night' }).click();
+await page.waitForTimeout(600);
+await shoot(
+  '05-dark-free.png',
+  "Dark mode included — and it's all free",
+  'No upload · No account · No watermark · Four looks',
 );
 
 await ctx.close();
