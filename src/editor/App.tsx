@@ -296,7 +296,10 @@ export default function App() {
       <main className="main">
         {appState === 'empty' && <EmptyState onPick={pickFiles} />}
         {appState === 'loading' && <LoadingState />}
-        {appState === 'editor' && (
+        {/* Deleting every page leaves the editor with an empty grid — bring
+            the drop-zone back so there's a visible target, not a blank. */}
+        {appState === 'editor' && pages.length === 0 && <EmptyState onPick={pickFiles} />}
+        {appState === 'editor' && pages.length > 0 && (
           <ThumbnailGrid
             pages={pages}
             docs={docs}
