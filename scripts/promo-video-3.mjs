@@ -47,12 +47,43 @@ function paperPage(doc, bold, title, seed) {
   return p;
 }
 
-async function paperStackA() {
+// The numbered sample (same document as the repo-root sample-numbers-1-7.pdf,
+// generated in-memory like every other fixture): 7 white pages, one huge
+// solid-color numeral each — stars in the stitch and keep-these scenes.
+const NUMBER_COLORS = {
+  1: [0.0, 0.45, 0.85], // blue
+  2: [0.0, 0.62, 0.28], // green
+  3: [0.95, 0.55, 0.0], // orange
+  4: [0.55, 0.1, 0.75], // purple
+  5: [0.0, 0.65, 0.65], // teal
+  6: [0.9, 0.15, 0.55], // magenta
+  7: [0.45, 0.3, 0.1], // brown
+};
+
+async function numbersPdf() {
   const doc = await PDFDocument.create();
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
-  ['Contract', 'Cover Letter', 'Invoice #1042'].forEach((t, i) =>
-    paperPage(doc, bold, t, i),
-  );
+  const pw = 612;
+  const ph = 792;
+  for (let n = 1; n <= 7; n += 1) {
+    const page = doc.addPage([pw, ph]);
+    const text = String(n);
+    const capHeight = (s) => bold.heightAtSize(s, { descender: false });
+    let size = 1000;
+    while (bold.widthOfTextAtSize(text, size) > pw * 0.8 || capHeight(size) > ph * 0.8) {
+      size -= 5;
+    }
+    const w = bold.widthOfTextAtSize(text, size);
+    const h = capHeight(size);
+    const [r, g, b] = NUMBER_COLORS[n];
+    page.drawText(text, {
+      x: (pw - w) / 2,
+      y: (ph - h) / 2 + h * 0.06,
+      size,
+      font: bold,
+      color: rgb(r, g, b),
+    });
+  }
   return [...(await doc.save())];
 }
 
@@ -162,21 +193,6 @@ async function backsPdf() {
     label: 'BACKS',
   };
   [6, 4, 2].forEach((n) => numeralPage(doc, bold, n, style));
-  return [...(await doc.save())];
-}
-
-// The familiar 6-titled-pages document (same as promo-video-2's samplePdf).
-async function sixPager() {
-  const doc = await PDFDocument.create();
-  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
-  [
-    'Quarterly Report',
-    'Invoice #1042',
-    'Project Brief',
-    'Meeting Notes',
-    'Appendix A',
-    'Contract',
-  ].forEach((t, i) => paperPage(doc, bold, t, i));
   return [...(await doc.save())];
 }
 
@@ -403,14 +419,14 @@ await pause(600);
 // 1) Stitching paperwork together
 await caption('Stitch paperwork together — drop it all in');
 await dropPdfs([
-  { name: 'contract.pdf', bytes: await paperStackA() },
+  { name: 'sample-numbers-1-7.pdf', bytes: await numbersPdf() },
   { name: 'receipts.pdf', bytes: await paperStackB() },
 ]);
-await waitCards(5);
+await waitCards(9);
 await page.waitForSelector('.card .page-canvas');
 await pause(1800);
 await caption('Pages append — nudge them into order');
-await clickAt(cards().nth(3)); // the blue Receipt
+await clickAt(cards().nth(7)); // the blue Receipt
 await pause(400);
 await page.keyboard.press('ArrowLeft');
 await pause(800);
@@ -497,8 +513,8 @@ await resetSession();
 
 // 4) Sending only what's needed
 await caption("Send only what's needed");
-await dropPdfs([{ name: 'report.pdf', bytes: await sixPager() }]);
-await waitCards(6);
+await dropPdfs([{ name: 'sample-numbers-1-7.pdf', bytes: await numbersPdf() }]);
+await waitCards(7);
 await page.waitForSelector('.card .page-canvas');
 await pause(1300);
 await caption('Grab any page range by position');
