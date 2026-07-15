@@ -7,6 +7,26 @@ Versioning (since 1.2.1): each version component counts 0–9 and carries into
 the next, like an odometer — 1.2.9 → 1.3.0 → 1.3.1, … 1.9.9 → 2.0.0. Versions
 before 1.2.1 followed semver patch bumps (hence the jump from 1.0.20).
 
+## [1.2.8] — 2026-07-15
+
+### Fixed
+
+- **Deleting the last page no longer strands you on a blank screen** — the
+  editor brings back the mascot drop-zone whenever the grid reaches zero
+  pages, so there's always a visible drop target. The toolbar (and undo
+  history) stay put, so Cmd/Ctrl+Z still restores a deleted-everything doc.
+
+### Changed
+
+- **The "Drop to add your pages!" drag overlay matches the drop-zone** — the
+  panel that appears while dragging a file over the window is now pinned to
+  the content area with the same geometry as the empty-state drop-zone
+  (instead of a small pill floating mid-screen), so over an empty editor the
+  two dashed boxes land exactly on top of each other.
+- Store assets rebuilt on the numbered-pages sample: the five screenshots now
+  show crop, rotate, an abstract merge composition, reverse, and dark mode,
+  and all four promo-video cuts were re-recorded (`docs/STORE_LISTING.md`).
+
 ## [1.2.7] — 2026-07-11
 
 ### Changed

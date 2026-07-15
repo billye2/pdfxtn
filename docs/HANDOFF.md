@@ -5,10 +5,10 @@ _Snapshot for picking this back up later._
 ## Status
 
 - **Product:** PDF Mana — MV3 Chrome extension, local PDF _page_ manager (Merge · Arrange · Nip · Adjust).
-- **Version:** 1.2.7 — packaged at `release/pdf-mana-1.2.7.zip` (older zips in `release/archive/`); adds visible export progress (Saving N/M count, painting bar, image/range coverage). **Versioning is odometer-style since 1.2.1**: each component counts 0–9 and carries (1.2.9 → 1.3.0 → … → 1.9.9 → 2.0.0); `npm run release` implements the carry. **v1.2.6 is the latest published GitHub Release** (2026-07-11, zip attached); the v1.2.7 tag is pushed but its GitHub release awaits `npm run release:publish` (or explicit approval in an agent session); v1.0.19–v1.2.5 are deliberately tag-only.
+- **Version:** 1.2.8 — packaged at `release/pdf-mana-1.2.8.zip` (older zips in `release/archive/`); brings back the mascot drop-zone when the last page is deleted, and aligns the drag-drop overlay panel with the drop-zone geometry. **Versioning is odometer-style since 1.2.1**: each component counts 0–9 and carries (1.2.9 → 1.3.0 → … → 1.9.9 → 2.0.0); `npm run release` implements the carry. **v1.2.8 is the latest published GitHub Release** (2026-07-15, zip attached); v1.0.19–v1.2.5 and v1.2.7 are deliberately tag-only (each superseded before publishing).
 - **Repo:** https://github.com/billye2/pdfxtn — **public, MIT** (© Billy Ye). `main` is the working branch; release commits carry annotated `vX.Y.Z` tags and `npm run release:publish` creates the GitHub release.
-- **Chrome Web Store:** **published / live** at https://chromewebstore.google.com/detail/pdf-mana/bhkhobdaindpenllbgliigfafkkigpnk — **v1.2.1 cleared review and is live (2026-07-10); v1.2.3 submitted for review 2026-07-10**; **v1.2.7 (recents pinning + off switch, the 1.2.4 keyboard pack, and export progress) is packaged and ready to upload once 1.2.3 clears — upload 1.2.7 and skip 1.2.4–1.2.6** (each superseded by the next before reaching the store). v1.2.2 was never uploaded (superseded). Promo video is on YouTube: https://www.youtube.com/watch?v=Dt8iiK6Fvzk (re-uploaded 2026-07-11 against v1.2.6; goes in the dashboard's "Promotional video" field — update the dashboard URL with the next upload). Three local cuts live in `release/video/` (full tour, page tools, and the six-use-cases `pdf-mana-promo-3.webm`). The five store screenshots in `release/screenshots/` were rebuilt 2026-07-11 as branded frames with benefit headlines (`01-hero.png` … `05-dark-free.png`, see `docs/STORE_LISTING.md`) — upload them with the 1.2.7 submission, replacing the old five. The detailed description gained a "Perfect for" use-cases block and a "Previously opened files" feature item (`docs/STORE_LISTING.md`) — paste the refreshed description into the dashboard with the upload.
-- **Tests:** 201 unit (Vitest; pure logic + persistence via `fake-indexeddb` in Node, hooks via jsdom `// @vitest-environment` docblock), 40 e2e incl. axe a11y scans (Playwright; 1 pointer-drag test skipped) — in CI on **Linux + Windows** — plus 12 visual-regression baselines (`npm run visual`, macOS-local, NOT in CI).
+- **Chrome Web Store:** **published / live** at https://chromewebstore.google.com/detail/pdf-mana/bhkhobdaindpenllbgliigfafkkigpnk — **v1.2.1 cleared review and is live (2026-07-10); v1.2.3 submitted for review 2026-07-10**; **v1.2.8 (recents pinning + off switch, the 1.2.4 keyboard pack, export progress, and the empty-state/drop-overlay fixes) is packaged and ready to upload once 1.2.3 clears — upload 1.2.8 and skip 1.2.4–1.2.7** (each superseded by the next before reaching the store). Promo video is on YouTube: https://www.youtube.com/watch?v=wrRQKpwtlfE (uploaded 2026-07-15 against the numbered-sample re-record; goes in the dashboard's "Promotional video" field — supersedes the 2026-07-11 upload). Four local cuts live in `release/video/` (full tour, page tools, six use cases, and the every-page-op `pdf-mana-promo-4.webm` with real drags + a real Save). The five store screenshots in `release/screenshots/` were rebuilt 2026-07-15 on the numbered 1–7 sample (`01-crop.png` … `05-dark-free.png`: crop / rotate / abstract merge / reverse / dark, see `docs/STORE_LISTING.md`) and **uploaded to the dashboard 2026-07-15**. The detailed description gained a "Perfect for" use-cases block and a "Previously opened files" feature item (`docs/STORE_LISTING.md`) — paste the refreshed description into the dashboard with the upload.
+- **Tests:** 203 unit (Vitest; pure logic + persistence via `fake-indexeddb` in Node, hooks via jsdom `// @vitest-environment` docblock), 40 e2e incl. axe a11y scans (Playwright; 1 pointer-drag test skipped — though `scripts/promo-video-4.mjs` proved slow _trusted_ mouse drags do engage dnd-kit) — in CI on **Linux + Windows** — plus 12 visual-regression baselines (`npm run visual`, macOS-local, NOT in CI).
 - **Recent work (v1.0.11 → 1.0.20):** "Nighty Night" dark theme with themed
   page-render inversion; crop-box corner-handle resize; WYSIWYG crop previews
   (`lib/cropView.ts`); last-used Look persists in localStorage; dark-theme contrast
@@ -80,6 +80,19 @@ _Snapshot for picking this back up later._
   the header icon changed star → **pin** (visual baselines regenerated again).
   The dialog keeps its list order stable while open (pinned-first regrouping
   applies on next open) so rows don't jump under the pointer.
+- **Recent work (v1.2.8): empty-state + drop-overlay fixes; store assets v3.**
+  Deleting every page now renders `EmptyState` (mascot drop-zone) instead of a
+  blank grid — the app stays in editor mode so the toolbar/undo survive
+  (`App.tsx` renders it when `appState === 'editor' && pages.length === 0`).
+  The `DragOverlay` panel is pinned to the measured `.main` rect and mirrors
+  the drop-zone geometry (20px padding + centered 80% box, min 340px), so the
+  two dashed boxes coincide over an empty editor. Store assets rebuilt on the
+  numbered `sample-numbers-1-7` fixture (generated in-memory by each script):
+  five screenshots (crop/rotate/abstract-merge/reverse/dark) and all four
+  promo cuts re-recorded; `promo-video-4.mjs` performs REAL dnd-kit drags
+  (slow trusted mouse input works; only synthetic dispatched events don't) and
+  a real Save. Also fixed: `promo-video.mjs` used to `rmSync` all of
+  `release/video/` — every script now records into its own tmp subdir.
 
 ## Commands
 
@@ -102,6 +115,9 @@ node scripts/promo.mjs         # promo tiles (440x280, 1400x560) → release/pro
 node scripts/promo-video.mjs   # promo video (webm) → release/video/ (upload via YouTube)
 node scripts/promo-video-2.mjs # promo video v2 — page-tools cut (rotate/crop/duplicate/
                                #   blank/delete/keep-these via the dock) → release/video/
+node scripts/promo-video-3.mjs # promo video v3 — six README use cases → release/video/
+node scripts/promo-video-4.mjs # promo video v4 — every core op on the numbered sample,
+                               #   real dnd-kit drags + a real Save → release/video/
 node scripts/demo-gif.mjs      # 15s README demo → release/video/readme-demo.webm;
                                #   ffmpeg commands in the script header → docs/demo.gif
 ```

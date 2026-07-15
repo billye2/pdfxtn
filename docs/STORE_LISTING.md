@@ -147,14 +147,15 @@ Everything you need to paste into the Developer Dashboard for PDF Mana.
 ## Assets
 
 - **Store icon:** 128×128 — `dist/src/icons/icon128.png` (or export from `src/icons/icon.svg`).
-- **Screenshots (1280×800):** `release/screenshots/01-hero.png` … `05-dark-free.png`
+- **Screenshots (1280×800):** `release/screenshots/01-crop.png` … `05-dark-free.png`
   (regenerate with `node scripts/screenshots.mjs`). Branded frames with benefit
-  headlines, in upload order: 01 hero — "Tidy up any PDF — right in your browser"
-  (mixed docs and photos board); 02 "Pick pages — fix them in one click"
-  (multi-select and dock); 03 "Un-scramble double-sided scans" (Mix dialog and
-  preset); 04 "Rescue messy scans" (crop dialog nipping shadow bands); 05 "Dark
-  mode included — and it's all free" (Nighty Night board). At least one is
-  required; up to five (all five are generated).
+  headlines, all riding the numbered 1–7 sample so each operation reads at a
+  glance, in upload order: 01 "Crop pages visually" (crop dialog with a drawn
+  box); 02 "Rotate pages in one click" (a picked page spun sideways, dock up);
+  03 "Combine PDFs in seconds" (abstract PDF 1 + PDF 2 = one-document
+  illustration); 04 "Reverse the page order in one click" (grid flipped to
+  7…1); 05 "Dark mode included — and it's all free" (Nighty Night board). At
+  least one is required; up to five (all five are generated).
 - **Promo tiles (optional):** `release/promo/small-440x280.png` and
   `release/promo/marquee-1400x560.png` (regenerate with `node scripts/promo.mjs`).
 - **Promo video (optional):** `release/video/pdf-mana-promo.webm` — a ~51 s scripted
@@ -163,11 +164,14 @@ node scripts/promo-video.mjs`). The dashboard field takes a **YouTube URL**, not
   file: upload the webm to YouTube (webm is accepted directly; add music there if
   desired), then paste the URL into "Promotional video". Convert to mp4 with ffmpeg
   only if some other outlet needs it.
-  **Uploaded 2026-07-11:** https://www.youtube.com/watch?v=Dt8iiK6Fvzk — paste this
-  URL into the dashboard's "Promotional video" field. Two more cuts exist locally,
-  not uploaded: the page-tools cut `release/video/pdf-mana-promo-2.webm`
-  (`node scripts/promo-video-2.mjs`, ~41 s) and the six-use-cases cut
-  `release/video/pdf-mana-promo-3.webm` (`node scripts/promo-video-3.mjs`, ~75 s).
+  **Uploaded 2026-07-15:** https://www.youtube.com/watch?v=wrRQKpwtlfE — this is
+  the URL for the dashboard's "Promotional video" field (supersedes the
+  2026-07-11 upload at https://www.youtube.com/watch?v=Dt8iiK6Fvzk). All four
+  cuts were re-recorded 2026-07-14/15 against the numbered 1–7 sample: the full
+  tour (~48 s, above), the page-tools cut `pdf-mana-promo-2.webm` (~38 s), the
+  six-use-cases cut `pdf-mana-promo-3.webm` (~71 s), and the every-page-op cut
+  `pdf-mana-promo-4.webm` (~83 s, real dnd-kit drags + a real Save with export
+  progress; `node scripts/promo-video-4.mjs`).
 
 ## Pre-submit checklist
 
