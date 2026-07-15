@@ -11,9 +11,7 @@ export default function DragOverlay() {
   // per appearance is fresh enough).
   const [area] = useState<React.CSSProperties | undefined>(() => {
     const r = document.querySelector('.main')?.getBoundingClientRect();
-    return r
-      ? { left: r.left, top: r.top, width: r.width, height: r.height }
-      : undefined;
+    return r ? { left: r.left, top: r.top, width: r.width, height: r.height } : undefined;
   });
 
   return (
