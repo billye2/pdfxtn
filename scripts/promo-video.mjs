@@ -9,44 +9,52 @@ import { mkdirSync, rmSync, readdirSync, renameSync, statSync } from 'node:fs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const distPath = join(here, '..', 'dist');
-const outDir = join(here, '..', 'release', 'video');
+const videoDir = join(here, '..', 'release', 'video');
+// Record into a temp subdir so picking/renaming the fresh webm can never
+// grab or overwrite the other promo webms sitting in release/video/.
+const outDir = join(videoDir, 'v1-tmp');
 rmSync(outDir, { recursive: true, force: true });
 mkdirSync(outDir, { recursive: true });
 
 const W = 1280;
 const H = 720;
 
-// Same document-like sample as scripts/screenshots.mjs so thumbnails look real.
+// The numbered sample (same document as the repo-root sample-numbers-1-7.pdf,
+// generated in-memory like every other promo fixture): 7 white pages, one huge
+// solid-color numeral each, so every page op reads instantly at thumbnail size.
+const NUMBER_COLORS = {
+  1: [0.0, 0.45, 0.85], // blue
+  2: [0.0, 0.62, 0.28], // green
+  3: [0.95, 0.55, 0.0], // orange
+  4: [0.55, 0.1, 0.75], // purple
+  5: [0.0, 0.65, 0.65], // teal
+  6: [0.9, 0.15, 0.55], // magenta
+  7: [0.45, 0.3, 0.1], // brown
+};
+
 async function samplePdf() {
   const doc = await PDFDocument.create();
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
-  const titles = [
-    'Quarterly Report',
-    'Invoice #1042',
-    'Project Brief',
-    'Meeting Notes',
-    'Appendix A',
-    'Contract',
-  ];
-  for (let i = 0; i < titles.length; i += 1) {
-    const p = doc.addPage([612, 792]);
-    p.drawText(titles[i], {
-      x: 56,
-      y: 712,
-      size: 26,
-      font: bold,
-      color: rgb(0.13, 0.12, 0.25),
-    });
-    for (let l = 0; l < 22; l += 1) {
-      const w = 360 + ((i * 7 + l * 13) % 130);
-      p.drawRectangle({
-        x: 56,
-        y: 672 - l * 26,
-        width: w,
-        height: 9,
-        color: rgb(0.86, 0.87, 0.91),
-      });
+  const pw = 612;
+  const ph = 792;
+  for (let n = 1; n <= 7; n += 1) {
+    const page = doc.addPage([pw, ph]);
+    const text = String(n);
+    const capHeight = (s) => bold.heightAtSize(s, { descender: false });
+    let size = 1000;
+    while (bold.widthOfTextAtSize(text, size) > pw * 0.8 || capHeight(size) > ph * 0.8) {
+      size -= 5;
     }
+    const w = bold.widthOfTextAtSize(text, size);
+    const h = capHeight(size);
+    const [r, g, b] = NUMBER_COLORS[n];
+    page.drawText(text, {
+      x: (pw - w) / 2,
+      y: (ph - h) / 2 + h * 0.06,
+      size,
+      font: bold,
+      color: rgb(r, g, b),
+    });
   }
   return [...(await doc.save())];
 }
@@ -249,21 +257,21 @@ async function dropPdf(name, bytes) {
 
 // 2) Load a PDF
 await caption('Drop in a PDF — it never leaves your device');
-await dropPdf('sample.pdf', await samplePdf());
+await dropPdf('sample-numbers-1-7.pdf', await samplePdf());
 await page.waitForSelector('.card .page-canvas');
 await pause(2200);
 
-// 3) Merge a second PDF (its blue pages land after the white ones)
+// 3) Merge a second PDF (its blue pages land after the numbered ones)
 await caption('Merging? Just drop in another PDF');
 await dropPdf('receipts.pdf', await secondPdf());
-await page.waitForFunction(() => document.querySelectorAll('.card').length === 9);
+await page.waitForFunction(() => document.querySelectorAll('.card').length === 10);
 await pause(2400);
 
 // 4) Rotate a page, then move it — the landscape blue card is easy to follow
-// as it travels. (Keyboard nudge: dnd-kit's PointerSensor hangs under
-// synthetic drags.)
+// as it travels among the numbered pages. (Keyboard nudge: dnd-kit's
+// PointerSensor hangs under synthetic drags.)
 await caption('Rotate a page — then move it where it belongs');
-await clickAt(page.locator('.card').nth(6));
+await clickAt(page.locator('.card').nth(7));
 await pause(400);
 await clickAt(page.locator('.toolbar').getByRole('button', { name: 'Rotate' }));
 await pause(1100);
@@ -272,12 +280,13 @@ await pause(800);
 await page.keyboard.press('ArrowLeft');
 await pause(1300);
 
-// 5) Multi-select + delete
+// 5) Multi-select + delete — numbers 6 and 7 visibly vanish (the rotated blue
+// page now sits at index 5, so the numerals are at 6 and 7).
 await caption('Pick a few pages — delete what you don’t need');
 const META = process.platform === 'darwin' ? 'Meta' : 'Control';
-await clickAt(page.locator('.card').nth(5)); // plain click resets the selection
+await clickAt(page.locator('.card').nth(6)); // plain click resets the selection
 await page.keyboard.down(META);
-await clickAt(page.locator('.card').nth(6));
+await clickAt(page.locator('.card').nth(7));
 await page.keyboard.up(META);
 await pause(400);
 await clickAt(page.locator('.toolbar').getByRole('button', { name: 'Delete' }));
@@ -363,8 +372,9 @@ const src =
       (a, b) => statSync(join(outDir, b)).size - statSync(join(outDir, a)).size,
     )[0],
   );
-const dest = join(outDir, 'pdf-mana-promo.webm');
+const dest = join(videoDir, 'pdf-mana-promo.webm');
 renameSync(src, dest);
+rmSync(outDir, { recursive: true, force: true });
 console.log(
   `promo video written to release/video/pdf-mana-promo.webm (${statSync(dest).size} bytes)`,
 );
