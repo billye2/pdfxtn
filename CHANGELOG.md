@@ -7,6 +7,14 @@ Versioning (since 1.2.1): each version component counts 0–9 and carries into
 the next, like an odometer — 1.2.9 → 1.3.0 → 1.3.1, … 1.9.9 → 2.0.0. Versions
 before 1.2.1 followed semver patch bumps (hence the jump from 1.0.20).
 
+## [1.2.9] — 2026-07-26
+
+### Changed
+
+- **Extension renamed in the store listing** — the manifest `name` is now
+  "PDF Mana: Crop, Rotate, Merge Pages" so the store title describes what the
+  extension does. Description and toolbar tooltip are unchanged.
+
 ## [1.2.8] — 2026-07-15
 
 ### Fixed
