@@ -78,4 +78,9 @@ If this policy changes, the updated version will be published here, with a new
 
 ## Contact
 
-Questions: open an issue at https://github.com/billye2/10block/issues
+Questions about 10block or this policy: open an issue at
+https://github.com/billye2/pdfxtn/issues
+
+That tracker belongs to another extension by the same developer and is monitored for
+10block as well, as 10block's own repository is not public. You can also use the
+"Contact the developer" link on the extension's Chrome Web Store listing.
